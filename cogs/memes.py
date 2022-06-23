@@ -8,17 +8,17 @@ class Memes(commands.Cog):
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
-    @commands.command(name="onlyfans")
-    async def onlyfans(self, ctx):
+    @commands.slash_command(name="onlyfans", description="Lewis' OnlyFans")
+    async def onlyfans(inter):
         """Lewis' Onlyfans"""
-        await ctx.send(
+        await inter.reply(
             "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg"
         )
 
-    @commands.command(
+    @commands.slash_command(
         name="meme", aliases=["dankmeme"], description="Random meme from r/memes"
     )
-    async def meme(self, ctx):
+    async def meme(inter):
         """Random meme from r/memes"""
         url = "https://api.reddit.com/r/memes/random"
         async with aiohttp.ClientSession() as session:
@@ -37,7 +37,7 @@ class Memes(commands.Cog):
                     text=f"{upvotes} Upvotes ",
                     icon_url="https://cdn.discordapp.com/attachments/925750381840064525/925755794669047899/PngItem_715538.png",
                 )
-                await ctx.send(embed=embed)
+                await inter.response.send_message(embed=embed)
 
 
 def setup(bot):
