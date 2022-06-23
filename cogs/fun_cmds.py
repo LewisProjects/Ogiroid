@@ -49,29 +49,29 @@ class Fun(commands.Cog):
             time.sleep(5)
             await e.delete()
 
-    @commands.command()
+    @commands.slash_command()
     @commands.cooldown(1, 2, commands.BucketType.user)
-    async def joke(self, ctx):
+    async def joke(inter):
         """Get a random joke!"""
         response = requests.get("https://some-random-api.ml/joke")
         data = response.json()
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
-            text=f"Command issued by: {ctx.message.author.name}",
-            icon_url=ctx.message.author.avatar,
+            text=f"Command issued by: {inter.author.name}",
+            icon_url=inter.message.author.avatar,
         )
         await ctx.send(embed=embed)
 
-    @commands.command(
+    @commands.slash_command(
         name="trigger",
         brief="Trigger",
         description="For when you're feeling triggered.",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def triggered(self, ctx, member: disnake.Member = None):
+    async def triggered(inter, member: disnake.Member = None):
         """Time to get triggered."""
         if not member:
-            member = ctx.author
+            member = inter.author
         async with aiohttp.ClientSession() as trigSession:
             async with trigSession.get(
                 f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}"
@@ -79,17 +79,17 @@ class Fun(commands.Cog):
                 imageData = io.BytesIO(await trigImg.read())
                 await ctx.reply(file=disnake.File(imageData, "triggered.gif"))
 
-    @commands.command(
+    @commands.slash_command(
         name="sus",
         brief="Sus-Inator4200",
         description="Check if your friend is kinda ***SUS***",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def amongus(self, ctx, member: disnake.Member = None):
+    async def amongus(inter, member: disnake.Member = None):
         """Check if your friends are sus or not"""
-        await ctx.send("Testing for sus-ness...")
+        await inter.send("Testing for sus-ness...")
         if not member:
-            member = ctx.author
+            member = inter.author
         impostor = random.choice(["true", "false"])
         apikey = "rwaNgpkDJnwUuJhSZpJnavpFx"
         async with aiohttp.ClientSession() as session:
@@ -98,58 +98,56 @@ class Fun(commands.Cog):
             ) as resp:
                 if 300 > resp.status >= 200:
                     fp = io.BytesIO(await resp.read())
-                    await ctx.reply(file=disnake.File(fp, "amogus.gif"))
+                    await inter.reply(file=disnake.File(fp, "amogus.gif"))
                 else:
-                    await ctx.reply("Couldnt get image :(")
+                    await inter.reply("Couldnt get image :(")
                 await session.close()
 
-    @commands.command(
+    @commands.slash_command(
         name="invert", brief="invert", description="Invert the colours of your icon"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def invert(self, ctx, member: disnake.Member = None):
+    async def invert(inter, member: disnake.Member = None):
         """Invert your profile picture."""
         if not member:
-            member = ctx.author
+            member = inter.author
         async with aiohttp.ClientSession() as trigSession:
             async with trigSession.get(
                 f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await ctx.reply(file=disnake.File(imageData, "invert.png"))
+                await inter.reply(file=disnake.File(imageData, "invert.png"))
 
-    @commands.command(
+    @commands.slash_command(
         name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pixelate(self, ctx, member: disnake.Member = None):
+    async def pixelate(inter, member: disnake.Member = None):
         """Turn yourself into pixels"""
         if not member:
-            member = ctx.author
+            member = inter.author
         async with aiohttp.ClientSession() as trigSession:
             async with trigSession.get(
                 f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await ctx.reply(file=disnake.File(imageData, "pixelate.png"))
+                await inter.reply(file=disnake.File(imageData, "pixelate.png"))
 
-    @commands.command(name="jail", brief="jail", description="Go to jail!")
+    @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jail(self, ctx, member: disnake.Member = None):
+    async def jail(inter, member: disnake.Member = None):
         """Go to horny jail"""
         if not member:
-            member = ctx.author
+            member = inter.author
         async with aiohttp.ClientSession() as trigSession:
             async with trigSession.get(
                 f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await ctx.reply(file=disnake.File(imageData, "jail.png"))
+                await inter.reply(file=disnake.File(imageData, "jail.png"))
 
     @commands.command()  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
-    async def beer(
-        self, ctx, user: disnake.Member = None, *, reason: commands.clean_content = ""
-    ):
+    async def beer(self, ctx, user: disnake.Member = None, *, reason):
         """Give someone a beer! 🍻"""
         if not user or user.id == ctx.author.id:
             return await ctx.send(f"**{ctx.author.name}**: paaaarty!🎉🍺")
@@ -189,7 +187,7 @@ class Fun(commands.Cog):
             )
             await msg.edit(content=beer_offer)
 
-    @commands.command(
+    @commands.slash_command(
         aliases=["slots", "bet"]
     )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def slot(self, ctx):
@@ -205,11 +203,11 @@ class Fun(commands.Cog):
         else:
             await ctx.send(f"{slotmachine} No match, you lost 😢")
 
-    @commands.command(
+    @commands.slash_command(
         name="8ball", brief="8ball", description="Ask the magic 8ball a question"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def eightball(self, ctx, *, question):
+    async def eightball(inter, *, question):
         """Ask the magic 8ball a question"""
         responses = [
             "It is certain.",
@@ -233,7 +231,9 @@ class Fun(commands.Cog):
             "Outlook not so good.",
             "Very doubtful.",
         ]
-        await ctx.send(f"Question: {question}\nAnswer: **{random.choice(responses)}**")
+        await inter.reply(
+            f"Question: {question}\nAnswer: **{random.choice(responses)}**"
+        )
 
 
 def setup(bot):
