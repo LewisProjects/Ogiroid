@@ -50,7 +50,7 @@ class CodeExec(Cog):
 
         await ctx.reply(embed=embed)
 
-    @command(
+    @commands.command(
         name="code",
         description="Run code and get results instantly **Note**: You must use codeblocks around the code",
         aliases=["runcode"],
