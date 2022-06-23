@@ -1,0 +1,6 @@
+aiohttp==3.8.1
+aiosqlite==0.17.0
+discord_together==1.2.5
+disnake==2.5.1
+requests==2.28.0
+setuptools==58.1.0
