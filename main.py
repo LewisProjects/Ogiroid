@@ -46,7 +46,10 @@ async def get_prefix(bot, message):
 
 
 client = OGIROID(
-    command_prefix=get_prefix, intents=disnake.Intents.all(), help_command=None
+    command_prefix=get_prefix,
+    intents=disnake.Intents.all(),
+    help_command=None,
+    sync_commands_debug=True,
 )
 
 """
