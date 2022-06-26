@@ -98,7 +98,7 @@ class Log(Cog):
                 embed.add_field(name=name, value=value, inline=inline)
             embed.set_footer(
                 text=f"{after.name}#{after.discriminator}",
-                icon_url=after.author.avatar.url,
+                icon_url=after.avatar.url,
             )
             await log_channel.send(embed=embed)
 
