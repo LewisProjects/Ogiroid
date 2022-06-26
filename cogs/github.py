@@ -2,13 +2,14 @@ import string
 from disnake.ext import commands
 import disnake
 import requests
-from prettytable import PrettyTable
 
 
 class GitHub(commands.Cog):
+    """Commands involving GitHub! :)"""
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
+    
     #Command to get information about a GitHub user
     @commands.command(aliases=["githubperson","ghp"])
     async def ghperson(self, ctx):
@@ -43,7 +44,7 @@ class GitHub(commands.Cog):
         embed.add_field(name="Stars ⭐:", value=f"{repo['stargazers_count']}", inline=True)
         embed.add_field(name="Forks 🍴:", value=f"{repo['forks_count']}", inline=True)
         embed.add_field(name="Language 💻:", value=f"{repo['language']}", inline=True)
-        embed.add_field(name="License name 📃:", value=f"{repo['license']['name']}", inline=True)
+        embed.add_field(name="License name 📃:", value=f"{repo['license']['spdx_id']}", inline=True)
         embed.add_field(name="URL 🔍:", value=f"[Click here!]({repo['html_url']})", inline=True)
         await ctx.send(embed=embed)
 
