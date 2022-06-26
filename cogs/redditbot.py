@@ -1,0 +1,147 @@
+import email
+from disnake.ext import commands
+import disnake
+import time
+import requests
+
+# import speedtest
+
+#
+# Tag System Made by github.com/FreebieII
+#
+
+
+class redditbot(commands.Cog):
+    """All the Reddit Bot related commands!\n\n"""
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @property
+    def db(self):
+        return self.bot.db
+
+    @commands.command(name="maketag", usage="!!maketag [name] [content]")
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def make_tag(self, ctx, name, *, content=None):
+        """Makes a new tag"""
+        if content is None:
+            await ctx.send("What should the content be? `!!t tag_name tag_content`")
+            return
+        await self.db.execute(
+            "INSERT INTO tags (tag_id, content) VALUES (?, ?)", [name, content]
+        )
+        await self.db.commit()
+        await ctx.reply(
+            f"I have successfully made **{name}**. To view it do !!tag {name}"
+        )
+
+    """
+    @commands.command(name="speedtest")
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def speed(self,ctx):
+        speed = speedtest.Speedtest()
+        download_speed = speed.download()
+        upload_speed = speed.upload()
+        await ctx.send(f"Download speed: {download_speed} Mbps\nUpload speed: {upload_speed} Mbps")
+"""
+
+    @commands.command(name="edittag", usage="!!edittag [name] [new_content]")
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def edittag(self, ctx, name, *, new_content=None):
+        """Edit a tag"""
+        #     if new_content or name is None:
+        #        await ctx.send("Correct usage: `!!edittag tag_name new_tag_content`")
+        #         return
+
+        await self.db.execute(
+            "UPDATE tags SET content = ? WHERE tag_id = ?", [new_content, name]
+        )
+        await self.db.commit()
+        await ctx.reply(
+            f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__"
+        )
+
+    @commands.command(name="deltag", usage="!!deltag [name]")
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def deltag(self, ctx, name):
+        """Delete a tag"""
+        if name is None:
+            await ctx.send("Please tell me which tag to delete! `!!deltag tag_name`")
+            return
+
+        await self.db.execute("DELETE FROM tags WHERE tag_id = ?", [name])
+        await self.db.commit()
+        await ctx.reply(f"I have successfully deleted **{name}**.")
+
+    @commands.command(name="tag", aliases=["t"])
+    @commands.guild_only()
+    async def tag(self, ctx, name=None):
+
+        if name is None:
+            await ctx.send(
+                "Which tag do you want to use? You can use `!!tags` to see all available tags!"
+            )
+            return
+
+        async with self.db.execute(
+            "SELECT content FROM tags WHERE tag_id = ? LIMIT 20", [name]
+        ) as cur:
+            async for row in cur:
+                await ctx.send(f"{row[0]}")
+
+    @commands.command(name="taglist", aliases=["tags"])
+    @commands.guild_only()
+    async def list_tags(self, ctx):
+        embed = disnake.Embed(
+            title="\n",
+            description="Tagging system made by [FreebieII](https://github.com/FreebieII)",
+            color=0x53E7CE,
+        )
+        embed.set_footer(
+            text="Reddit Help Bot",
+            icon_url="https://64.media.tumblr.com/0f377879537d8206fcf018a01cd395fa/tumblr_pdcvzmjvvm1qeyvpto1_500.gif",
+        )
+        # embed.set_thumbnail(url="https://i.gifer.com/4EfW.gif")
+        async with self.db.execute("SELECT * FROM tags LIMIT 20") as cur:
+            async for tags in cur:
+                embed.add_field(
+                    name="Showing all available tags", value=f" `{tags[0]}`"
+                )
+        await ctx.send(embed=embed)
+
+    @commands.command(name="taghelp", aliases=["thelp"])
+    @commands.guild_only()
+    async def tag_help(self, ctx):
+        await ctx.send(
+            "```\n!!tag [name] - Prints out the message for the given tag (or !!t [name])\n!!maketag [name] [content...] - Creates a new tag\n!!deltag [name] - Deletes an existing tag\n!!edittag [name] [new_contant...] - Edits and existing tag\n!!taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
+        )
+
+
+    #Get Information Related to the GitHub of the Bot
+    @commands.command(name="rbgithub", aliases=["redditgithub","redditbotgithub"])
+    @commands.guild_only()
+    async def rbgithub(self, ctx):
+        url = requests.get("https://api.github.com/repos/elebumm/RedditVideoMakerBot")
+        json = url.json()
+        dtformat = '%m/%D/%Y %H:%M:%S'
+        if url.status_code == 200:
+            #Creat an embed with the information: Name, Description, URL, Stars, Gazers, Forks, Last Updated
+            embed = disnake.Embed(title=f"{json['name']} information", description=f"{json['description']}", color=0xFFFFFF)
+            embed.set_thumbnail(url=f"{json['owner']['avatar_url']}")
+            embed.add_field(name="GitHub Link: ", value=f"**[Link to the Reddit Bot]({json['html_url']})**", inline=True)
+            embed.add_field(name="Stars <:starr:990647250847940668>: ", value=f"{json['stargazers_count']}", inline=True)
+            embed.add_field(name="Gazers <:gheye:990645707427950593>: ", value=f"{json['subscribers_count']}", inline=True)
+            embed.add_field(name="Forks <:fork:990644980773187584>: ", value=f"{json['forks_count']}", inline=True)
+            embed.add_field(name="Open Issues <:issue:990645996918808636>: ", value=f"{json['open_issues_count']}", inline=True)
+            embed.add_field(name="License <:license:990646337118818404>: ", value=f"{json['license']['spdx_id']}", inline=True)
+            embed.add_field(name="Clone Command <:clone:990646924640153640>: ", value=f"```git clone {json['clone_url']}```", inline=False)
+            await ctx.send(embed=embed)
+
+
+def setup(bot):
+    bot.add_cog(redditbot(bot))
