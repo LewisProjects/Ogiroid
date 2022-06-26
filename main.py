@@ -4,6 +4,7 @@ import aiosqlite
 import os
 from disnake.ext.commands import when_mentioned_or
 
+
 GUILD_ID = 985234686878023730  # 897666935708352582
 BUG_CHAN = 985554459948122142  # 982669110926250004
 SUGG_CHAN = 985554479405490216  # 982353129913851924
@@ -58,6 +59,7 @@ async def on_command_error(ctx, error):
 	if isinstance(error, commands.CommandOnCooldown):
 		await ctx.send(f"**Slow down there!** \n{round(error.retry_after, 2)} seconds left.")
 """
+
 
 
 def main():
