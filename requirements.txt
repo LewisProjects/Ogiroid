@@ -3,4 +3,4 @@ aiosqlite==0.17.0
 akinator.py==5.0.0
 discord_together==1.2.5
 disnake==2.5.1
-requests==2.28.0
+requests==2.27.1
