@@ -8,12 +8,11 @@ from disnake.ext.commands import command
 class Log(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.logid = 988162723890217040
+        self.logid = 977581277010100315
 
     @Cog.listener()
     async def on_user_update(self, before, after):
         log_channel = self.bot.get_channel(self.logid)
-        # print(log_channel)
         if before.name != after.name:
             embed = Embed(
                 title="Username change",
@@ -98,7 +97,7 @@ class Log(Cog):
                 embed.add_field(name=name, value=value, inline=inline)
             embed.set_footer(
                 text=f"{after.name}#{after.discriminator}",
-                icon_url=after.avatar.url,
+                icon_url=after.author.avatar.url,
             )
             await log_channel.send(embed=embed)
 
