@@ -97,6 +97,6 @@ class Commands(commands.Cog):
 
         await inter.response.send_message(embed=embed)
 
-
+        
 def setup(bot):
     bot.add_cog(Commands(bot))
