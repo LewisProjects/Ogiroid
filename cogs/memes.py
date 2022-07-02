@@ -39,6 +39,29 @@ class Memes(commands.Cog):
                 )
                 await inter.response.send_message(embed=embed)
 
+    @commands.slash_command(
+        name="programmerhumor", aliases=["progmeme","programmermeme","memeprogrammer"], description="Random meme from r/programmerhumor"
+    )
+    async def programmerhumor(inter):
+        """Random meme from r/memes"""
+        url = "https://api.reddit.com/r/ProgrammerHumor/random"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                r = await response.json()
+                upvotes = r[0]["data"]["children"][0]["data"]["ups"]
+                embed = disnake.Embed(
+                    title=f'{r[0]["data"]["children"][0]["data"]["title"]}',
+                    description=f'{r[0]["data"]["children"][0]["data"]["selftext"]}',
+                    colour=0x00B8FF,
+                    timestamp=datetime.utcnow(),
+                    url=f"https://www.reddit.com/%7Br[0][%22data%22][%22children%22][0][%22data%22][%22permalink%22]%7D%27",
+                )
+                embed.set_image(url=r[0]["data"]["children"][0]["data"]["url"])
+                embed.set_footer(
+                    text=f"{upvotes} Upvotes ",
+                    icon_url="https://cdn.discordapp.com/attachments/925750381840064525/925755794669047899/PngItem_715538.png",
+                )
+                await inter.response.send_message(embed=embed)
 
 def setup(bot):
     bot.add_cog(Memes(bot))
