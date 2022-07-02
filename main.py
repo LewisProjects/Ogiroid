@@ -51,6 +51,7 @@ client = OGIROID(
     intents=disnake.Intents.all(),
     help_command=None,
     sync_commands_debug=True,
+    case_insensitive=True,
 )
 
 """
@@ -70,7 +71,7 @@ def main():
     #    "ODYyMzU5NDIyNTY3NTc5NzA4.GUc6gD.gRe0vE8eL0UqzF_wTuQ80oAoFm7aZf1ilqfWY0"
     # )  # MESSING AROUNDS TOKEN
     client.run(
-        "OTg0ODAyMDA4NDAzOTU5ODc5.GR1i_b.zc0G9MjPwXA8wcvf7rAx3OJpwvpOmZSKSnqh50"
+        "OTg0ODAyMDA4NDAzOTU5ODc5.Gc9c9z.4lcYtBNVH7ZmJBAN7-vZ3F0mnMp6fNGShOj6gk"
     )  # OGIROIDS TOKEN
 
 
