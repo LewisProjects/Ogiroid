@@ -244,8 +244,8 @@ class Fun(commands.Cog):
                                 color=0xFFFFFF)
             intro.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
             intro.set_footer(text="Think about a real or fictional character. I will try to guess who it is")
-            bye = disnake.Embed(title="Akinator", description="Bye, " + ctx.author.mention, color=0xFFFFFF)
-            bye.set_footer(text="Akinator left the chat!!")
+            bye = disnake.Embed(title="Ogiroid", description="Bye, " + ctx.author.mention, color=0xFFFFFF)
+            bye.set_footer(text="Ogiroid left the chat!")
             bye.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
             await ctx.send(embed=intro)
 
