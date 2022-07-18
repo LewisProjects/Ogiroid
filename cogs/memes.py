@@ -11,7 +11,7 @@ class Memes(commands.Cog):
     @commands.slash_command(name="onlyfans", description="Lewis' OnlyFans")
     async def onlyfans(inter):
         """Lewis' Onlyfans"""
-        await inter.reply(
+        await inter.send(
             "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg"
         )
 

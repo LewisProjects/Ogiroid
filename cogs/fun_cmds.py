@@ -79,7 +79,7 @@ class Fun(commands.Cog):
                 f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await inter.reply(file=disnake.File(imageData, "triggered.gif"))
+                await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
     @commands.slash_command(
         name="sus",
@@ -100,9 +100,9 @@ class Fun(commands.Cog):
             ) as resp:
                 if 300 > resp.status >= 200:
                     fp = io.BytesIO(await resp.read())
-                    await inter.reply(file=disnake.File(fp, "amogus.gif"))
+                    await inter.send(file=disnake.File(fp, "amogus.gif"))
                 else:
-                    await inter.reply("Couldnt get image :(")
+                    await inter.send("Couldnt get image :(")
                 await session.close()
 
     @commands.slash_command(
@@ -118,7 +118,7 @@ class Fun(commands.Cog):
                 f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await inter.reply(file=disnake.File(imageData, "invert.png"))
+                await inter.send(file=disnake.File(imageData, "invert.png"))
 
     @commands.slash_command(
         name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
@@ -133,7 +133,7 @@ class Fun(commands.Cog):
                 f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await inter.reply(file=disnake.File(imageData, "pixelate.png"))
+                await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
     @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -146,7 +146,7 @@ class Fun(commands.Cog):
                 f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}"
             ) as trigImg:
                 imageData = io.BytesIO(await trigImg.read())
-                await inter.reply(file=disnake.File(imageData, "jail.png"))
+                await inter.send(file=disnake.File(imageData, "jail.png"))
 
     @commands.command()  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def beer(self, ctx, user: disnake.Member = None, *, reason):
@@ -233,7 +233,7 @@ class Fun(commands.Cog):
             "Outlook not so good.",
             "Very doubtful.",
         ]
-        await inter.reply(
+        await inter.send(
             f"Question: {question}\nAnswer: **{random.choice(responses)}**"
         )
 
