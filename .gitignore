@@ -17,5 +17,3 @@ docs/crowdin.py
 /.coverage
 build/*
 *.db
-.idea
-.env

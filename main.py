@@ -3,12 +3,8 @@ from disnake.ext import commands
 import aiosqlite
 import os
 from disnake.ext.commands import when_mentioned_or
-from dotenv import load_dotenv
 
 
-load_dotenv("secrets.env")
-
-TOKEN = os.getenv("TOKEN")
 GUILD_ID = 985234686878023730  # 897666935708352582
 BUG_CHAN = 985554459948122142  # 982669110926250004
 SUGG_CHAN = 985554479405490216  # 982353129913851924
@@ -61,16 +57,20 @@ client = OGIROID(
 """
 @client.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"**Slow down there!** \n{round(error.retry_after, 2)} seconds left.")
+	if isinstance(error, commands.CommandOnCooldown):
+		await ctx.send(f"**Slow down there!** \n{round(error.retry_after, 2)} seconds left.")
 """
+
 
 
 def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-    client.run(TOKEN)  # MESSING AROUNDS TOKEN
+     client.run(
+        "ODYyMzU5NDIyNTY3NTc5NzA4.GUc6gD.gRe0vE8eL0UqzF_wTuQ80oAoFm7aZf1ilqfWY0"
+     )  # MESSING AROUNDS TOKEN
+
 
 
 if __name__ == "__main__":
