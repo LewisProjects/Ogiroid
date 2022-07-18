@@ -67,12 +67,10 @@ def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-    # client.run(
-    #    "ODYyMzU5NDIyNTY3NTc5NzA4.GUc6gD.gRe0vE8eL0UqzF_wTuQ80oAoFm7aZf1ilqfWY0"
-    # )  # MESSING AROUNDS TOKEN
-    client.run(
-        "OTg0ODAyMDA4NDAzOTU5ODc5.Gc9c9z.4lcYtBNVH7ZmJBAN7-vZ3F0mnMp6fNGShOj6gk"
-    )  # OGIROIDS TOKEN
+     client.run(
+        "ODYyMzU5NDIyNTY3NTc5NzA4.GUc6gD.gRe0vE8eL0UqzF_wTuQ80oAoFm7aZf1ilqfWY0"
+     )  # MESSING AROUNDS TOKEN
+
 
 
 if __name__ == "__main__":
