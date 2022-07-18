@@ -24,13 +24,14 @@ class Memes(commands.Cog):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 r = await response.json()
+                print(r)
                 upvotes = r[0]["data"]["children"][0]["data"]["ups"]
                 embed = disnake.Embed(
                     title=f'{r[0]["data"]["children"][0]["data"]["title"]}',
                     description=f'{r[0]["data"]["children"][0]["data"]["selftext"]}',
                     colour=0x00B8FF,
                     timestamp=datetime.utcnow(),
-                    url=f"https://www.reddit.com/%7Br[0][%22data%22][%22children%22][0][%22data%22][%22permalink%22]%7D%27",
+                    url=f"https://www.reddit.com{r[0]['data']['children'][0]['data']['permalink']}",
                 )
                 embed.set_image(url=r[0]["data"]["children"][0]["data"]["url"])
                 embed.set_footer(
@@ -54,7 +55,7 @@ class Memes(commands.Cog):
                     description=f'{r[0]["data"]["children"][0]["data"]["selftext"]}',
                     colour=0x00B8FF,
                     timestamp=datetime.utcnow(),
-                    url=f"https://www.reddit.com/%7Br[0][%22data%22][%22children%22][0][%22data%22][%22permalink%22]%7D%27",
+                    url=f"https://www.reddit.com{r[0]['data']['children'][0]['data']['permalink']}",
                 )
                 embed.set_image(url=r[0]["data"]["children"][0]["data"]["url"])
                 embed.set_footer(
