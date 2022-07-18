@@ -24,7 +24,6 @@ class Memes(commands.Cog):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 r = await response.json()
-                print(r)
                 upvotes = r[0]["data"]["children"][0]["data"]["ups"]
                 embed = disnake.Embed(
                     title=f'{r[0]["data"]["children"][0]["data"]["title"]}',
