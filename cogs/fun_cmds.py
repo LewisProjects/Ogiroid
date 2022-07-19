@@ -13,6 +13,11 @@ import asyncio
 import akinator as ak
 import time
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+load_dotenv("../secrets.env")
+TOKEN = os.getenv("TOKEN")
 
 
 class Fun(commands.Cog):
@@ -23,9 +28,7 @@ class Fun(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.togetherControl = await DiscordTogether(
-            "OTg0ODAyMDA4NDAzOTU5ODc5.GR1i_b.zc0G9MjPwXA8wcvf7rAx3OJpwvpOmZSKSnqh50"
-        )
+        self.togetherControl = await DiscordTogether(TOKEN)
 
     @commands.command()
     async def youtube(self, ctx):
