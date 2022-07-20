@@ -310,7 +310,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
     @commands.cooldown(1, 1, commands.BucketType.user)
-    async def jail(self, inter):
+    async def bored(self, inter):
         """Returns an activity"""
         async with aiohttp.ClientSession() as activitySession:
             async with activitySession.get(
