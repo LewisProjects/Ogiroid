@@ -27,7 +27,7 @@ class HelpCommand(commands.HelpCommand):
         embed.set_author(
             name="Ogiroid's help menu!",
             url="https://freebie.codes",
-            icon_url="https://pbs.twimg.com/profile_images/1519398238507474945/Q2vYkWEP_400x400.jpg",
+            icon_url="https://cdn.discordapp.com/avatars/984802008403959879/7016c34bd6bce62f9b0f2534f8918c49.png?size=1024",
         )
         description = self.context.bot.description
         if description:
