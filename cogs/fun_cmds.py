@@ -308,6 +308,17 @@ class Fun(commands.Cog):
             except Exception as e:
                 await ctx.send(e)
 
+    @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def jail(self, inter):
+        """Returns an activity"""
+        async with aiohttp.ClientSession() as activitySession:
+            async with activitySession.get(
+                    f"http://boredapi.com/api/activity", ssl=False
+            ) as activityData:
+                activity = await activityData.json()
+                await inter.send(activity["activity"])
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
