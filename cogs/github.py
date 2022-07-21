@@ -10,9 +10,9 @@ class GitHub(commands.Cog):
         self.bot = bot
 
     #Command to get information about a GitHub user
-    @commands.command(aliases=["githubperson","ghp"])
-    async def ghperson(self, ctx):
-        person = requests.get(f"https://api.github.com/users/{ctx.message.content.split(' ')[1]}")
+    @commands.slash_command(name="ghperson", description="Gets the Profile of the github person.")
+    async def ghperson(self, ctx, ghuser: str):
+        person = requests.get(f"https://api.github.com/users/{ghuser}")
         if person.status_code == 200:
             #Returning an Embed containing all the information:
             embed = disnake.Embed(title=f"GitHub Profile: {person.json()['login']}", description=f"**Bio:** {person.json()['bio']}", color=0xFFFFFF)
@@ -29,9 +29,8 @@ class GitHub(commands.Cog):
             await ctx.send("User not found!")
 
     #Command to get search for GitHub repositories:
-    @commands.command(aliases=["ghsr","githubsearchrepository","githubsr"])
-    async def ghsearchrepo(self, ctx):
-        query = ctx.message.content.split(' ')[1]
+    @commands.slash_command(name="ghsearchrepo", description="Searches for the specified repo.")
+    async def ghsearchrepo(self, ctx, query: str):
         pages = 1
         url = f"https://api.github.com/search/repositories?q={query}&{pages}"
         repos = requests.get(url)

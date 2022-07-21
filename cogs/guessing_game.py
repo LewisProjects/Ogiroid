@@ -11,7 +11,7 @@ class Guessing_Game(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["163"])
+    @commands.slash_command(name="guess", description="I will magically guess your number.")
     @commands.guild_only()
     async def guess(self, ctx, *, answer=None):
         card1 = "https://cdn.discordapp.com/attachments/745162323953713223/937001823590576138/unknown.png"

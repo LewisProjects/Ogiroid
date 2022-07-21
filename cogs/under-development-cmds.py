@@ -1,8 +1,5 @@
-from code import interact
 from disnake.ext import commands
 import disnake
-import string
-import secrets
 
 
 class development_cmds(commands.Cog):
