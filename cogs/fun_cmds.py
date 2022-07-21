@@ -26,11 +26,11 @@ class Fun(commands.Cog):
     async def on_ready(self):
         self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.command()
+    @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
     async def youtube(self, ctx):
         """Watch YouTube in a Discord VC with your friends"""
-        if ctx.message.author.voice:
-            chan = ctx.message.author.voice.channel.id
+        if ctx.author.voice:
+            chan = ctx.author.voice.channel.id
             link = await self.togetherControl.create_link(chan, "youtube")
             embed = disnake.Embed(
                 title="YouTube",
@@ -39,8 +39,8 @@ class Fun(commands.Cog):
                 timestamp=datetime.utcnow(),
             )
             embed.set_footer(
-                text=f"Command issued by: {ctx.message.author.name}",
-                icon_url=ctx.message.author.avatar,
+                text=f"Command issued by: {ctx.author.name}",
+                icon_url=ctx.author.avatar,
             )
             await ctx.send(embed=embed)
         else:
@@ -147,7 +147,7 @@ class Fun(commands.Cog):
                 imageData = io.BytesIO(await trigImg.read())
                 await inter.send(file=disnake.File(imageData, "jail.png"))
 
-    @commands.command()  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
+    @commands.slash_command(name="beer", description="Give someone a beer! 🍻")  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def beer(self, ctx, user: disnake.Member = None, *, reason):
         """Give someone a beer! 🍻"""
         if not user or user.id == ctx.author.id:
@@ -236,9 +236,10 @@ class Fun(commands.Cog):
             f"Question: {question}\nAnswer: **{random.choice(responses)}**"
         )
 
-    @commands.command(aliases=["askogi"]) #Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
+    @commands.slash_command(name="askogiroid", description="Ogiroid will guess the character you are thinking off.")
+    #Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
     async def askogiroid(self, ctx):
-        async with ctx.typing():
+        async with ctx.author.typing():
             intro = disnake.Embed(title="Ogiroid", description=f"Hello {ctx.author.mention}!",
                                 color=0xFFFFFF)
             intro.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
