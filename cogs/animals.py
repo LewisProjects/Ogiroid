@@ -6,8 +6,13 @@ import requests
 class Animals(commands.Cog):
     """Animals related commands!"""
 
-    @commands.slash_command(name="cat", description="Get a random cat picture")
+    @commands.slash_command(description="Get a random animal picture")
     @commands.cooldown(1, 3, commands.BucketType.user)
+    async def animal(self, inter):
+        pass
+
+
+    @animal.sub_command(name="cat", description="Get a random cat picture")
     async def cat(inter):
         """Get a random cat picture!"""
         response = requests.get("https://some-random-api.ml/animal/cat")
@@ -23,8 +28,7 @@ class Animals(commands.Cog):
         )
         await inter.response.send_message(f"**Fun Fact: **" + data["fact"], embed=embed)
 
-    @commands.slash_command(name="dog", description="Get a random dog picture")
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @animal.sub_command(name="dog", description="Get a random dog picture")
     async def dog(inter):
         """Get a random dog picture!"""
         response = requests.get("https://some-random-api.ml/animal/dog")
@@ -40,8 +44,7 @@ class Animals(commands.Cog):
         )
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
-    @commands.slash_command(name="bird", description="Get a random bird picture")
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @animal.sub_command(name="bird", description="Get a random bird picture")
     async def bird(inter):
         """Get a random bird picture!"""
         response = requests.get("https://some-random-api.ml/animal/bird")
@@ -57,8 +60,7 @@ class Animals(commands.Cog):
         )
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
-    @commands.slash_command(name="fox", description="Get a random fox picture")
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @animal.sub_command(name="fox", description="Get a random fox picture")
     async def fox(inter):
         """Get a random fox picture!"""
         response = requests.get("https://some-random-api.ml/animal/fox")
@@ -74,8 +76,7 @@ class Animals(commands.Cog):
         )
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
-    @commands.slash_command(name="panda", description="Get a random panda picture")
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @animal.sub_command(name="panda", description="Get a random panda picture")
     async def panda(inter):
         """Get a random panda picture!"""
         response = requests.get("https://some-random-api.ml/animal/panda")
@@ -91,8 +92,7 @@ class Animals(commands.Cog):
         )
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
-    @commands.slash_command(name="koala", description="Get a random cat picture")
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @animal.sub_command(name="koala", description="Get a random cat picture")
     async def koala(inter):
         """Get a random koala picture!"""
         response = requests.get("https://some-random-api.ml/animal/koala")

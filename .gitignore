@@ -19,4 +19,4 @@ build/*
 *.db
 .idea
 .env
-/secrets.env
+*.env
