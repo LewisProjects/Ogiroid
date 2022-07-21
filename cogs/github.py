@@ -19,7 +19,8 @@ class GitHub(commands.Cog):
             embed = disnake.Embed(title=f"GitHub Profile: {person.json()['login']}", description=f"**Bio:** {person.json()['bio']}", color=0xFFFFFF)
             embed.set_thumbnail(url=f"{person.json()['avatar_url']}")
             embed.add_field(name="Username 📛: ", value=f"__[{person.json()['name']}]({person.json()['html_url']})__", inline=True)
-            embed.add_field(name="Email ✉: ", value=f"{person.json()['email']}", inline=True)
+            # embed.add_field(name="Email ✉: ", value=f"{person.json()['email']}", inline=True) Commented due to github not responding with the correct email
+            embed.add_field(name="Repos 📁: ", value=f"{person.json()['public_repos']}", inline=True)
             embed.add_field(name="Location 📍: ", value=f"{person.json()['location']}", inline=True)
             embed.add_field(name="Company 🏢: ", value=f"{person.json()['company']}", inline=True)
             embed.add_field(name="Followers 👥: ", value=f"{person.json()['followers']}", inline=True)
