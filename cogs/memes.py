@@ -5,11 +5,12 @@ import aiohttp
 
 
 class Memes(commands.Cog):
+    """Meme Commands"""
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
     @commands.slash_command(name="onlyfans", description="Lewis' OnlyFans")
-    async def onlyfans(inter):
+    async def onlyfans(self, inter):
         """Lewis' Onlyfans"""
         await inter.send(
             "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg"
@@ -18,7 +19,7 @@ class Memes(commands.Cog):
     @commands.slash_command(
         name="meme", aliases=["dankmeme"], description="Random meme from r/memes"
     )
-    async def meme(inter):
+    async def meme(self, inter):
         """Random meme from r/memes"""
         url = "https://api.reddit.com/r/memes/random"
         async with aiohttp.ClientSession() as session:
@@ -42,8 +43,8 @@ class Memes(commands.Cog):
     @commands.slash_command(
         name="programmerhumor", aliases=["progmeme","programmermeme","memeprogrammer"], description="Random meme from r/programmerhumor"
     )
-    async def programmerhumor(inter):
-        """Random meme from r/memes"""
+    async def programmerhumor(self, inter):
+        """Random meme from r/programmerhumor"""
         url = "https://api.reddit.com/r/ProgrammerHumor/random"
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
@@ -62,6 +63,7 @@ class Memes(commands.Cog):
                     icon_url="https://cdn.discordapp.com/attachments/925750381840064525/925755794669047899/PngItem_715538.png",
                 )
                 await inter.response.send_message(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Memes(bot))

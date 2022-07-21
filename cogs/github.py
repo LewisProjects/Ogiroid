@@ -9,7 +9,6 @@ class GitHub(commands.Cog):
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
-    
     #Command to get information about a GitHub user
     @commands.command(aliases=["githubperson","ghp"])
     async def ghperson(self, ctx):
@@ -48,6 +47,7 @@ class GitHub(commands.Cog):
         embed.add_field(name="License name 📃:", value=f"{repo['license']['spdx_id']}", inline=True)
         embed.add_field(name="URL 🔍:", value=f"[Click here!]({repo['html_url']})", inline=True)
         await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(GitHub(bot))

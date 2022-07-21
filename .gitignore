@@ -20,3 +20,4 @@ build/*
 .idea
 .env
 *.env
+__pycache__/

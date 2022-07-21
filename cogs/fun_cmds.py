@@ -1,12 +1,8 @@
-from http import client
-from shutil import disk_usage
-from sqlite3 import Timestamp
 from disnake.ext import commands
 import disnake
 import random
 import requests
 from discord_together import DiscordTogether
-from aiohttp import request
 import io
 import aiohttp
 import asyncio
@@ -56,7 +52,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command()
     @commands.cooldown(1, 2, commands.BucketType.user)
-    async def joke(inter):
+    async def joke(self, inter):
         """Get a random joke!"""
         response = requests.get("https://some-random-api.ml/joke")
         data = response.json()
@@ -73,7 +69,7 @@ class Fun(commands.Cog):
         description="For when you're feeling triggered.",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def triggered(inter, member: disnake.Member = None):
+    async def triggered(self, inter, member: disnake.Member = None):
         """Time to get triggered."""
         if not member:
             member = inter.author
@@ -90,7 +86,7 @@ class Fun(commands.Cog):
         description="Check if your friend is kinda ***SUS***",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def amongus(inter, member: disnake.Member = None):
+    async def amongus(self, inter, member: disnake.Member = None):
         """Check if your friends are sus or not"""
         await inter.send("Testing for sus-ness...")
         if not member:
@@ -112,7 +108,7 @@ class Fun(commands.Cog):
         name="invert", brief="invert", description="Invert the colours of your icon"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def invert(inter, member: disnake.Member = None):
+    async def invert(self, inter, member: disnake.Member = None):
         """Invert your profile picture."""
         if not member:
             member = inter.author
@@ -127,7 +123,7 @@ class Fun(commands.Cog):
         name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pixelate(inter, member: disnake.Member = None):
+    async def pixelate(self, inter, member: disnake.Member = None):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
@@ -140,7 +136,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jail(inter, member: disnake.Member = None):
+    async def jail(self, inter, member: disnake.Member = None):
         """Go to horny jail"""
         if not member:
             member = inter.author
@@ -212,7 +208,7 @@ class Fun(commands.Cog):
         name="8ball", brief="8ball", description="Ask the magic 8ball a question"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def eightball(inter, *, question):
+    async def eightball(self, inter, *, question):
         """Ask the magic 8ball a question"""
         responses = [
             "It is certain.",
@@ -311,6 +307,18 @@ class Fun(commands.Cog):
                 await ctx.send(embed=bye)
             except Exception as e:
                 await ctx.send(e)
+
+    @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
+    @commands.cooldown(1, 1, commands.BucketType.user)
+    async def bored(self, inter):
+        """Returns an activity"""
+        async with aiohttp.ClientSession() as activitySession:
+            async with activitySession.get(
+                    f"http://boredapi.com/api/activity", ssl=False
+            ) as activityData:
+                activity = await activityData.json()
+                await inter.send(activity["activity"])
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
