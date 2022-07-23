@@ -6,7 +6,7 @@ import requests
 class Animals(commands.Cog):
     """Animals related commands!"""
 
-    @commands.slash_command(description="Get a random animal picture")
+    @commands.slash_command(description="Gets a random picture of the specified animal")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def animal(self, inter):
         pass
