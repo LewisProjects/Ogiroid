@@ -4,7 +4,7 @@ import time
 import asyncio
 
 
-class staff(commands.Cog):
+class Staff(commands.Cog):
     """Commands for the staff team!\n\n"""
 
     def __init__(self, bot):
@@ -28,4 +28,4 @@ class staff(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(staff(bot))
+    bot.add_cog(Staff(bot))

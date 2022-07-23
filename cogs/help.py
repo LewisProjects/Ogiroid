@@ -2,7 +2,7 @@ from disnake.ext import commands
 import disnake
 
 
-class HelpCommand(commands.Cog):
+class HelpCommand(commands.Cog, name="Help"):
     """Help Command"""
 
     def __init__(self, bot: commands.Bot):

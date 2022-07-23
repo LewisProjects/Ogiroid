@@ -11,7 +11,7 @@ import requests
 #
 
 
-class redditbot(commands.Cog):
+class RedditBot(commands.Cog, name="Reddit Bot"):
     """All the Reddit Bot related commands!\n\n"""
 
     def __init__(self, bot):
@@ -137,4 +137,4 @@ class redditbot(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(redditbot(bot))
+    bot.add_cog(RedditBot(bot))
