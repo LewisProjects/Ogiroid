@@ -78,7 +78,7 @@ class redditbot(commands.Cog):
 
         if name is None:
             await ctx.send(
-                "Which tag do you want to use? You can use `!!tags` to see all available tags!"
+                "Which tag do you want to use? You can use `/tags` to see all available tags!"
             )
             return
 
@@ -108,11 +108,11 @@ class redditbot(commands.Cog):
                 )
         await ctx.send(embed=embed)
 
-    @commands.slash_command(name="taghelp")
+    @commands.slash_command(name="taghelp", description="Help for the tag system")
     @commands.guild_only()
     async def tag_help(self, ctx):
         await ctx.send(
-            "```\n/tag [name] - Prints out the message for the given tag (or !!t [name])\n!!maketag [name] [content...] - Creates a new tag\n!!deltag [name] - Deletes an existing tag\n!!edittag [name] [new_contant...] - Edits and existing tag\n!!taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
+            "```\n/tag [name] - Prints out the message for the given tag (or /t [name])\n!!maketag [name] [content...] - Creates a new tag\n/deltag [name] - Deletes an existing tag\n/edittag [name] [new_contant...] - Edits and existing tag\n/taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
         )
 
     #Get Information Related to the GitHub of the Bot
