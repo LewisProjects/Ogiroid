@@ -7,7 +7,7 @@ import disnake
 #
 
 
-class Guessing_Game(commands.Cog):
+class GuessingGame(commands.Cog, name="Guessing Game"):
     def __init__(self, bot):
         self.bot = bot
 
@@ -174,4 +174,4 @@ class Guessing_Game(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Guessing_Game(bot))
+    bot.add_cog(GuessingGame(bot))

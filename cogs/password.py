@@ -1,11 +1,10 @@
-from code import interact
 from disnake.ext import commands
 import disnake
 import string
 import secrets
 
 
-class password(commands.Cog):
+class Password(commands.Cog):
     """Generates random password"""
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
@@ -13,7 +12,7 @@ class password(commands.Cog):
     @commands.slash_command(
         name="password", aliases=["pass"], description="Generate a random password & DM's it!"
     )
-    async def password(inter, length: int):
+    async def password(self, inter, length: int):
         """Generate a random password & DM's it!"""
         if length > 100:
             length = 100
@@ -27,4 +26,4 @@ class password(commands.Cog):
             await inter.response.send_message(f"Your password is: `{password}`", ephemeral=True)
 
 def setup(bot):
-    bot.add_cog(password(bot))
+    bot.add_cog(Password(bot))

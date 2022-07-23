@@ -76,7 +76,7 @@ class CodeModal(disnake.ui.Modal):
         await inter.send(embed=embed)
 
 
-class CodeExec(Cog):
+class CodeExec(Cog, name="Code"):
     """
     💻 Run code and get results instantly!
     """
