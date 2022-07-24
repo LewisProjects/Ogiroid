@@ -34,16 +34,6 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
             f"I have successfully made **{name}**. To view it do /tag {name}"
         )
 
-    """
-    @commands.command(name="speedtest")
-    @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    async def speed(self,ctx):
-        speed = speedtest.Speedtest()
-        download_speed = speed.download()
-        upload_speed = speed.upload()
-        await ctx.send(f"Download speed: {download_speed} Mbps\nUpload speed: {upload_speed} Mbps")
-"""
 
     @commands.slash_command(name="edittag", description="Edits the tag")
     @commands.guild_only()

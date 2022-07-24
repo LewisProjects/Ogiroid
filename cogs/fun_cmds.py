@@ -26,7 +26,9 @@ class Fun(commands.Cog):
     async def on_ready(self):
         self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
+    @commands.slash_command(
+        name="youtube", description="Watch YouTube in a Discord VC with your friends"
+    )
     async def youtube(self, ctx):
         """Watch YouTube in a Discord VC with your friends"""
         if ctx.author.voice:
@@ -92,7 +94,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
         impostor = random.choice(["true", "false"])
-        apikey = "rwaNgpkDJnwUuJhSZpJnavpFx"
+        apikey = "2v17XOE5VvsUWukKdKIwuVd7v"
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
@@ -147,7 +149,9 @@ class Fun(commands.Cog):
                 imageData = io.BytesIO(await trigImg.read())
                 await inter.send(file=disnake.File(imageData, "jail.png"))
 
-    @commands.slash_command(name="beer", description="Give someone a beer! 🍻")  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
+    @commands.slash_command(
+        name="beer", description="Give someone a beer! 🍻"
+    )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def beer(self, ctx, user: disnake.Member = None, *, reason):
         """Give someone a beer! 🍻"""
         if not user or user.id == ctx.author.id:
@@ -236,40 +240,64 @@ class Fun(commands.Cog):
             f"Question: {question}\nAnswer: **{random.choice(responses)}**"
         )
 
-    @commands.slash_command(name="askogiroid", description="Ogiroid will guess the character you are thinking off.")
-    #Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
+    @commands.slash_command(
+        name="askogiroid",
+        description="Ogiroid will guess the character you are thinking off.",
+    )
+    # Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
     async def askogiroid(self, ctx):
         async with ctx.author.typing():
-            intro = disnake.Embed(title="Ogiroid", description=f"Hello {ctx.author.mention}!",
-                                color=0xFFFFFF)
-            intro.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
-            intro.set_footer(text="Think about a real or fictional character. I will try to guess who it is")
-            bye = disnake.Embed(title="Ogiroid", description="Bye, " + ctx.author.mention, color=0xFFFFFF)
+            intro = disnake.Embed(
+                title="Ogiroid",
+                description=f"Hello {ctx.author.mention}!",
+                color=0xFFFFFF,
+            )
+            intro.set_thumbnail(
+                url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+            )
+            intro.set_footer(
+                text="Think about a real or fictional character. I will try to guess who it is"
+            )
+            bye = disnake.Embed(
+                title="Ogiroid",
+                description="Bye, " + ctx.author.mention,
+                color=0xFFFFFF,
+            )
             bye.set_footer(text="Ogiroid left the chat!")
-            bye.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
+            bye.set_thumbnail(
+                url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+            )
             await ctx.send(embed=intro)
 
             def check(msg):
-                return msg.author == ctx.author and msg.channel == ctx.channel and msg.content.lower() in ["y", "n", "p",
-                                                                                                        "b",
-                                                                                                        "yes", "no",
-                                                                                                        "probably",
-                                                                                                        "idk",
-                                                                                                        "back"]
+                return (
+                    msg.author == ctx.author
+                    and msg.channel == ctx.channel
+                    and msg.content.lower()
+                    in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
+                )
 
             try:
                 aki = ak.Akinator()
                 q = aki.start_game(language="en")
                 while aki.progression <= 80:
-                    question = disnake.Embed(title="Question", description=q, color=0xFFFFFF)
-                    question.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
+                    question = disnake.Embed(
+                        title="Question", description=q, color=0xFFFFFF
+                    )
+                    question.set_thumbnail(
+                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                    )
                     question.set_footer(text="Your answer:(y/n/p/idk/b)")
                     question_sent = await ctx.send(embed=question)
                     try:
-                        msg = await self.bot.wait_for("message", check=check, timeout=30)
+                        msg = await self.bot.wait_for(
+                            "message", check=check, timeout=30
+                        )
                     except asyncio.TimeoutError:
                         # await question_sent.delete()
-                        await ctx.send("Sorry you took too long to respond!(waited for 30sec)")
+                        await ctx.send(
+                            "Sorry you took too long to respond!(waited for 30sec)"
+                        )
                         await ctx.send(embed=bye)
                         return
                     # await question_sent.delete()
@@ -286,36 +314,47 @@ class Fun(commands.Cog):
                             await ctx.send(e)
                             continue
                 aki.win()
-                answer = disnake.Embed(title=f"Your character: {aki.first_guess['name']}", description=f"Your character is: {aki.first_guess['description']}",
-                                    color=0xFFFFFF)
+                answer = disnake.Embed(
+                    title=f"Your character: {aki.first_guess['name']}",
+                    description=f"Your character is: {aki.first_guess['description']}",
+                    color=0xFFFFFF,
+                )
                 answer.set_footer(text="Was I correct? (y/n)")
                 await ctx.send(embed=answer)
                 # await ctx.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
                 try:
-                    correct = await self.bot.wait_for("message", check=check, timeout=30)
+                    correct = await self.bot.wait_for(
+                        "message", check=check, timeout=30
+                    )
                 except asyncio.TimeoutError:
                     await ctx.send("Sorry you took too long to respond! [30 seconds+]")
                     await ctx.send(embed=bye)
                     return
                 if correct.content.lower() == "y":
                     yes = disnake.Embed(title="Yeah!!!", color=0xFFFFFF)
-                    yes.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
+                    yes.set_thumbnail(
+                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                    )
                     await ctx.send(embed=yes)
                 else:
                     no = disnake.Embed(title="Oh Noooooo!!!", color=0xFFFFFF)
-                    no.set_thumbnail(url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png")
+                    no.set_thumbnail(
+                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                    )
                     await ctx.send(embed=no)
                 await ctx.send(embed=bye)
             except Exception as e:
                 await ctx.send(e)
 
-    @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
+    @commands.slash_command(
+        name="bored", brief="activity", description="Returns an activity"
+    )
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def bored(self, inter):
         """Returns an activity"""
         async with aiohttp.ClientSession() as activitySession:
             async with activitySession.get(
-                    f"http://boredapi.com/api/activity", ssl=False
+                f"http://boredapi.com/api/activity", ssl=False
             ) as activityData:
                 activity = await activityData.json()
                 await inter.send(activity["activity"])

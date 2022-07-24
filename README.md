@@ -1,8 +1,11 @@
-# Ogiroid 
+# Ogiroid - A Multipurpose Discord Bot
+> Developed by @ImmaHarry & @FreebieII
 
-Custom bot made for Coding with Lewis.
+**About the bot:**
+Ogiroid is a multipurpose Discord Bot developed for the YouTuber, [Lewis Menelaws'](https://www.youtube.com/c/CodingwithLewis) Discord Server. The bot offers sophesticated fun, basic moderation, utilities, games & reddit based commands. This bot is currently under it's *first* proud release (beta).
 
-## Collaborators:
+__**Release: 1.4.0**__
 
-[FreebieII](https://github.com/FreebieII)
-[Harry](https://github.com/ImmaHarry)
+**Made using:** Love & Python (wow that sounded cringe...)
+
+We look forward to some great features and a bright future of this bot.

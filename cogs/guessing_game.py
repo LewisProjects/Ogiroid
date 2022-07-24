@@ -11,7 +11,9 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name="guess", description="I will magically guess your number.")
+    @commands.slash_command(
+        name="guess", description="I will magically guess your number."
+    )
     @commands.guild_only()
     async def guess(self, ctx, *, answer=None):
         card1 = "https://cdn.discordapp.com/attachments/745162323953713223/937001823590576138/unknown.png"
@@ -48,7 +50,8 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
         await ctx.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
-        answer = entry.content
+        ent = entry.content
+        answer = ent.lower()
 
         if answer == "yes":
             num1 = card1num
@@ -154,7 +157,6 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         answer = entry.content
-
         if answer == "yes":
             num6 = card6num
             pass
@@ -168,7 +170,7 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
         await ctx.send("Hmmm.. Is your number: *drumroll please*")
         number = num1 + num2 + num3 + num4 + num5 + num6
         if number == 0:
-            number = "🖕"
+            number = "You can't pick 0, I said between 1 and 63 :middle_finger:"
             time.sleep(5)
         await ctx.send(f"`{number}`")
 
