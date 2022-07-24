@@ -170,7 +170,7 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
         await ctx.send("Hmmm.. Is your number: *drumroll please*")
         number = num1 + num2 + num3 + num4 + num5 + num6
         if number == 0:
-            number = "🖕"
+            number = "You can't pick 0, I said between 1 and 63 :middle_finger:"
             time.sleep(5)
         await ctx.send(f"`{number}`")
 
