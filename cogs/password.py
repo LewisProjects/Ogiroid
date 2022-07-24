@@ -5,7 +5,7 @@ import secrets
 
 
 class Password(commands.Cog):
-    """Generates random password"""
+    """Generates a random password"""
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
