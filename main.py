@@ -3,10 +3,15 @@ from disnake.ext import commands
 import aiosqlite
 import os
 from disnake.ext.commands import when_mentioned_or
+from dotenv import load_dotenv
 
-GUILD_ID = 897666935708352582 
-BUG_CHAN = 982669110926250004  
-SUGG_CHAN = 982353129913851924 
+
+load_dotenv("secrets.env")
+
+TOKEN = os.getenv("TOKEN")
+GUILD_ID = 985234686878023730  # 897666935708352582
+BUG_CHAN = 985554459948122142  # 982669110926250004
+SUGG_CHAN = 985554479405490216  # 982353129913851924
 
 with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
@@ -21,15 +26,15 @@ class OGIROID(commands.Bot):
         await self.wait_until_ready()
         await self.change_presence(
             activity=disnake.Activity(
-                type=disnake.ActivityType.listening, name="v2.0 | Beta! | !!help"
+                type=disnake.ActivityType.listening, name="the users!"
             )
         )
         print(
             "--------------------------------------------------------------------------------"
         )
         print("Bot is ready! Logged in as: " + self.user.name)
-        print("Bot author: HarryDaDev  |  FreebieII")
-        print("Bot version: 2.0 BETA")
+        print("Bot author: HarryDaDev | FreebieII")
+        print("Bot version: 1.3")
         print(
             "--------------------------------------------------------------------------------"
         )
@@ -46,7 +51,11 @@ async def get_prefix(bot, message):
 
 
 client = OGIROID(
-    command_prefix=get_prefix, intents=disnake.Intents.all(), help_command=None
+    command_prefix=get_prefix,
+    intents=disnake.Intents.all(),
+    help_command=None,
+    sync_commands_debug=True,
+    case_insensitive=True,
 )
 
 
@@ -54,8 +63,8 @@ def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-    client.run(
-        "OTg0ODAyMDA4NDAzOTU5ODc5.Gc9c9z.4lcYtBNVH7ZmJBAN7-vZ3F0mnMp6fNGShOj6gk"
-    )  
+    client.run(TOKEN)
+
+
 if __name__ == "__main__":
     main()

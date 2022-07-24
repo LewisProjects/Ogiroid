@@ -11,7 +11,7 @@ import requests
 #
 
 
-class redditbot(commands.Cog):
+class RedditBot(commands.Cog, name="Reddit Bot"):
     """All the Reddit Bot related commands!\n\n"""
 
     def __init__(self, bot):
@@ -21,41 +21,25 @@ class redditbot(commands.Cog):
     def db(self):
         return self.bot.db
 
-    @commands.command(name="maketag", usage="!!maketag [name] [content]")
+    @commands.slash_command(name="maketag", description="Creates a tag")
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
-    async def make_tag(self, ctx, name, *, content=None):
+    async def make_tag(self, ctx, name, *, content):
         """Makes a new tag"""
-        if content is None:
-            await ctx.send("What should the content be? `!!t tag_name tag_content`")
-            return
         await self.db.execute(
             "INSERT INTO tags (tag_id, content) VALUES (?, ?)", [name, content]
         )
         await self.db.commit()
         await ctx.reply(
-            f"I have successfully made **{name}**. To view it do !!tag {name}"
+            f"I have successfully made **{name}**. To view it do /tag {name}"
         )
 
-    """
-    @commands.command(name="speedtest")
-    @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    async def speed(self,ctx):
-        speed = speedtest.Speedtest()
-        download_speed = speed.download()
-        upload_speed = speed.upload()
-        await ctx.send(f"Download speed: {download_speed} Mbps\nUpload speed: {upload_speed} Mbps")
-"""
 
-    @commands.command(name="edittag", usage="!!edittag [name] [new_content]")
+    @commands.slash_command(name="edittag", description="Edits the tag")
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
-    async def edittag(self, ctx, name, *, new_content=None):
+    async def edittag(self, ctx, name, *, new_content):
         """Edit a tag"""
-        #     if new_content or name is None:
-        #        await ctx.send("Correct usage: `!!edittag tag_name new_tag_content`")
-        #         return
 
         await self.db.execute(
             "UPDATE tags SET content = ? WHERE tag_id = ?", [new_content, name]
@@ -65,26 +49,26 @@ class redditbot(commands.Cog):
             f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__"
         )
 
-    @commands.command(name="deltag", usage="!!deltag [name]")
+    @commands.slash_command(name="deltag", description="Deletes the tag.")
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     async def deltag(self, ctx, name):
         """Delete a tag"""
         if name is None:
-            await ctx.send("Please tell me which tag to delete! `!!deltag tag_name`")
+            await ctx.send("Please tell me which tag to delete! `/deltag tag_name`")
             return
 
         await self.db.execute("DELETE FROM tags WHERE tag_id = ?", [name])
         await self.db.commit()
         await ctx.reply(f"I have successfully deleted **{name}**.")
 
-    @commands.command(name="tag", aliases=["t"])
+    @commands.slash_command(name="tag", description="Gives you the tags value")
     @commands.guild_only()
-    async def tag(self, ctx, name=None):
+    async def tag(self, ctx, name):
 
         if name is None:
             await ctx.send(
-                "Which tag do you want to use? You can use `!!tags` to see all available tags!"
+                "Which tag do you want to use? You can use `/tags` to see all available tags!"
             )
             return
 
@@ -94,7 +78,7 @@ class redditbot(commands.Cog):
             async for row in cur:
                 await ctx.send(f"{row[0]}")
 
-    @commands.command(name="taglist", aliases=["tags"])
+    @commands.slash_command(name="taglist", description="Lists tags")
     @commands.guild_only()
     async def list_tags(self, ctx):
         embed = disnake.Embed(
@@ -114,16 +98,15 @@ class redditbot(commands.Cog):
                 )
         await ctx.send(embed=embed)
 
-    @commands.command(name="taghelp", aliases=["thelp"])
+    @commands.slash_command(name="taghelp", description="Help for the tag system")
     @commands.guild_only()
     async def tag_help(self, ctx):
         await ctx.send(
-            "```\n!!tag [name] - Prints out the message for the given tag (or !!t [name])\n!!maketag [name] [content...] - Creates a new tag\n!!deltag [name] - Deletes an existing tag\n!!edittag [name] [new_contant...] - Edits and existing tag\n!!taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
+            "```\n/tag [name] - Prints out the message for the given tag (or /t [name])\n!!maketag [name] [content...] - Creates a new tag\n/deltag [name] - Deletes an existing tag\n/edittag [name] [new_contant...] - Edits and existing tag\n/taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
         )
 
-
     #Get Information Related to the GitHub of the Bot
-    @commands.command(name="rbgithub", aliases=["redditgithub","redditbotgithub"])
+    @commands.slash_command(name="rbgithub", description="Get Information Related to the GitHub of the Reddit Bot")
     @commands.guild_only()
     async def rbgithub(self, ctx):
         url = requests.get("https://api.github.com/repos/elebumm/RedditVideoMakerBot")
@@ -144,4 +127,4 @@ class redditbot(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(redditbot(bot))
+    bot.add_cog(RedditBot(bot))

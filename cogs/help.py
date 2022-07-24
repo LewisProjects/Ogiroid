@@ -1,107 +1,45 @@
-import disnake
 from disnake.ext import commands
-
-bot_links = """[**Reddit Bot Docs**](https://luka-hietala.gitbook.io/documentation-for-the-reddit-bot/)\u2800\
-    """
-
-#
-# Made by github.com/FreebieII
-#
+import disnake
 
 
-class HelpCommand(commands.HelpCommand):
-    """❔ Help is on the way"""
+class HelpCommand(commands.Cog, name="Help"):
+    """Help Command"""
 
-    COLOUR = 0xFFFFFF
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.COLOUR = 0xFFFFFF
 
-    def get_ending_note(self):
-        return "Use {0}{1} [command] for more info on a command.".format(
-            self.context.clean_prefix, self.invoked_with
-        )
-
-    def get_command_signature(self, command):
-        return "{0.qualified_name} {0.signature}".format(command)
-
-    async def send_bot_help(self, mapping):
+    @commands.slash_command(name="help", description="Lists all commands")
+    async def help(self, inter):
+        """Lists all commands"""
         embed = disnake.Embed(title="Bot Commands", colour=self.COLOUR)
         embed.set_author(
             name="Ogiroid's help menu!",
             url="https://freebie.codes",
-            icon_url="https://pbs.twimg.com/profile_images/1519398238507474945/Q2vYkWEP_400x400.jpg",
+            icon_url="https://cdn.discordapp.com/avatars/984802008403959879/7016c34bd6bce62f9b0f2534f8918c49.png?size=1024",
         )
-        description = self.context.bot.description
-        if description:
-            embed.description = description
 
-        for cog, cmds in mapping.items():
+        cogs = self.bot.cogs.items()
+        for cog_name, cog in cogs:
             if cog is None:
                 continue
+            cmds = cog.get_slash_commands()
             name = cog.qualified_name
-            filtered = await self.filter_commands(cmds, sort=True)
-            if filtered:
-                value = "\u2002".join(f"`{c.name}`" for c in cmds)
-                if cog and cog.description:
-                    value = "{0}\n{1}".format(cog.description, value)
 
-                embed.add_field(name=name, value=value)
-        embed.set_footer(text=self.get_ending_note())
-        self.add_support_server(embed)
-        await self.get_destination().send(embed=embed)
+            value = " ".join(f"`/{cmd.name}`" for cmd in cmds)
 
-    async def send_cog_help(self, cog):
-        embed = disnake.Embed(
-            title="{0.qualified_name} Commands".format(cog), colour=self.COLOUR
-        )
-        if cog.description:
-            embed.description = cog.description
+            if value == "":
+                continue
 
-        filtered = await self.filter_commands(cog.get_commands(), sort=True)
-        for command in filtered:
-            embed.add_field(
-                name=command.qualified_name,
-                value=command.short_doc or "...",
-                inline=False,
-            )
+            if cog and cog.description:
+                value = "{0}\n{1}".format(cog.description, value)
 
-        embed.set_footer(text=self.get_ending_note())
-        self.add_support_server(embed)
-        await self.get_destination().send(embed=embed)
+            embed.add_field(name=name, value=value)
 
-    async def send_group_help(self, group):
-        embed = disnake.Embed(title=group.qualified_name, colour=self.COLOUR)
-        if group.help:
-            embed.description = group.help
-
-        filtered = await self.filter_commands(group.commands, sort=True)
-        for command in filtered:
-            embed.add_field(
-                name=command.qualified_name,
-                value=command.short_doc or "...",
-                inline=False,
-            )
-
-        embed.set_footer(text=self.get_ending_note())
-        self.add_support_server(embed)
-        await self.get_destination().send(embed=embed)
-
-    def add_support_server(self, embed):
-        return embed.add_field(name="Links", value=bot_links, inline=False)
-
-    async def send_command_help(self, command):
-        embed = disnake.Embed(title=command.qualified_name, colour=self.COLOUR)
-        embed.add_field(name="Usage", value=self.get_command_signature(command))
-        if command.help:
-            embed.description = command.help
-
-        embed.set_footer(text=self.get_ending_note())
-        self.add_support_server(embed)
-        await self.get_destination().send(embed=embed)
+        embed.set_footer(text="If you want more information on a particular command start typing out the command "
+                              "and a description will show up")
+        await inter.send(embed=embed)
 
 
 def setup(bot: commands.Bot):
-    bot._default_help_command = bot.help_command
-    bot.help_command = HelpCommand()
-
-
-def teardown(bot):
-    bot.help_command = bot._default_help_command
+    bot.add_cog(HelpCommand(bot))

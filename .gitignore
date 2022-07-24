@@ -17,3 +17,7 @@ docs/crowdin.py
 /.coverage
 build/*
 *.db
+.idea
+.env
+*.env
+__pycache__/

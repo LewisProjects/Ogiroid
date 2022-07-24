@@ -9,17 +9,17 @@ class GitHub(commands.Cog):
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
-    
     #Command to get information about a GitHub user
-    @commands.command(aliases=["githubperson","ghp"])
-    async def ghperson(self, ctx):
-        person = requests.get(f"https://api.github.com/users/{ctx.message.content.split(' ')[1]}")
+    @commands.slash_command(name="ghperson", description="Gets the Profile of the github person.")
+    async def ghperson(self, ctx, ghuser: str):
+        person = requests.get(f"https://api.github.com/users/{ghuser}")
         if person.status_code == 200:
             #Returning an Embed containing all the information:
             embed = disnake.Embed(title=f"GitHub Profile: {person.json()['login']}", description=f"**Bio:** {person.json()['bio']}", color=0xFFFFFF)
             embed.set_thumbnail(url=f"{person.json()['avatar_url']}")
             embed.add_field(name="Username 📛: ", value=f"__[{person.json()['name']}]({person.json()['html_url']})__", inline=True)
-            embed.add_field(name="Email ✉: ", value=f"{person.json()['email']}", inline=True)
+            # embed.add_field(name="Email ✉: ", value=f"{person.json()['email']}", inline=True) Commented due to github not responding with the correct email
+            embed.add_field(name="Repos 📁: ", value=f"{person.json()['public_repos']}", inline=True)
             embed.add_field(name="Location 📍: ", value=f"{person.json()['location']}", inline=True)
             embed.add_field(name="Company 🏢: ", value=f"{person.json()['company']}", inline=True)
             embed.add_field(name="Followers 👥: ", value=f"{person.json()['followers']}", inline=True)
@@ -29,9 +29,8 @@ class GitHub(commands.Cog):
             await ctx.send("User not found!")
 
     #Command to get search for GitHub repositories:
-    @commands.command(aliases=["ghsr","githubsearchrepository","githubsr"])
-    async def ghsearchrepo(self, ctx):
-        query = ctx.message.content.split(' ')[1]
+    @commands.slash_command(name="ghsearchrepo", description="Searches for the specified repo.")
+    async def ghsearchrepo(self, ctx, query: str):
         pages = 1
         url = f"https://api.github.com/search/repositories?q={query}&{pages}"
         repos = requests.get(url)
@@ -47,6 +46,7 @@ class GitHub(commands.Cog):
         embed.add_field(name="License name 📃:", value=f"{repo['license']['spdx_id']}", inline=True)
         embed.add_field(name="URL 🔍:", value=f"[Click here!]({repo['html_url']})", inline=True)
         await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(GitHub(bot))

@@ -22,35 +22,35 @@ class Utilities(commands.Cog):
     async def on_message_edit(self, before, after):
         self.edit_snipes[after.channel] = (before, after)
 
-    @commands.command(name="snipe", brief="snipe")
+    @commands.slash_command(name="snipe", description="Get the most recently deleted message in a channel")
     async def snipe_group(self, ctx):
         """Get the most recently deleted message in a channel"""
-        if ctx.invoked_subcommand is None:
-            try:
-                sniped_message = self.delete_snipes[ctx.channel]
-            except KeyError:
-                await ctx.send(
-                    "There are no deleted messages in this channel to snipe!"
-                )
-            else:
-                result = disnake.Embed(
-                    color=disnake.Color.red(),
-                    description=sniped_message.content,
-                    timestamp=sniped_message.created_at,
-                )
-                result.set_author(
-                    name=sniped_message.author.display_name,
-                    icon_url=sniped_message.author.avatar.url,
-                )
-                try:
-                    result.set_image(
-                        url=self.delete_snipes_attachments[ctx.channel][0].url
-                    )
-                except:
-                    pass
-                await ctx.send(embed=result)
 
-    @commands.command(
+        try:
+            sniped_message = self.delete_snipes[ctx.channel]
+        except KeyError:
+            await ctx.send(
+                "There are no deleted messages in this channel to snipe!"
+            )
+        else:
+            result = disnake.Embed(
+                color=disnake.Color.red(),
+                description=sniped_message.content,
+                timestamp=sniped_message.created_at,
+            )
+            result.set_author(
+                name=sniped_message.author.display_name,
+                icon_url=sniped_message.author.avatar.url,
+            )
+            try:
+                result.set_image(
+                    url=self.delete_snipes_attachments[ctx.channel][0].url
+               )
+            except:
+                pass
+            await ctx.send(embed=result)
+
+    @commands.slash_command(
         name="editsnipe",
         description="Get the most recently edited message in the channel, before and after.",
     )
