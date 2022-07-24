@@ -61,18 +61,6 @@ class Commands(commands.Cog):
         )
         await inter.response.send_message(embed=embed)
 
-    @commands.slash_command(name="version", description="Shows the version of the bot!")
-    async def version(inter):
-        """Shows the version of the bot"""
-        embed = disnake.Embed(title="Version", description=" ", color=0xFFFFFF)
-        embed.add_field(name="Bot Version: ", value=f"```>> 1.4.0```", inline=False)
-        embed.add_field(
-            name="Disnake Version: ",
-            value=f"```>> {disnake.__version__}```",
-            inline=False,
-        )
-        await inter.response.send_message(embed=embed)
-
     @commands.slash_command(name="botinfo", description="Shows info about the bot!")
     async def botinfo(inter):
         """Shows the info of the bot"""
@@ -88,7 +76,7 @@ class Commands(commands.Cog):
         )
         embed.add_field(
             name="**Bot Developers: **",
-            value=f"`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **",
+            value=f"__Owners:__\n`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **\n\n__Contributors:__\n`>`**<@491266830674034699>, <@662656158129192961>, <@577885109894512659>.**",
             inline=False,
         )
         embed.set_thumbnail(
@@ -97,6 +85,6 @@ class Commands(commands.Cog):
 
         await inter.response.send_message(embed=embed)
 
-        
+
 def setup(bot):
     bot.add_cog(Commands(bot))

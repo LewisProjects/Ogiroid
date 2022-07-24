@@ -58,19 +58,12 @@ client = OGIROID(
     case_insensitive=True,
 )
 
-"""
-@client.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"**Slow down there!** \n{round(error.retry_after, 2)} seconds left.")
-"""
-
 
 def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-    client.run(TOKEN)  # MESSING AROUNDS TOKEN
+    client.run(TOKEN)
 
 
 if __name__ == "__main__":
