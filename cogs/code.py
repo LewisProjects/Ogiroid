@@ -1,9 +1,6 @@
 import requests
 from disnake import TextInputStyle
 import disnake
-from datetime import datetime
-from disnake.ext.commands import Cog
-from disnake.ext.commands import command
 from disnake import Color, Embed
 from disnake.ext import commands
 from disnake.ext.commands import Cog
