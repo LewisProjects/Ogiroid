@@ -1,59 +1,56 @@
 import requests
-from disnake import TextInputStyle
+from disnake import TextInputStyle, Color
 import disnake
-from disnake import Color, Embed
+from disnake import Embed
 from disnake.ext import commands
 from disnake.ext.commands import Cog
 
+from cogs.utils.CONSTANTS import VALID_CODE_LANGUAGES
+
+
+class CodeExec(Cog, name="Code"):
+    """
+    💻 Run code and get results instantly!
+    """
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.slash_command(name="code", description="Run code and get results instantly. Window for code will pop up.")
+    async def code(self, ctx):
+        """
+        Run code and get results instantly
+        """
+        await ctx.response.send_modal(modal=CodeModal())
+
 
 class CodeModal(disnake.ui.Modal):
+
     def __init__(self):
         # The details of the modal, and its components
-        components = [
-            disnake.ui.TextInput(
-                label="Language",
-                placeholder="Language",
-                custom_id="language",
-                style=TextInputStyle.short,
-                max_length=15,
-            ),
-            disnake.ui.TextInput(
-                label="Code",
-                placeholder="Write your code here",
-                custom_id="code",
-                style=TextInputStyle.paragraph,
-            ),
-        ]
-        super().__init__(
-            title="Run Code",
-            custom_id="run_code",
-            components=components,
-        )
+        components = [disnake.ui.TextInput(label="Language", placeholder="Language", custom_id="language",
+                                           style=TextInputStyle.short, max_length=15, ),
+                      disnake.ui.TextInput(label="Code", placeholder="Write your code here", custom_id="code",
+                                           style=TextInputStyle.paragraph, ), ]
+        super().__init__(title="Run Code", custom_id="run_code", components=components, )
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
+        if not self._check_valid_lang(inter.text_values["language"]):
+            embed = disnake.Embed(title=f"{inter.text_values['language']} is not a valid language", colour=Color.red())
+            return await inter.response.send_message(embed=embed)
+
         embed = disnake.Embed(title="Running Code")
-        embed.add_field(
-            name="Language",
-            value=inter.text_values["language"].capitalize(),
-            inline=False,
-        )
-        embed.add_field(
-            name="Code",
-            value=f"```{inter.text_values['language']}\n"
-                  f"{inter.text_values['code'][:1024]}\n"
-                  f"```",
-            inline=False,
-        )
+        embed.add_field(name="Language", value=inter.text_values["language"].capitalize(), inline=False, )
+        embed.add_field(name="Code", value=f"```{inter.text_values['language']}\n"
+                                           f"{inter.text_values['code'][:1024]}\n"
+                                           f"```", inline=False, )
         await inter.response.send_message(embed=embed)
         result = await self._run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
         await self._send_result(inter, result)
 
     async def _run_code(self, *, lang: str, code: str):
-        res = requests.post(
-            "https://emkc.org/api/v1/piston/execute",
-            json={"language": lang, "source": code},
-        )
+        res = requests.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code}, )
         return res.json()
 
     async def _send_result(self, inter, result: dict):
@@ -72,25 +69,14 @@ class CodeModal(disnake.ui.Modal):
 
         await inter.send(embed=embed)
 
-
-class CodeExec(Cog, name="Code"):
-    """
-    💻 Run code and get results instantly!
-    """
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.slash_command(
-        name="code",
-        description="Run code and get results instantly. Window for code will pop up."
-    )
-    async def code(self, ctx):
-        """
-        Run code and get results instantly
-        """
-        await ctx.response.send_modal(modal=CodeModal())
+    @staticmethod
+    def _check_valid_lang(param):
+        if str(param).casefold() not in VALID_CODE_LANGUAGES:
+            return False
+        return True
 
 
 def setup(bot: commands.Bot):
     bot.add_cog(CodeExec(bot))
+
+
