@@ -31,6 +31,9 @@ class HelpCommand(commands.Cog, name="Help"):
             if value == "":
                 continue
 
+            if name == "Tickets":
+                continue
+
             if cog and cog.description:
                 value = "{0}\n{1}".format(cog.description, value)
 
