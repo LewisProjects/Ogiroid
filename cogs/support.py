@@ -109,7 +109,7 @@ class SuggestionModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
-        embed = disnake.Embed(title="Bug Report")
+        embed = disnake.Embed(title="Suggestion")
         embed.add_field(
             name="From:",
             value=inter.author
