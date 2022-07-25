@@ -8,7 +8,7 @@ from disnake.ext.commands import command
 class Log(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.logid = 977581277010100315
+        self.logid = 988162723890217040
 
     @Cog.listener()
     async def on_user_update(self, before, after):
@@ -97,7 +97,7 @@ class Log(Cog):
                 embed.add_field(name=name, value=value, inline=inline)
             embed.set_footer(
                 text=f"{after.name}#{after.discriminator}",
-                icon_url=after.author.avatar.url,
+                icon_url=after.avatar,
             )
             await log_channel.send(embed=embed)
 
