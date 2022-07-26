@@ -39,8 +39,10 @@ class HelpCommand(commands.Cog, name="Help"):
 
             embed.add_field(name=name, value=value)
 
-        embed.set_footer(text="If you want more information on a particular command start typing out the command "
-                              "and a description will show up")
+        embed.set_footer(
+            text="If you want more information on a particular command start typing out the command "
+            "and a description will show up"
+        )
         await inter.send(embed=embed)
 
 

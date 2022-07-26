@@ -11,9 +11,7 @@ class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(
-        name="membercount", description="Get the member count of the server"
-    )
+    @commands.slash_command(name="membercount", description="Get the member count of the server")
     async def membercount(inter):
         """Count the members in the server"""
         member_count = len(inter.guild.members)
@@ -27,9 +25,7 @@ class Commands(commands.Cog):
         )
         await inter.response.send_message(embed=embed)
 
-    @commands.slash_command(
-        name="ping", description="Shows how fast the bot is replying to you!"
-    )
+    @commands.slash_command(name="ping", description="Shows how fast the bot is replying to you!")
     async def ping(inter):
         """Shows how fast the bot is replying to you!"""
         uptime = str(datetime.timedelta(seconds=int(round(time.time() - startTime))))
@@ -47,9 +43,7 @@ class Commands(commands.Cog):
             emoji = "<:bad:985939031449804850> "
         else:
             emoji = "🗼"
-        embed.add_field(
-            name=f"Latency {emoji} :", value=f"```>> {ping} ms```", inline=True
-        )
+        embed.add_field(name=f"Latency {emoji} :", value=f"```>> {ping} ms```", inline=True)
         embed.add_field(
             name=f"Uptime <:uptime:986174741452824586>:",
             value=f"```>> {uptime}```",
@@ -64,9 +58,7 @@ class Commands(commands.Cog):
     @commands.slash_command(name="botinfo", description="Shows info about the bot!")
     async def botinfo(inter):
         """Shows the info of the bot"""
-        embed = disnake.Embed(
-            title="Ogiroid Information: ", description=" ", color=0xFFFFFF
-        )
+        embed = disnake.Embed(title="Ogiroid Information: ", description=" ", color=0xFFFFFF)
         embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
         embed.add_field(name="**Bot Version: **", value=f"```>> 1.4.0```", inline=False)
         embed.add_field(

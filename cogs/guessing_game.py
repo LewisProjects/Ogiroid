@@ -11,9 +11,7 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(
-        name="guess", description="I will magically guess your number."
-    )
+    @commands.slash_command(name="guess", description="I will magically guess your number.")
     @commands.guild_only()
     async def guess(self, ctx, *, answer=None):
         card1 = "https://cdn.discordapp.com/attachments/745162323953713223/937001823590576138/unknown.png"
@@ -30,11 +28,7 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
         card6num = 32
 
         def check(m):
-            return (
-                m.author == ctx.author
-                and m.channel == ctx.channel
-                and len(m.content) <= 100
-            )
+            return m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 100
 
         await ctx.send(
             "I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*"

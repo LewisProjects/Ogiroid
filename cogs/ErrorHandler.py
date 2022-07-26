@@ -25,9 +25,7 @@ class ErrorHandler(commands.Cog):
                     colour=disnake.Color.blurple(),
                     timestamp=datetime.utcnow(),
                 )
-                embed.set_author(
-                    name=f"❌ An error occured while executing: {ctx.command}"
-                )
+                embed.set_author(name=f"❌ An error occured while executing: {ctx.command}")
                 embed.set_footer(
                     text=f"{ctx.command}",
                     icon_url="https://www.collinsdictionary.com/images/full/lo_163792823.jpg",
@@ -35,9 +33,7 @@ class ErrorHandler(commands.Cog):
                 x = await ctx.send(embed=embed)
                 await asyncio.sleep(10)
                 await x.delete()
-                boterrors = traceback.format_exception(
-                    type(error), error, error.__traceback__
-                )
+                boterrors = traceback.format_exception(type(error), error, error.__traceback__)
                 # print(boterrors)
                 errchan = self.get_channel(856925899337105448)
                 errembed = disnake.Embed(
@@ -48,9 +44,7 @@ class ErrorHandler(commands.Cog):
                 await errchan.send(embed=errembed)
 
                 traceback_nice = "".join(
-                    traceback.format_exception(
-                        type(error), error, error.__traceback__, 4
-                    )
+                    traceback.format_exception(type(error), error, error.__traceback__, 4)
                 ).replace("```", "```")
 
                 debug_info = (

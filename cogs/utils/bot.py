@@ -17,7 +17,9 @@ class OGIROID(commands.Bot):
 
     async def on_ready(self):
         await self.wait_until_ready()
-        await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
+        await self.change_presence(
+            activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!")
+        )
         print("--------------------------------------------------------------------------------")
         print("Bot is ready! Logged in as: " + self.user.name)
         print("Bot author: HarryDaDev | FreebieII")

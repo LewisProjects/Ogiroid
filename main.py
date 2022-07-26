@@ -13,7 +13,6 @@ BUG_CHAN = 985554459948122142  # 982669110926250004
 SUGG_CHAN = 985554479405490216  # 982353129913851924
 
 
-
 async def get_prefix(bot, message):
     prefix = "!!"
     return when_mentioned_or(prefix)(bot, message)

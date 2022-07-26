@@ -6,6 +6,7 @@ from cogs.utils.bot import OGIROID
 
 class Animals(commands.Cog):
     """Animals related commands!"""
+
     def __init__(self, bot: OGIROID):
         self.bot = bot
 

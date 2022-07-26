@@ -26,13 +26,9 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
     @commands.has_permissions(manage_messages=True)
     async def make_tag(self, ctx, name, *, content):
         """Makes a new tag"""
-        await self.db.execute(
-            "INSERT INTO tags (tag_id, content) VALUES (?, ?)", [name, content]
-        )
+        await self.db.execute("INSERT INTO tags (tag_id, content) VALUES (?, ?)", [name, content])
         await self.db.commit()
-        await ctx.reply(
-            f"I have successfully made **{name}**. To view it do /tag {name}"
-        )
+        await ctx.reply(f"I have successfully made **{name}**. To view it do /tag {name}")
 
     @commands.slash_command(name="edittag", description="Edits the tag")
     @commands.guild_only()
@@ -40,9 +36,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
     async def edittag(self, ctx, name, *, new_content):
         """Edit a tag"""
 
-        await self.db.execute(
-            "UPDATE tags SET content = ? WHERE tag_id = ?", [new_content, name]
-        )
+        await self.db.execute("UPDATE tags SET content = ? WHERE tag_id = ?", [new_content, name])
         await self.db.commit()
         await ctx.reply(
             f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__"
@@ -72,7 +66,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
             return
 
         async with self.db.execute(
-                "SELECT content FROM tags WHERE tag_id = ? LIMIT 20", [name]
+            "SELECT content FROM tags WHERE tag_id = ? LIMIT 20", [name]
         ) as cur:
             async for row in cur:
                 await ctx.send(f"{row[0]}")
@@ -92,9 +86,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         # embed.set_thumbnail(url="https://i.gifer.com/4EfW.gif")
         async with self.db.execute("SELECT * FROM tags LIMIT 20") as cur:
             async for tags in cur:
-                embed.add_field(
-                    name="Showing all available tags", value=f" `{tags[0]}`"
-                )
+                embed.add_field(name="Showing all available tags", value=f" `{tags[0]}`")
         await ctx.send(embed=embed)
 
     @commands.slash_command(name="taghelp", description="Help for the tag system")
@@ -105,29 +97,56 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         )
 
     # Get Information Related to the GitHub of the Bot
-    @commands.slash_command(name="rbgithub", description="Get Information Related to the GitHub of the Reddit Bot")
+    @commands.slash_command(
+        name="rbgithub", description="Get Information Related to the GitHub of the Reddit Bot"
+    )
     @commands.guild_only()
     async def rbgithub(self, ctx):
         url = await self.bot.session.get("https://api.github.com/repos/elebumm/RedditVideoMakerBot")
         json = await url.json()
         if url.status == 200:
             # Creat an embed with the information: Name, Description, URL, Stars, Gazers, Forks, Last Updated
-            embed = disnake.Embed(title=f"{json['name']} information", description=f"{json['description']}",
-                                  color=0xFFFFFF)
+            embed = disnake.Embed(
+                title=f"{json['name']} information",
+                description=f"{json['description']}",
+                color=0xFFFFFF,
+            )
             embed.set_thumbnail(url=f"{json['owner']['avatar_url']}")
-            embed.add_field(name="GitHub Link: ", value=f"**[Link to the Reddit Bot]({json['html_url']})**",
-                            inline=True)
-            embed.add_field(name="Stars <:starr:990647250847940668>: ", value=f"{json['stargazers_count']}",
-                            inline=True)
-            embed.add_field(name="Gazers <:gheye:990645707427950593>: ", value=f"{json['subscribers_count']}",
-                            inline=True)
-            embed.add_field(name="Forks <:fork:990644980773187584>: ", value=f"{json['forks_count']}", inline=True)
-            embed.add_field(name="Open Issues <:issue:990645996918808636>: ", value=f"{json['open_issues_count']}",
-                            inline=True)
-            embed.add_field(name="License <:license:990646337118818404>: ", value=f"{json['license']['spdx_id']}",
-                            inline=True)
-            embed.add_field(name="Clone Command <:clone:990646924640153640>: ",
-                            value=f"```git clone {json['clone_url']}```", inline=False)
+            embed.add_field(
+                name="GitHub Link: ",
+                value=f"**[Link to the Reddit Bot]({json['html_url']})**",
+                inline=True,
+            )
+            embed.add_field(
+                name="Stars <:starr:990647250847940668>: ",
+                value=f"{json['stargazers_count']}",
+                inline=True,
+            )
+            embed.add_field(
+                name="Gazers <:gheye:990645707427950593>: ",
+                value=f"{json['subscribers_count']}",
+                inline=True,
+            )
+            embed.add_field(
+                name="Forks <:fork:990644980773187584>: ",
+                value=f"{json['forks_count']}",
+                inline=True,
+            )
+            embed.add_field(
+                name="Open Issues <:issue:990645996918808636>: ",
+                value=f"{json['open_issues_count']}",
+                inline=True,
+            )
+            embed.add_field(
+                name="License <:license:990646337118818404>: ",
+                value=f"{json['license']['spdx_id']}",
+                inline=True,
+            )
+            embed.add_field(
+                name="Clone Command <:clone:990646924640153640>: ",
+                value=f"```git clone {json['clone_url']}```",
+                inline=False,
+            )
             await ctx.send(embed=embed)
 
 

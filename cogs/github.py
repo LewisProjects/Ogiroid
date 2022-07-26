@@ -19,10 +19,15 @@ class GitHub(commands.Cog):
         else:
             person = await person_raw.json()
         # Returning an Embed containing all the information:
-        embed = disnake.Embed(title=f"GitHub Profile: {person['login']}", description=f"**Bio:** {person['bio']}",
-                              color=0xFFFFFF)
+        embed = disnake.Embed(
+            title=f"GitHub Profile: {person['login']}",
+            description=f"**Bio:** {person['bio']}",
+            color=0xFFFFFF,
+        )
         embed.set_thumbnail(url=f"{person['avatar_url']}")
-        embed.add_field(name="Username 📛: ", value=f"__[{person['name']}]({person['html_url']})__", inline=True)
+        embed.add_field(
+            name="Username 📛: ", value=f"__[{person['name']}]({person['html_url']})__", inline=True
+        )
         # embed.add_field(name="Email ✉: ", value=f"{person['email']}", inline=True) Commented due to github not responding with the correct email
         embed.add_field(name="Repos 📁: ", value=f"{person['public_repos']}", inline=True)
         embed.add_field(name="Location 📍: ", value=f"{person['location']}", inline=True)
@@ -40,22 +45,34 @@ class GitHub(commands.Cog):
         if repos_raw.status != 200:
             return await ctx.send("Repo not found!")
         else:
-            repos = await repos_raw.json()        # Getting first repository from the query
-        repo = repos['items'][0]
+            repos = await repos_raw.json()  # Getting first repository from the query
+        repo = repos["items"][0]
         # Returning an Embed containing all the information:
-        embed = disnake.Embed(title=f"GitHub Repository: {repo['name']}",
-                              description=f"**Description:** {repo['description']}", color=0xFFFFFF)
+        embed = disnake.Embed(
+            title=f"GitHub Repository: {repo['name']}",
+            description=f"**Description:** {repo['description']}",
+            color=0xFFFFFF,
+        )
         embed.set_thumbnail(url=f"{repo['owner']['avatar_url']}")
-        embed.add_field(name="Author 🖊:", value=f"__[{repo['owner']['login']}]({repo['owner']['html_url']})__",
-                        inline=True)
+        embed.add_field(
+            name="Author 🖊:",
+            value=f"__[{repo['owner']['login']}]({repo['owner']['html_url']})__",
+            inline=True,
+        )
         embed.add_field(name="Stars ⭐:", value=f"{repo['stargazers_count']}", inline=True)
         embed.add_field(name="Forks 🍴:", value=f"{repo['forks_count']}", inline=True)
         embed.add_field(name="Language 💻:", value=f"{repo['language']}", inline=True)
-        if repo['license']:
-            id = repo['license']['spdx_id']
-            embed.add_field(name="License name 📃:", value=f"{id if id != 'NOASSERTION' else repo['license']['name']}", inline=True)
+        if repo["license"]:
+            id = repo["license"]["spdx_id"]
+            embed.add_field(
+                name="License name 📃:",
+                value=f"{id if id != 'NOASSERTION' else repo['license']['name']}",
+                inline=True,
+            )
         else:
-            embed.add_field(name="License name 📃:", value=f"This Repo doesn't have a license", inline=True)
+            embed.add_field(
+                name="License name 📃:", value=f"This Repo doesn't have a license", inline=True
+            )
         embed.add_field(name="URL 🔍:", value=f"[Click here!]({repo['html_url']})", inline=True)
         await ctx.send(embed=embed)
 

@@ -34,7 +34,7 @@ class BugModal(disnake.ui.Modal):
                 placeholder="",
                 custom_id="description",
                 style=TextInputStyle.paragraph,
-                required=False
+                required=False,
             ),
         ]
         super().__init__(
@@ -46,37 +46,20 @@ class BugModal(disnake.ui.Modal):
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
         embed = disnake.Embed(title="Bug Report")
-        embed.add_field(
-            name="From:",
-            value=inter.author
-        )
+        embed.add_field(name="From:", value=inter.author)
+
+        embed.add_field(name="Bug Title:", value=inter.text_values["title"], inline=False)
+
+        embed.add_field(name="Expected Result: ", value=inter.text_values["expected"], inline=False)
+
+        embed.add_field(name="Actual Result:", value=inter.text_values["actual"], inline=False)
 
         embed.add_field(
-            name="Bug Title:",
-            value=inter.text_values['title'],
-            inline=False
-        )
-
-        embed.add_field(
-            name="Expected Result: ",
-            value=inter.text_values['expected'],
-            inline=False
-        )
-
-        embed.add_field(
-            name="Actual Result:",
-            value=inter.text_values['actual'],
-            inline=False
-        )
-
-        embed.add_field(
-            name="Further Explanation",
-            value=inter.text_values['description'],
-            inline=False
+            name="Further Explanation", value=inter.text_values["description"], inline=False
         )
 
         channel = self.bot.get_channel(
-            985554459948122142      ##############################Replace with channel for bugs
+            985554459948122142  ##############################Replace with channel for bugs
         )
         await channel.send(embed=embed)
         await inter.response.send_message("Sent bug report.\nThank you for pointing it out.")
@@ -110,25 +93,14 @@ class SuggestionModal(disnake.ui.Modal):
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
         embed = disnake.Embed(title="Suggestion")
-        embed.add_field(
-            name="From:",
-            value=inter.author
-        )
+        embed.add_field(name="From:", value=inter.author)
 
-        embed.add_field(
-            name="Title:",
-            value=inter.text_values['title'],
-            inline=False
-        )
+        embed.add_field(name="Title:", value=inter.text_values["title"], inline=False)
 
-        embed.add_field(
-            name="Description",
-            value=inter.text_values['description'],
-            inline=False
-        )
+        embed.add_field(name="Description", value=inter.text_values["description"], inline=False)
 
         channel = self.bot.get_channel(
-            985554479405490216      ##############################Replace with channel for suggestions
+            985554479405490216  ##############################Replace with channel for suggestions
         )
         await channel.send(embed=embed)
         await inter.response.send_message("Sent suggestion.\nThank you for your suggestion.")
@@ -136,6 +108,7 @@ class SuggestionModal(disnake.ui.Modal):
 
 class BotSupport(commands.Cog, name="Bot Support"):
     """Bot Support used for reporting bugs and suggesting features"""
+
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
