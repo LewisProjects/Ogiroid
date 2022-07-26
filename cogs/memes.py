@@ -2,7 +2,7 @@ from disnake.ext import commands
 from datetime import datetime
 import disnake
 
-from cogs.utils.bot import OGIROID
+from utils.bot import OGIROID
 
 
 class Memes(commands.Cog):

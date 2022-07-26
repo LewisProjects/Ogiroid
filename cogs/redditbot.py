@@ -1,4 +1,3 @@
-import email
 from disnake.ext import commands
 import disnake
 import time
@@ -8,7 +7,7 @@ import time
 #
 # Tag System Made by github.com/FreebieII
 #
-from cogs.utils.bot import OGIROID
+from utils.bot import OGIROID
 
 
 class RedditBot(commands.Cog, name="Reddit Bot"):
@@ -23,22 +22,25 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
 
     @commands.slash_command(name="maketag", description="Creates a tag")
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    async def make_tag(self, ctx, name, *, content):
+    @commands.has_permissions()
+    async def make_tag(self, inter, name, *, content):
         """Makes a new tag"""
+        if not await self.tag_exists(name):
+            return await inter.send(f'tag {name} already exists')
+
         await self.db.execute("INSERT INTO tags (tag_id, content) VALUES (?, ?)", [name, content])
         await self.db.commit()
-        await ctx.reply(f"I have successfully made **{name}**. To view it do /tag {name}")
+        await inter.send(f"I have successfully made **{name}**. To view it do /tag {name}")
 
     @commands.slash_command(name="edittag", description="Edits the tag")
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
-    async def edittag(self, ctx, name, *, new_content):
+    async def edittag(self, inter, name, *, new_content):
         """Edit a tag"""
 
         await self.db.execute("UPDATE tags SET content = ? WHERE tag_id = ?", [new_content, name])
         await self.db.commit()
-        await ctx.reply(f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__")
+        await inter.send(f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__")
 
     @commands.slash_command(name="deltag", description="Deletes the tag.")
     @commands.guild_only()
@@ -140,6 +142,16 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
                 inline=False,
             )
             await ctx.send(embed=embed)
+
+    async def tag_exists(self, name):  # prob a better way to do this somebody fixes it
+        # check if a tag exists based off of tag_id in a sqlite database
+        async with self.db.execute("SELECT * FROM tags WHERE tag_id = ?", [name]) as cur:
+            async for row in cur:
+                print(row)
+                time.sleep(21)
+                return True
+        return False
+
 
 
 def setup(bot):

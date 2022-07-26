@@ -2,7 +2,7 @@ import aiosqlite
 import disnake
 from disnake.ext import commands
 
-from cogs.utils.http import HTTPSession
+from utils.http import HTTPSession
 
 with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()

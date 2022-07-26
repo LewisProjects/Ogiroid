@@ -3,7 +3,7 @@ import os
 from disnake.ext.commands import when_mentioned_or
 from dotenv import load_dotenv
 
-from cogs.utils.bot import OGIROID
+from utils.bot import OGIROID
 
 load_dotenv("secrets.env")
 

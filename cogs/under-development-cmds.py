@@ -1,11 +1,12 @@
 from disnake.ext import commands
-import disnake
+
+from utils.bot import OGIROID
 
 
 class DevelopmentCommands(commands.Cog):
     """All commands currently under development!"""
 
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
 

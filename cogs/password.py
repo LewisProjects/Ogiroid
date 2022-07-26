@@ -1,13 +1,14 @@
 from disnake.ext import commands
-import disnake
 import string
 import secrets
+
+from utils.bot import OGIROID
 
 
 class Password(commands.Cog):
     """Generates a random password"""
 
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.slash_command(name="password", aliases=["pass"], description="Generate a random password & DM's it!")

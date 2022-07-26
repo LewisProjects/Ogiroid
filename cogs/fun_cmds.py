@@ -1,4 +1,3 @@
-from disnake import Embed
 from disnake.ext import commands
 import disnake
 import random
@@ -11,7 +10,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-from cogs.utils.http import HTTPSession
+from utils.http import HTTPSession
 
 load_dotenv("../secrets.env")
 
