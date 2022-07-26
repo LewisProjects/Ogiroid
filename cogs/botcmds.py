@@ -1,5 +1,9 @@
+import datetime
+import disnake
+import time
 from disnake.ext import commands
-import disnake, datetime, time
+
+from utils.bot import OGIROID
 
 global startTime
 startTime = time.time()
@@ -8,11 +12,11 @@ startTime = time.time()
 class Commands(commands.Cog):
     """Common Bot Commands"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.slash_command(name="membercount", description="Get the member count of the server")
-    async def membercount(inter):
+    async def membercount(self, inter):
         """Count the members in the server"""
         member_count = len(inter.guild.members)
         true_member_count = len([m for m in inter.guild.members if not m.bot])
@@ -26,7 +30,7 @@ class Commands(commands.Cog):
         await inter.response.send_message(embed=embed)
 
     @commands.slash_command(name="ping", description="Shows how fast the bot is replying to you!")
-    async def ping(inter):
+    async def ping(self, inter):
         """Shows how fast the bot is replying to you!"""
         uptime = str(datetime.timedelta(seconds=int(round(time.time() - startTime))))
         embed = disnake.Embed(title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF)
@@ -54,7 +58,7 @@ class Commands(commands.Cog):
         await inter.response.send_message(embed=embed)
 
     @commands.slash_command(name="botinfo", description="Shows info about the bot!")
-    async def botinfo(inter):
+    async def botinfo(self, inter):
         """Shows the info of the bot"""
         embed = disnake.Embed(title="Ogiroid Information: ", description=" ", color=0xFFFFFF)
         embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
@@ -66,7 +70,7 @@ class Commands(commands.Cog):
         )
         embed.add_field(
             name="**Bot Developers: **",
-            value=f"__Owners:__\n`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **\n\n__Contributors:__\n`>`**<@491266830674034699>, <@662656158129192961>, <@577885109894512659>.**",
+            value=f"__Owners:__\n`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **\n\n__Contributors:__\n`>`**<@511724576674414600>, <@491266830674034699>, <@662656158129192961>, <@577885109894512659>.**",
             inline=False,
         )
         embed.set_thumbnail(

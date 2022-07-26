@@ -1,12 +1,12 @@
 import disnake
 from disnake.ext import commands
-import aiohttp
-from disnake.ext.commands.cooldowns import BucketType
 from disnake.ext.commands import Cog
+
+from utils.bot import OGIROID
 
 
 class Utilities(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: OGIROID):
         """Utility Commands"""
         self.bot = bot
         self.delete_snipes = dict()
