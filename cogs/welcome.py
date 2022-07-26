@@ -13,7 +13,7 @@ class Welcome(Cog):
     @Cog.listener()
     async def on_member_join(self, member):
         #   await member.add_roles(member.guild.get_role(768476148237336576), member.guild.get_role(770253516324732963)) #ROLE ON JOIN
-        chan = self.get_channel(905183354930995320) 
+        chan = self.get_channel(905183354930995320)
         embed = disnake.Embed(
             title="Welcome!",
             description=f"{member.mention}, you are the `{member.guild.member_count}th` member!\n\n 📑**__RULES:__** <#905182869410955355>\n ➰**__ROLES:__** <#933102052173828136>\n 👋**__INTRODUCTION__**: <#980049243236597780>\n\n",
@@ -32,13 +32,11 @@ class Welcome(Cog):
         )
         embed.set_thumbnail(url=member.avatar.url)
         embed.set_footer(text="Member Joined")
-        await chan.send(
-            f"{member.mention}, Welcome to Lewis' Coding Server!", embed=embed
-        )
+        await chan.send(f"{member.mention}, Welcome to Lewis' Coding Server!", embed=embed)
 
     @Cog.listener()
     async def on_member_remove(self, member):
-        chan = self.get_channel(905183354930995320)  
+        chan = self.get_channel(905183354930995320)
         embed = disnake.Embed(
             title="Goodbye :(",
             description=f"{member.mention} has left the server. There are now `{member.guild.member_count}` members",

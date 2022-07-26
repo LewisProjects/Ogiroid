@@ -15,16 +15,22 @@ class Memes(commands.Cog):
     async def onlyfans(self, inter):
         """Lewis' Onlyfans"""
         await inter.send(
-            "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg")
+            "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg"
+        )
 
-    @commands.slash_command(name="meme", aliases=["dankmeme"], description="Random meme from r/memes")
+    @commands.slash_command(
+        name="meme", aliases=["dankmeme"], description="Random meme from r/memes"
+    )
     async def meme(self, inter):
         """Random meme from r/memes"""
         subreddit = "memes"
         await self.get_posts(inter, subreddit)
 
-    @commands.slash_command(name="programmerhumor", aliases=["progmeme", "programmermeme", "memeprogrammer"],
-                            description="Random meme from r/programmerhumor")
+    @commands.slash_command(
+        name="programmerhumor",
+        aliases=["progmeme", "programmermeme", "memeprogrammer"],
+        description="Random meme from r/programmerhumor",
+    )
     async def programmerhumor(self, inter):
         """Random meme from r/programmerhumor"""
         subreddit = "ProgrammerHumor"
@@ -35,13 +41,18 @@ class Memes(commands.Cog):
         response = await self.bot.session.get(url)
         r = await response.json()
         upvotes = r[0]["data"]["children"][0]["data"]["ups"]
-        embed = disnake.Embed(title=f'{r[0]["data"]["children"][0]["data"]["title"]}',
-                              description=f'{r[0]["data"]["children"][0]["data"]["selftext"]}', colour=0x00B8FF,
-                              timestamp=datetime.utcnow(),
-                              url=f"https://www.reddit.com{r[0]['data']['children'][0]['data']['permalink']}", )
+        embed = disnake.Embed(
+            title=f'{r[0]["data"]["children"][0]["data"]["title"]}',
+            description=f'{r[0]["data"]["children"][0]["data"]["selftext"]}',
+            colour=0x00B8FF,
+            timestamp=datetime.utcnow(),
+            url=f"https://www.reddit.com{r[0]['data']['children'][0]['data']['permalink']}",
+        )
         embed.set_image(url=r[0]["data"]["children"][0]["data"]["url"])
-        embed.set_footer(text=f"{upvotes} Upvotes ",
-                         icon_url="https://cdn.discordapp.com/attachments/925750381840064525/925755794669047899/PngItem_715538.png", )
+        embed.set_footer(
+            text=f"{upvotes} Upvotes ",
+            icon_url="https://cdn.discordapp.com/attachments/925750381840064525/925755794669047899/PngItem_715538.png",
+        )
         await inter.response.send_message(embed=embed)
 
 

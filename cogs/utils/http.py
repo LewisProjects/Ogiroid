@@ -7,7 +7,7 @@ from .cache import async_cache
 
 # Removes the aiohttp ClientSession instance warning.
 class HTTPSession(aiohttp.ClientSession):
-    """ Abstract class for aiohttp. """
+    """Abstract class for aiohttp."""
 
     def __init__(self, loop=None):
         super().__init__(loop=loop or asyncio.get_event_loop())

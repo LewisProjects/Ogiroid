@@ -54,9 +54,7 @@ class Log(Cog):
 
             embed.set_thumbnail(url=before.avatar.url)
             embed.set_image(url=after.avatar.url)
-            embed.set_footer(
-                text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url
-            )
+            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
             await log_channel.send(embed=embed)
 
     @Cog.listener()
@@ -76,9 +74,7 @@ class Log(Cog):
 
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
-            embed.set_footer(
-                text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url
-            )
+            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
             await log_channel.send(embed=embed)
 
         elif before.roles != after.roles:
@@ -120,9 +116,7 @@ class Log(Cog):
 
                 for name, value, inline in fields:
                     embed.add_field(name=name, value=value, inline=inline)
-                embed.set_footer(
-                    text=f"{after.author.name}#{after.author.discriminator}"
-                )
+                embed.set_footer(text=f"{after.author.name}#{after.author.discriminator}")
                 await log_channel.send(embed=embed)
 
     @Cog.listener()
@@ -141,9 +135,7 @@ class Log(Cog):
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
 
-            embed.set_footer(
-                text=f"{message.author.name}#{message.author.discriminator}"
-            )
+            embed.set_footer(text=f"{message.author.name}#{message.author.discriminator}")
             await log_channel.send(embed=embed)
 
 

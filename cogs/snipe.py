@@ -22,16 +22,16 @@ class Utilities(commands.Cog):
     async def on_message_edit(self, before, after):
         self.edit_snipes[after.channel] = (before, after)
 
-    @commands.slash_command(name="snipe", description="Get the most recently deleted message in a channel")
+    @commands.slash_command(
+        name="snipe", description="Get the most recently deleted message in a channel"
+    )
     async def snipe_group(self, ctx):
         """Get the most recently deleted message in a channel"""
 
         try:
             sniped_message = self.delete_snipes[ctx.channel]
         except KeyError:
-            await ctx.send(
-                "There are no deleted messages in this channel to snipe!"
-            )
+            await ctx.send("There are no deleted messages in this channel to snipe!")
         else:
             result = disnake.Embed(
                 color=disnake.Color.red(),
@@ -43,9 +43,7 @@ class Utilities(commands.Cog):
                 icon_url=sniped_message.author.avatar.url,
             )
             try:
-                result.set_image(
-                    url=self.delete_snipes_attachments[ctx.channel][0].url
-               )
+                result.set_image(url=self.delete_snipes_attachments[ctx.channel][0].url)
             except:
                 pass
             await ctx.send(embed=result)
@@ -63,9 +61,7 @@ class Utilities(commands.Cog):
             result = disnake.Embed(color=disnake.Color.red(), timestamp=after.edited_at)
             result.add_field(name="Before", value=before.content, inline=False)
             result.add_field(name="After", value=after.content, inline=False)
-            result.set_author(
-                name=after.author.display_name, icon_url=after.author.avatar.url
-            )
+            result.set_author(name=after.author.display_name, icon_url=after.author.avatar.url)
             await ctx.send(embed=result)
 
 
