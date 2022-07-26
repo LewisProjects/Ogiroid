@@ -2,14 +2,13 @@ from disnake.ext import commands
 import disnake
 import asyncio
 import traceback
-from pathlib import Path
-from disnake.ext.commands import CommandNotFound
-from disnake.ext.commands.errors import CommandOnCooldown, NotOwner
 from datetime import datetime
+
+from utils.bot import OGIROID
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.Cog.listener()

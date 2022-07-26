@@ -2,9 +2,11 @@ from disnake.ext import commands
 import disnake
 from datetime import datetime
 
+from utils.bot import OGIROID
+
 
 class Starboard(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
         self.starboard_channel_id = 985936949581865030
         self.star_emoji = "⭐"

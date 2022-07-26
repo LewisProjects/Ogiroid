@@ -1,11 +1,13 @@
 from disnake.ext import commands
 import disnake
 
+from utils.bot import OGIROID
+
 
 class HelpCommand(commands.Cog, name="Help"):
     """Help Command"""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
         self.COLOUR = 0xFFFFFF
 

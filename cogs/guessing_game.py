@@ -5,10 +5,11 @@ import disnake
 #
 # Made by github.com/FreebieII
 #
+from utils.bot import OGIROID
 
 
 class GuessingGame(commands.Cog, name="Guessing Game"):
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.slash_command(name="guess", description="I will magically guess your number.")

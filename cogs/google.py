@@ -1,11 +1,13 @@
 from disnake.ext import commands
 import disnake
 
+from utils.bot import OGIROID
+
 
 class Google(commands.Cog):
     """Google stuff"""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.slash_command(description="Returns a google search for your query")

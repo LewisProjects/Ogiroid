@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
+from utils.bot import OGIROID
 from utils.http import HTTPSession
 
 load_dotenv("../secrets.env")
@@ -18,7 +19,7 @@ load_dotenv("../secrets.env")
 class Fun(commands.Cog):
     """Fun Commands!"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.Cog.listener()
