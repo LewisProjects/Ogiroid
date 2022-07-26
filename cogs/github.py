@@ -25,9 +25,7 @@ class GitHub(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_thumbnail(url=f"{person['avatar_url']}")
-        embed.add_field(
-            name="Username 📛: ", value=f"__[{person['name']}]({person['html_url']})__", inline=True
-        )
+        embed.add_field(name="Username 📛: ", value=f"__[{person['name']}]({person['html_url']})__", inline=True)
         # embed.add_field(name="Email ✉: ", value=f"{person['email']}", inline=True) Commented due to github not responding with the correct email
         embed.add_field(name="Repos 📁: ", value=f"{person['public_repos']}", inline=True)
         embed.add_field(name="Location 📍: ", value=f"{person['location']}", inline=True)
@@ -70,9 +68,7 @@ class GitHub(commands.Cog):
                 inline=True,
             )
         else:
-            embed.add_field(
-                name="License name 📃:", value=f"This Repo doesn't have a license", inline=True
-            )
+            embed.add_field(name="License name 📃:", value=f"This Repo doesn't have a license", inline=True)
         embed.add_field(name="URL 🔍:", value=f"[Click here!]({repo['html_url']})", inline=True)
         await ctx.send(embed=embed)
 

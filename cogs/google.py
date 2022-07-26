@@ -14,9 +14,7 @@ class Google(commands.Cog):
         query = query.rstrip().replace(" ", "+")
         await inter.send(f"https://www.google.com/search?q={query}")
 
-    @commands.slash_command(
-        name="feeling-lucky", description="Returns the first google result for your query"
-    )
+    @commands.slash_command(name="feeling-lucky", description="Returns the first google result for your query")
     async def lucky(self, inter, query):
         """Googles the keyword entered and returns the first result"""
         query = query.rstrip().replace(" ", "+")

@@ -54,13 +54,9 @@ class BugModal(disnake.ui.Modal):
 
         embed.add_field(name="Actual Result:", value=inter.text_values["actual"], inline=False)
 
-        embed.add_field(
-            name="Further Explanation", value=inter.text_values["description"], inline=False
-        )
+        embed.add_field(name="Further Explanation", value=inter.text_values["description"], inline=False)
 
-        channel = self.bot.get_channel(
-            985554459948122142  ##############################Replace with channel for bugs
-        )
+        channel = self.bot.get_channel(985554459948122142)  ##############################Replace with channel for bugs
         await channel.send(embed=embed)
         await inter.response.send_message("Sent bug report.\nThank you for pointing it out.")
 
@@ -99,9 +95,7 @@ class SuggestionModal(disnake.ui.Modal):
 
         embed.add_field(name="Description", value=inter.text_values["description"], inline=False)
 
-        channel = self.bot.get_channel(
-            985554479405490216  ##############################Replace with channel for suggestions
-        )
+        channel = self.bot.get_channel(985554479405490216)  ##############################Replace with channel for suggestions
         await channel.send(embed=embed)
         await inter.response.send_message("Sent suggestion.\nThank you for your suggestion.")
 

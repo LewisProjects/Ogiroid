@@ -29,9 +29,7 @@ class Commands(commands.Cog):
     async def ping(inter):
         """Shows how fast the bot is replying to you!"""
         uptime = str(datetime.timedelta(seconds=int(round(time.time() - startTime))))
-        embed = disnake.Embed(
-            title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF
-        )
+        embed = disnake.Embed(title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF)
         ping = round(inter.bot.latency * 1000)
         if ping < 50:
             emoji = "<:404:985939028597682216>"
