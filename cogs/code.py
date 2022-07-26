@@ -1,4 +1,3 @@
-import requests
 from disnake import TextInputStyle, Color
 import disnake
 from disnake import Embed
@@ -6,14 +5,15 @@ from disnake.ext import commands
 from disnake.ext.commands import Cog
 
 from cogs.utils.CONSTANTS import VALID_CODE_LANGUAGES
-
+from cogs.utils.http import session
+from cogs.utils.bot import OGIROID
 
 class CodeExec(Cog, name="Code"):
     """
     💻 Run code and get results instantly!
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.slash_command(name="code", description="Run code and get results instantly. Window for code will pop up.")
@@ -50,8 +50,8 @@ class CodeModal(disnake.ui.Modal):
         await self._send_result(inter, result)
 
     async def _run_code(self, *, lang: str, code: str):
-        res = requests.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code}, )
-        return res.json()
+        code = await session.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code})
+        return await code.json()
 
     async def _send_result(self, inter, result: dict):
         output = result["output"]

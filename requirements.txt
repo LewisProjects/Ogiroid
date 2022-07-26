@@ -4,4 +4,3 @@ akinator.py==5.0.0
 discord_together==1.2.5
 disnake==2.5.1
 python-dotenv==0.20.0
-requests==2.27.1
