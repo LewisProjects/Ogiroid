@@ -27,9 +27,7 @@ class Fun(commands.Cog):
         TOKEN = os.getenv("TOKEN")
         self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.slash_command(
-        name="youtube", description="Watch YouTube in a Discord VC with your friends"
-    )
+    @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
     async def youtube(self, ctx):
         """Watch YouTube in a Discord VC with your friends"""
         if ctx.author.voice:
@@ -74,9 +72,7 @@ class Fun(commands.Cog):
         """Time to get triggered."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
@@ -101,31 +97,23 @@ class Fun(commands.Cog):
         else:
             await inter.send("Couldnt get image :(")
 
-    @commands.slash_command(
-        name="invert", brief="invert", description="Invert the colours of your icon"
-    )
+    @commands.slash_command(name="invert", brief="invert", description="Invert the colours of your icon")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def invert(self, inter, member: disnake.Member = None):
         """Invert your profile picture."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
 
-    @commands.slash_command(
-        name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
-    )
+    @commands.slash_command(name="pixelate", brief="pixelate", description="Turn yourself into 144p!")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pixelate(self, inter, member: disnake.Member = None):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
@@ -136,9 +124,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
 
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
 
@@ -167,23 +153,17 @@ class Fun(commands.Cog):
         try:
             await msg.add_reaction("🍻")
             await self.bot.wait_for("raw_reaction_add", timeout=30.0, check=reaction_check)
-            await msg.edit(
-                content=f"**{user.name}** and **{ctx.author.name}** are enjoying a lovely beer together 🍻"
-            )
+            await msg.edit(content=f"**{user.name}** and **{ctx.author.name}** are enjoying a lovely beer together 🍻")
         except asyncio.TimeoutError:
             await msg.delete()
-            await ctx.send(
-                f"well, doesn't seem like **{user.name}** wanted a beer with you **{ctx.author.name}** ;-;"
-            )
+            await ctx.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{ctx.author.name}** ;-;")
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
             beer_offer = f"**{user.name}**, you got a 🍺 from **{ctx.author.name}**"
             beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
             await msg.edit(content=beer_offer)
 
-    @commands.slash_command(
-        aliases=["slots", "bet"]
-    )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
+    @commands.slash_command(aliases=["slots", "bet"])  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def slot(self, ctx):
         """Roll the slot machine"""
         emojis = "💻💾💿🖥🖨🖱🌐⌨"
@@ -197,9 +177,7 @@ class Fun(commands.Cog):
         else:
             await ctx.send(f"{slotmachine} No match, you lost 😢")
 
-    @commands.slash_command(
-        name="8ball", brief="8ball", description="Ask the magic 8ball a question"
-    )
+    @commands.slash_command(name="8ball", brief="8ball", description="Ask the magic 8ball a question")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def eightball(self, inter, *, question):
         """Ask the magic 8ball a question"""
@@ -242,9 +220,7 @@ class Fun(commands.Cog):
             intro.set_thumbnail(
                 url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
             )
-            intro.set_footer(
-                text="Think about a real or fictional character. I will try to guess who it is"
-            )
+            intro.set_footer(text="Think about a real or fictional character. I will try to guess who it is")
             bye = disnake.Embed(
                 title="Ogiroid",
                 description="Bye, " + ctx.author.mention,
@@ -260,8 +236,7 @@ class Fun(commands.Cog):
                 return (
                     msg.author == ctx.author
                     and msg.channel == ctx.channel
-                    and msg.content.lower()
-                    in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
+                    and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
                 )
 
             try:
@@ -330,9 +305,7 @@ class Fun(commands.Cog):
     async def bored(self, inter):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
-            async with activitySession.get(
-                f"https://boredapi.com/api/activity", ssl=False
-            ) as activityData:  # keep as http
+            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 

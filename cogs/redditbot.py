@@ -38,9 +38,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
 
         await self.db.execute("UPDATE tags SET content = ? WHERE tag_id = ?", [new_content, name])
         await self.db.commit()
-        await ctx.reply(
-            f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__"
-        )
+        await ctx.reply(f"I have successfully updated **{name}**. \n\n **{name}**\n__{new_content}__")
 
     @commands.slash_command(name="deltag", description="Deletes the tag.")
     @commands.guild_only()
@@ -60,14 +58,10 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
     async def tag(self, ctx, name):
 
         if name is None:
-            await ctx.send(
-                "Which tag do you want to use? You can use `/tags` to see all available tags!"
-            )
+            await ctx.send("Which tag do you want to use? You can use `/tags` to see all available tags!")
             return
 
-        async with self.db.execute(
-            "SELECT content FROM tags WHERE tag_id = ? LIMIT 20", [name]
-        ) as cur:
+        async with self.db.execute("SELECT content FROM tags WHERE tag_id = ? LIMIT 20", [name]) as cur:
             async for row in cur:
                 await ctx.send(f"{row[0]}")
 
@@ -97,9 +91,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         )
 
     # Get Information Related to the GitHub of the Bot
-    @commands.slash_command(
-        name="rbgithub", description="Get Information Related to the GitHub of the Reddit Bot"
-    )
+    @commands.slash_command(name="rbgithub", description="Get Information Related to the GitHub of the Reddit Bot")
     @commands.guild_only()
     async def rbgithub(self, ctx):
         url = await self.bot.session.get("https://api.github.com/repos/elebumm/RedditVideoMakerBot")

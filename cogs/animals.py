@@ -26,9 +26,7 @@ class Animals(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_image(url=data["image"])
-        embed.set_footer(
-            text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar
-        )
+        embed.set_footer(text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar)
         await inter.response.send_message(f"**Fun Fact: **" + data["fact"], embed=embed)
 
     @animal.sub_command(name="dog", description="Get a random dog picture")
@@ -42,9 +40,7 @@ class Animals(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_image(url=data["image"])
-        embed.set_footer(
-            text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar
-        )
+        embed.set_footer(text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar)
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
     @animal.sub_command(name="bird", description="Get a random bird picture")
@@ -58,9 +54,7 @@ class Animals(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_image(url=data["image"])
-        embed.set_footer(
-            text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar
-        )
+        embed.set_footer(text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar)
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
     @animal.sub_command(name="fox", description="Get a random fox picture")
@@ -74,9 +68,7 @@ class Animals(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_image(url=data["image"])
-        embed.set_footer(
-            text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar
-        )
+        embed.set_footer(text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar)
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
     @animal.sub_command(name="panda", description="Get a random panda picture")
@@ -90,9 +82,7 @@ class Animals(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_image(url=data["image"])
-        embed.set_footer(
-            text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar
-        )
+        embed.set_footer(text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar)
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
     @animal.sub_command(name="koala", description="Get a random cat picture")
@@ -106,9 +96,7 @@ class Animals(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_image(url=data["image"])
-        embed.set_footer(
-            text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar
-        )
+        embed.set_footer(text=f"Command issued by: {inter.author.name}", icon_url=inter.author.avatar)
         await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
 
 

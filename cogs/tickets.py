@@ -17,9 +17,7 @@ class Tickets(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        reaction_message = await self.bot.get_channel(990679557596135475).fetch_message(
-            990679907795349554
-        )
+        reaction_message = await self.bot.get_channel(990679557596135475).fetch_message(990679907795349554)
         if payload.message_id == reaction_message.id:
             guild = self.bot.get_guild(payload.guild_id)
             user = guild.get_member(payload.user_id)
@@ -36,9 +34,7 @@ class Tickets(commands.Cog):
             staff = self.bot.get_guild(985234686878023730).get_role(985943266115584010)
             emoji = self.bot.get_emoji(990310706874290216)
             ticket_channel = await reaction_message.guild.create_text_channel(f"ticket-{user.name}")
-            await ticket_channel.set_permissions(
-                reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False
-            )
+            await ticket_channel.set_permissions(reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False)
             await ticket_channel.set_permissions(
                 user,
                 send_messages=True,
@@ -59,9 +55,7 @@ class Tickets(commands.Cog):
                 read_message_history=True,
                 external_emojis=True,
             )
-            message_content = (
-                "Thank you for contacting support! A staff member will be here shortly!"
-            )
+            message_content = "Thank you for contacting support! A staff member will be here shortly!"
             em = disnake.Embed(
                 title=f"Ticket made by {user.name}#{user.discriminator}",
                 description=f"{message_content}",
@@ -71,9 +65,7 @@ class Tickets(commands.Cog):
             await ticket_channel.send(
                 f"Thank you for contacting support! A staff member will be here shortly!\n `Ticket ID`:{role.mention}"
             )
-            await ticket_channel.send(
-                f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them."
-            )
+            await ticket_channel.send(f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them.")
             await reaction_message.remove_reaction(emoji, user)
 
     @commands.slash_command(description="Close ticket")

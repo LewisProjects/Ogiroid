@@ -10,16 +10,12 @@ class Password(commands.Cog):
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
-    @commands.slash_command(
-        name="password", aliases=["pass"], description="Generate a random password & DM's it!"
-    )
+    @commands.slash_command(name="password", aliases=["pass"], description="Generate a random password & DM's it!")
     async def password(self, inter, length: int):
         """Generate a random password & DM's it!"""
         if length > 100:
             length = 100
-        password = "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(length)
-        )
+        password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
         # Checking if DM's are open, if they are, send the password to the user
         try:
             await inter.author.send(f"Your password is: `{password}`")

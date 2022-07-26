@@ -22,9 +22,7 @@ class Utilities(commands.Cog):
     async def on_message_edit(self, before, after):
         self.edit_snipes[after.channel] = (before, after)
 
-    @commands.slash_command(
-        name="snipe", description="Get the most recently deleted message in a channel"
-    )
+    @commands.slash_command(name="snipe", description="Get the most recently deleted message in a channel")
     async def snipe_group(self, ctx):
         """Get the most recently deleted message in a channel"""
 

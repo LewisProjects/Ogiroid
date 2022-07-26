@@ -43,9 +43,9 @@ class ErrorHandler(commands.Cog):
                 )
                 await errchan.send(embed=errembed)
 
-                traceback_nice = "".join(
-                    traceback.format_exception(type(error), error, error.__traceback__, 4)
-                ).replace("```", "```")
+                traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace(
+                    "```", "```"
+                )
 
                 debug_info = (
                     f"```\n{ctx.author} {ctx.author.id}: {ctx.message.content}"[:200]
