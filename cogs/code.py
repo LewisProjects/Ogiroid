@@ -4,9 +4,9 @@ from disnake import Embed
 from disnake.ext import commands
 from disnake.ext.commands import Cog
 
-from cogs.utils.CONSTANTS import VALID_CODE_LANGUAGES
-from cogs.utils.http import session
-from cogs.utils.bot import OGIROID
+from utils.CONSTANTS import VALID_CODE_LANGUAGES
+from utils.http import session
+from utils.bot import OGIROID
 
 
 class CodeExec(Cog, name="Code"):

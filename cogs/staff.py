@@ -1,9 +1,8 @@
 from disnake.ext import commands
 import disnake
 import time
-import asyncio
 
-from cogs.utils.CONSTANTS import REDDIT_FAQ_CHANNEL
+from utils.CONSTANTS import REDDIT_FAQ_CHANNEL
 
 
 class Staff(commands.Cog):

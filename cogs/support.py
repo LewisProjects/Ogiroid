@@ -2,11 +2,12 @@ from disnake.ext import commands
 import disnake
 from disnake import TextInputStyle
 
-from cogs.utils.CONSTANTS import SUGGESTIONS_CHANNEL, BUG_REPORT_CHANNEL
+from utils.CONSTANTS import SUGGESTIONS_CHANNEL, BUG_REPORT_CHANNEL
+from utils.bot import OGIROID
 
 
 class BugModal(disnake.ui.Modal):
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: OGIROID):
         # The details of the modal, and its components
         self.bot = bot
         components = [
@@ -64,7 +65,7 @@ class BugModal(disnake.ui.Modal):
 
 
 class SuggestionModal(disnake.ui.Modal):
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: OGIROID):
         # The details of the modal, and its components
         self.bot = bot
         components = [
@@ -105,7 +106,7 @@ class SuggestionModal(disnake.ui.Modal):
 class BotSupport(commands.Cog, name="Bot Support"):
     """Bot Support used for reporting bugs and suggesting features"""
 
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
     @commands.slash_command(name="reportbug", description="Report a bug")

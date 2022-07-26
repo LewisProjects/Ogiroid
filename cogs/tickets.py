@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from cogs.utils.bot import OGIROID
+from utils.bot import OGIROID
 
 
 class Tickets(commands.Cog):

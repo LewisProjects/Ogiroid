@@ -1,7 +1,7 @@
 from disnake.ext import commands
 import disnake
 
-from cogs.utils.bot import OGIROID
+from utils.bot import OGIROID
 
 
 class GitHub(commands.Cog):
