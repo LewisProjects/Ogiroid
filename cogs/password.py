@@ -16,7 +16,7 @@ class Password(commands.Cog):
         if length > 100:
             length = 100
         password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
-        # Checking if DM's are open, if they are, send the password to the user
+        # try to DM if fails send the password to the channel
         try:
             await inter.author.send(f"Your password is: `{password}`")
             await inter.response.send_message("Your password has been sent!")
