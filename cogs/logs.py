@@ -2,7 +2,6 @@ from datetime import datetime
 
 from disnake import Embed
 from disnake.ext.commands import Cog
-from disnake.ext.commands import command
 
 
 class Log(Cog):

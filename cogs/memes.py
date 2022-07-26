@@ -56,9 +56,7 @@ class Memes(commands.Cog):
     @commands.slash_command(name="freemoney", description="Get free money!")
     async def free_money(self, inter):
         """Get free money"""
-        await inter.send(
-            "Free money hack!\n<https://youtu.be/dQw4w9WgXcQ>"
-        )
+        await inter.send("Free money hack!\n<https://youtu.be/dQw4w9WgXcQ>")
 
 
 def setup(bot: OGIROID):

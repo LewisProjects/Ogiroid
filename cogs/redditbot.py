@@ -26,7 +26,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
     async def make_tag(self, inter, name, *, content):
         """Makes a new tag"""
         if not await self.tag_exists(name):
-            return await inter.send(f'tag {name} already exists')
+            return await inter.send(f"tag {name} already exists")
 
         await self.db.execute("INSERT INTO tags (tag_id, content) VALUES (?, ?)", [name, content])
         await self.db.commit()
@@ -151,7 +151,6 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
                 time.sleep(21)
                 return True
         return False
-
 
 
 def setup(bot):
