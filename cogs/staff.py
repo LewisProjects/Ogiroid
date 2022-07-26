@@ -3,6 +3,8 @@ import disnake
 import time
 import asyncio
 
+from cogs.utils.CONSTANTS import REDDIT_FAQ_CHANNEL
+
 
 class Staff(commands.Cog):
     """Commands for the staff team!\n\n"""
@@ -15,7 +17,7 @@ class Staff(commands.Cog):
     @commands.has_role("Staff")
     async def faq(self, ctx, person: disnake.Member):
         """FAQ command for the staff team"""
-        channel = self.bot.get_channel(985908874362093620)  # reddit-faq channel ID
+        channel = self.bot.get_channel(REDDIT_FAQ_CHANNEL)
         message = await channel.send(f"{person.mention}")
         time.sleep(2)
         await message.delete()
