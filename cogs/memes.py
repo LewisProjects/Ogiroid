@@ -54,5 +54,5 @@ class Memes(commands.Cog):
         await inter.response.send_message(embed=embed)
 
 
-def setup(bot):
+def setup(bot: OGIROID):
     bot.add_cog(Memes(bot))

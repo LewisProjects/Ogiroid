@@ -97,5 +97,5 @@ class CodeModal(disnake.ui.Modal):
         return True
 
 
-def setup(bot: commands.Bot):
+def setup(bot: OGIROID):
     bot.add_cog(CodeExec(bot))
