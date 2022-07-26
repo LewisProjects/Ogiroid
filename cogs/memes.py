@@ -53,6 +53,13 @@ class Memes(commands.Cog):
         )
         await inter.response.send_message(embed=embed)
 
+    @commands.slash_command(name="freemoney", description="Get free money!")
+    async def free_money(self, inter):
+        """Get free money"""
+        await inter.send(
+            "Free money hack!\n<https://youtu.be/dQw4w9WgXcQ>"
+        )
+
 
 def setup(bot: OGIROID):
     bot.add_cog(Memes(bot))
