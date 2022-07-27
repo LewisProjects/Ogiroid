@@ -31,7 +31,9 @@ class GuessingGame(commands.Cog, name="Guessing Game"):
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 100
 
-        await ctx.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
+        await ctx.send(
+            "I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*"
+        )
 
         time.sleep(5)
         embed = disnake.Embed(title="Number Guesser", color=0x729FCF)

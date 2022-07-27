@@ -305,7 +305,9 @@ class Fun(commands.Cog):
     async def bored(self, inter):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
-            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
+            async with activitySession.get(
+                f"https://boredapi.com/api/activity", ssl=False
+            ) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 
