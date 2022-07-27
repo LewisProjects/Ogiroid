@@ -113,9 +113,7 @@ class Tags(commands.Cog, name="Tags"):
             ):  # todo test manage messages permission check
                 return await QuickEmb(inter, "You do not have permission to edit this tag").error().send()
             await self.tags.update(name, "content", content)
-            await QuickEmb(
-                inter, f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__"
-            ).success().send()
+            await QuickEmb(inter, f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -176,9 +174,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.increment_views(name)
             tag = await self.tags.get(name)
             owner = self.bot.get_user(tag.owner)
-            emb = Embed(
-                color=disnake.Color.random(seed=hash(tag.name))
-            )  # hash -> seed makes the color the same for the tag
+            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
             emb.add_field(name="Name", value=tag.name)
             emb.add_field(name="Owner", value=owner.mention)
             emb.add_field(name="Created At", value=f"<t:{tag.created_at}:R>")

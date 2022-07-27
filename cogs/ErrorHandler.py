@@ -33,9 +33,9 @@ class ErrorHandler(commands.Cog):
                     timestamp=datetime.utcnow(),
                 )
                 await error_channel.send(embed=error_embed)
-                traceback_nice = "".join(
-                    traceback.format_exception(type(error), error, error.__traceback__, 4)
-                ).replace("```", "```")
+                traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace(
+                    "```", "```"
+                )
 
                 debug_info = (
                     f"```\n{ctx.author} {ctx.author.id}: /{ctx.application_command.name}"[:200]
