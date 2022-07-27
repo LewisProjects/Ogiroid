@@ -2,7 +2,10 @@ CREATE TABLE
 IF NOT EXISTS tags
 (
     tag_id TEXT,
-    content TEXT
+    content TEXT,
+    owner INTEGER,
+    created_at INTEGER,
+    views INTEGER
 );
 
 CREATE TABLE
