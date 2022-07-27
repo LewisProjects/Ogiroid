@@ -27,8 +27,10 @@ class TagManager:
     async def create(self, name, content, owner):  # todo add owner or remove depending on what answer O get
         if await self.exists(name):
             raise TagAlreadyExists
-        await self.db.execute("INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
-                              [name, content, owner, int(time.time())])
+        await self.db.execute(
+            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            [name, content, owner, int(time.time())],
+        )
         await self.db.commit()
 
     async def get(self, name) -> Tag | TagNotFound:
@@ -71,11 +73,8 @@ class TagManager:
         await self.update(name, "views", (current_views + 1))
 
 
-
-
 def manage_messages_perms(inter):
-    return inter.channel.permissions_for(
-        inter.author).manage_messages
+    return inter.channel.permissions_for(inter.author).manage_messages
 
 
 class Tags(commands.Cog, name="Tags"):
@@ -110,11 +109,13 @@ class Tags(commands.Cog, name="Tags"):
     async def edittag(self, inter, name, *, content):
         try:
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(
-                    inter):  # todo test manage messages permission check
+                inter
+            ):  # todo test manage messages permission check
                 return await QuickEmb(inter, "You do not have permission to edit this tag").error().send()
             await self.tags.update(name, "content", content)
-            await QuickEmb(inter,
-                           f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
+            await QuickEmb(
+                inter, f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__"
+            ).success().send()
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -126,11 +127,14 @@ class Tags(commands.Cog, name="Tags"):
             if new_owner.bot:
                 return await QuickEmb(inter, "You can't transfer a tag to a bot!").error().send()
             elif (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(
-                    inter):  # todo test manage messages permission check
+                inter
+            ):  # todo test manage messages permission check
                 return await QuickEmb(inter, "You must be the owner of the tag to transfer it!").error().send()
             await self.tags.transfer(name, new_owner.id)
-            await inter.send(f"I have successfully transferred **{name}** to {new_owner.mention}",
-                             allowed_mentions=disnake.AllowedMentions(everyone=False, users=False))
+            await inter.send(
+                f"I have successfully transferred **{name}** to {new_owner.mention}",
+                allowed_mentions=disnake.AllowedMentions(everyone=False, users=False),
+            )
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -172,11 +176,12 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.increment_views(name)
             tag = await self.tags.get(name)
             owner = self.bot.get_user(tag.owner)
-            emb = Embed(color=disnake.Color.random(
-                seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
+            emb = Embed(
+                color=disnake.Color.random(seed=hash(tag.name))
+            )  # hash -> seed makes the color the same for the tag
             emb.add_field(name="Name", value=tag.name)
             emb.add_field(name="Owner", value=owner.mention)
-            emb.add_field(name="Created At", value=f'<t:{tag.created_at}:R>')
+            emb.add_field(name="Created At", value=f"<t:{tag.created_at}:R>")
             emb.add_field(name="Times Called", value=abs(tag.views))
             await inter.send(embed=emb)
         except TagNotFound:
@@ -186,8 +191,11 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def tag(self, inter, name):
         if name is None:
-            return await QuickEmb(inter,
-                                  "Which tag do you want to use? You can use `/tags` to see all available tags!").error().send()
+            return (
+                await QuickEmb(inter, "Which tag do you want to use? You can use `/tags` to see all available tags!")
+                .error()
+                .send()
+            )
 
         try:
             await self.tags.increment_views(name)
@@ -200,11 +208,15 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_tags(self, ctx):  # todo fix this
-        embed = disnake.Embed(title="\n",
-                              description="Tagging system made by [FreebieII](https://github.com/FreebieII)",
-                              color=0x53E7CE, )
-        embed.set_footer(text="Reddit Help Bot",
-                         icon_url="https://64.media.tumblr.com/0f377879537d8206fcf018a01cd395fa/tumblr_pdcvzmjvvm1qeyvpto1_500.gif", )
+        embed = disnake.Embed(
+            title="\n",
+            description="Tagging system made by [FreebieII](https://github.com/FreebieII)",
+            color=0x53E7CE,
+        )
+        embed.set_footer(
+            text="Reddit Help Bot",
+            icon_url="https://64.media.tumblr.com/0f377879537d8206fcf018a01cd395fa/tumblr_pdcvzmjvvm1qeyvpto1_500.gif",
+        )
         # embed.set_thumbnail(url="https://i.gifer.com/4EfW.gif")
         async with self.db.execute("SELECT * FROM tags LIMIT 1") as cur:
             async for tags in cur:
@@ -215,10 +227,12 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def tag_help(self, ctx):
         await ctx.send(  # todo fix this
-            "```\n/tag [name] - Prints out the message for the given tag (or /t [name])\n!!maketag [name] [content...] - Creates a new tag\n/deltag [name] - Deletes an existing tag\n/edittag [name] [new_contant...] - Edits and existing tag\n/taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```")
+            "```\n/tag [name] - Prints out the message for the given tag (or /t [name])\n/maketag [name] [content...] - Creates a new tag\n/deltag [name] - Deletes an existing tag\n/edittag [name] [new_contant...] - Edits and existing tag\n/taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
+        )
 
 
 def setup(bot):
     bot.add_cog(Tags(bot))
+
 
 # todo tag steal command if the owner is gone

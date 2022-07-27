@@ -35,7 +35,9 @@ class Tickets(commands.Cog):
             staff = self.bot.get_guild(985234686878023730).get_role(985943266115584010)
             emoji = self.bot.get_emoji(990310706874290216)
             ticket_channel = await reaction_message.guild.create_text_channel(f"ticket-{user.name}")
-            await ticket_channel.set_permissions(reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False)
+            await ticket_channel.set_permissions(
+                reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False
+            )
             await ticket_channel.set_permissions(
                 user,
                 send_messages=True,
@@ -66,7 +68,9 @@ class Tickets(commands.Cog):
             await ticket_channel.send(
                 f"Thank you for contacting support! A staff member will be here shortly!\n `Ticket ID`:{role.mention}"
             )
-            await ticket_channel.send(f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them.")
+            await ticket_channel.send(
+                f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them."
+            )
             await reaction_message.remove_reaction(emoji, user)
 
     @commands.slash_command(description="Close ticket")
