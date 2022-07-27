@@ -34,6 +34,25 @@ class Staff(commands.Cog):
         await ctx.channel.purge(limit=amount)
         await ctx.send(f"Deleted {amount} messages successfully!")
 
+    
+    @commands.slash_command(name="channellock")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def channellock(self, ctx, channel: disnake.TextChannel):
+        """Lock a channel"""
+        #Lock's a channel by not letting anyone send messages to it
+        await channel.set_permissions(ctx.guild.default_role, send_messages=False)
+        await ctx.send(f"🔒 Locked {channel.mention} successfully!")
+
+    @commands.slash_command(name="channelunlock")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def channelunlock(self, ctx, channel: disnake.TextChannel):
+        """Unlock a channel"""
+        #Unlock's a channel by letting everyone send messages to it
+        await channel.set_permissions(ctx.guild.default_role, send_messages=True)
+        await ctx.send(f"🔓 Unlocked {channel.mention} successfully!")
+
 
 
 
