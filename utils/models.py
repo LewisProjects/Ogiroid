@@ -9,4 +9,3 @@ class Tag:
     owner: int
     created_at: int = time.time()
     views: int = 0
-

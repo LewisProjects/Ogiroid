@@ -22,7 +22,7 @@ client = OGIROID(
     command_prefix=get_prefix,
     intents=disnake.Intents.all(),
     help_command=None,
-    sync_commands_debug=True, # todo change
+    sync_commands_debug=True,  # todo change
     case_insensitive=True,
 )
 

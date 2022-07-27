@@ -18,9 +18,9 @@ class Staff(commands.Cog):
     async def faq(self, ctx, person: disnake.Member):
         """FAQ command for the staff team"""
         channel = self.bot.get_channel(REDDIT_FAQ_CHANNEL)
-        message = await channel.send(f"{person.mention}")
-        time.sleep(2)
-        await message.delete()
+        await channel.send(f"{person.mention}", delete_after=2)
+        # Sending Done so this Application didn't respond error can be avoided
+        await ctx.send("Done", delete_after=1)
 
 
 def setup(bot):
