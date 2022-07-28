@@ -1,5 +1,6 @@
 from disnake.ext import commands
 import disnake
+from disnake import TextInputStyle
 
 from utils.bot import OGIROID
 
@@ -50,6 +51,23 @@ class Staff(commands.Cog):
         await channel.set_permissions(ctx.guild.default_role, send_messages=True)
         await ctx.send(f"🔓 Unlocked {channel.mention} successfully!")
 
+    """#Reaction Roles with buttons:
+    @commands.slash_command(name="reactionrole")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def reactionrole(self, ctx, message_id: str, button_name: str, emoji: str, role: disnake.Role):
+        # Reaction Role command for the staff team
+        # Checking if the message exists:
+        message = await ctx.channel.fetch_message(message_id)
+        if message is None:
+            await ctx.send("Message not found!")
+            return
+        # Creating a button class for the message:
+        button = disnake.Button(button_name, emoji, role)
+        # Adding the button to the message:
+        self.bot.buttons.append(button)
+        await ctx.send(f"Added!")"""
+        
 
 def setup(bot):
     bot.add_cog(Staff(bot))
