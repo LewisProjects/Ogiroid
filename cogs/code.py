@@ -63,14 +63,14 @@ class CodeModal(disnake.ui.Modal):
         )
         embed.add_field(
             name="Code",
-            value=f"```{inter.text_values['language']}\n" f"{inter.text_values['code'][:1024]}\n" f"```",
+            value=f"```{inter.text_values['language']}\n" f"{inter.text_values['code'][:999]}\n" f"```",
             inline=False,
         )
         await inter.response.send_message(embed=embed)
-        result = await self._run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
+        result = await self.run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
         await self._send_result(inter, result)
 
-    async def _run_code(self, *, lang: str, code: str):
+    async def run_code(self, *, lang: str, code: str):
         code = await session.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code})
         return await code.json()
 
