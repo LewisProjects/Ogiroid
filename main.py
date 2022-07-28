@@ -9,7 +9,7 @@ load_dotenv("secrets.env")
 
 TOKEN = os.getenv("TOKEN")
 GUILD_ID = 985234686878023730  # 897666935708352582
-BUG_CHAN = 985554459948122142  # 982669110926250004
+BUG_CHAN = 985554459948122142  # 982669110926250004 todo move remove these
 SUGG_CHAN = 985554479405490216  # 982353129913851924
 
 
@@ -25,7 +25,6 @@ client = OGIROID(
     sync_commands_debug=True,  # todo change
     case_insensitive=True,
 )
-
 
 def main():
     for filename in os.listdir("./cogs"):

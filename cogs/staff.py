@@ -1,8 +1,6 @@
 from disnake.ext import commands
 import disnake
-import time
 
-from utils.CONSTANTS import REDDIT_FAQ_CHANNEL
 from utils.bot import OGIROID
 
 
@@ -17,7 +15,7 @@ class Staff(commands.Cog):
     @commands.has_role("Staff")
     async def faq(self, ctx, person: disnake.Member):
         """FAQ command for the staff team"""
-        channel = self.bot.get_channel(REDDIT_FAQ_CHANNEL)
+        channel = self.bot.get_channel(self.bot.config.channels.reddit_faq)
         await channel.send(f"{person.mention}", delete_after=2)
         # Sending Done so this Application didn't respond error can be avoided
         await ctx.send("Done", delete_after=1)

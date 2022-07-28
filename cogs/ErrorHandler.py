@@ -7,7 +7,6 @@ from datetime import datetime
 
 from utils.bot import OGIROID
 
-from utils.CONSTANTS import ERROR_CHANNEL
 
 
 class ErrorHandler(commands.Cog):
@@ -20,7 +19,7 @@ class ErrorHandler(commands.Cog):
             if hasattr(ctx.application_command, "on_error"):
                 return
             else:
-                error_channel = self.bot.get_channel(ERROR_CHANNEL)
+                error_channel = self.bot.get_channel(self.bot.config.channels.errors)
 
                 embed: Embed = await self.create_error_message(ctx, error)
                 await ctx.send(embed=embed, delete_after=10)

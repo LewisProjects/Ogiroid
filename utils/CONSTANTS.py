@@ -1,12 +1,28 @@
-SUGGESTIONS_CHANNEL = 985554459948122142
-BUG_REPORT_CHANNEL = 985554479405490216
-ERROR_CHANNEL = 986531210283069450
-REDDIT_FAQ_CHANNEL = 985908874362093620
-TICKET_CHANNEL = 990679557596135475
-TICKET_MESSAGE = 990679907795349554
-TICKET_EMOJI = 990310706874290216
-STAFF_ROLE = 985943266115584010
+from dataclasses import dataclass
 
+
+@dataclass
+class Channels:
+    suggestion: int = 985554459948122142
+    bug_report: int = 985554479405490216
+    errors: int = 986531210283069450
+    reddit_faq: int = 985908874362093620
+    tickets: int = 990679557596135475
+    logs: int = 988162723890217040
+
+
+TICKET_MESSAGE = 990679907795349554
+STAFF_ROLE = 985943266115584010
+TICKET_EMOJI = 990310706874290216
+TICKET_PERMS = {
+    "send_messages": True,
+    "read_messages": True,
+    "add_reactions": True,
+    "embed_links": True,
+    "attach_files": True,
+    "read_message_history": True,
+    "external_emojis": True
+}
 VALID_CODE_LANGUAGES = [
     "abap",
     "aes",
