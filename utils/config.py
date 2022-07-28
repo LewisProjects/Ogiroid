@@ -6,4 +6,4 @@ class Config:
     channels = Channels
     colors = Colors
     colours = colors
-    debug = True  # todo change
+    debug = False
