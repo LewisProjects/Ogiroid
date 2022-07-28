@@ -102,6 +102,7 @@ VALID_CODE_LANGUAGES = [
     "prolog",
     "pure",
     "pug",
+    "py",
     "pyth",
     "python",
     "python2",
