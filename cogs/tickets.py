@@ -1,7 +1,7 @@
 import disnake
 from disnake.ext import commands
 from utils.bot import OGIROID
-from utils.CONSTANTS import TICKET_CHANNEL, TICKET_MESSAGE, TICKET_EMOJI, STAFF_ROLE
+from utils.CONSTANTS import TICKET_MESSAGE, TICKET_EMOJI, STAFF_ROLE, TICKET_PERMS
 
 
 class Tickets(commands.Cog):
@@ -9,17 +9,18 @@ class Tickets(commands.Cog):
 
     def __init__(self, bot: OGIROID):
         self.bot = bot
+        self.ticket_channel = self.bot.config.channels.tickets
 
     @commands.Cog.listener()
     async def on_ready(self):
-        channel = self.bot.get_channel(TICKET_CHANNEL)
+        channel = self.bot.get_channel(self.ticket_channel)
         message = await channel.fetch_message(TICKET_MESSAGE)
         emoji = self.bot.get_emoji(TICKET_EMOJI)
         await message.add_reaction(emoji)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        reaction_message = await self.bot.get_channel(TICKET_CHANNEL).fetch_message(TICKET_MESSAGE)
+        reaction_message = await self.bot.get_channel(self.ticket_channel).fetch_message(TICKET_MESSAGE)
         if payload.message_id == reaction_message.id:
             guild = self.bot.get_guild(payload.guild_id)
             user = guild.get_member(payload.user_id)
@@ -36,29 +37,9 @@ class Tickets(commands.Cog):
             staff = guild.get_role(STAFF_ROLE)
             emoji = self.bot.get_emoji(TICKET_EMOJI)
             ticket_channel = await reaction_message.guild.create_text_channel(f"ticket-{user.name}")
-            await ticket_channel.set_permissions(
-                reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False
-            )
-            await ticket_channel.set_permissions(
-                user,
-                send_messages=True,
-                read_messages=True,
-                add_reactions=True,
-                embed_links=True,
-                attach_files=True,
-                read_message_history=True,
-                external_emojis=True,
-            )
-            await ticket_channel.set_permissions(
-                staff,
-                send_messages=True,
-                read_messages=True,
-                add_reactions=True,
-                embed_links=True,
-                attach_files=True,
-                read_message_history=True,
-                external_emojis=True,
-            )
+            await ticket_channel.set_permissions(reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False)
+            await ticket_channel.set_permissions(user, **TICKET_PERMS)
+            await ticket_channel.set_permissions(staff, **TICKET_PERMS)
             message_content = "Thank you for contacting support! A staff member will be here shortly!"
             em = disnake.Embed(
                 title=f"Ticket made by {user.name}#{user.discriminator}",
@@ -67,9 +48,7 @@ class Tickets(commands.Cog):
             )
             em.set_footer(text="ticket", icon_url=user.avatar.url)
             await ticket_channel.send(f"Thank you for contacting support! A staff member will be here shortly!\n")
-            await ticket_channel.send(
-                f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them."
-            )
+            await ticket_channel.send(f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them.")
             await reaction_message.remove_reaction(emoji, user)
 
     @commands.slash_command(description="Close ticket")

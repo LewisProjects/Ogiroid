@@ -1,18 +1,18 @@
+from __future__ import annotations
+
 from disnake import Embed
 from disnake.ext import commands
 import disnake
-import asyncio
 import traceback
 from datetime import datetime
 
 from utils.bot import OGIROID
 
-from utils.CONSTANTS import ERROR_CHANNEL
-
 
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
+        self.debug_mode = self.bot.config.debug
 
     @commands.Cog.listener()
     async def on_slash_command_error(self, ctx, error):
@@ -20,12 +20,13 @@ class ErrorHandler(commands.Cog):
             if hasattr(ctx.application_command, "on_error"):
                 return
             else:
-                error_channel = self.bot.get_channel(ERROR_CHANNEL)
+                error_channel = self.bot.get_channel(self.bot.config.channels.errors)
 
                 embed: Embed = await self.create_error_message(ctx, error)
                 await ctx.send(embed=embed, delete_after=10)
                 bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
-                # print(bot_errors)
+                if self.bot.config.debug:
+                    print(bot_errors)
 
                 error_embed = disnake.Embed(
                     title="Error Traceback",
@@ -33,9 +34,9 @@ class ErrorHandler(commands.Cog):
                     timestamp=datetime.utcnow(),
                 )
                 await error_channel.send(embed=error_embed)
-                traceback_nice = "".join(
-                    traceback.format_exception(type(error), error, error.__traceback__, 4)
-                ).replace("```", "```")
+                traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace(
+                    "```", "```"
+                )
 
                 debug_info = (
                     f"```\n{ctx.author} {ctx.author.id}: /{ctx.application_command.name}"[:200]
@@ -48,9 +49,9 @@ class ErrorHandler(commands.Cog):
         except Exception as e:
             embed = await self.create_error_message(ctx, e)
             await ctx.send(embed=embed, delete_after=10)
-
-            # Traceback
             e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
+            if self.debug_mode:
+                print(e_traceback)
             e_embed = disnake.Embed(
                 title="Error Traceback",
                 description=f"See below!\n\n{e_traceback}",

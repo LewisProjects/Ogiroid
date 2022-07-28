@@ -2,7 +2,6 @@ from disnake.ext import commands
 import disnake
 from disnake import TextInputStyle
 
-from utils.CONSTANTS import SUGGESTIONS_CHANNEL, BUG_REPORT_CHANNEL
 from utils.bot import OGIROID
 
 
@@ -59,7 +58,7 @@ class BugModal(disnake.ui.Modal):
 
         embed.add_field(name="Further Explanation", value=inter.text_values["description"], inline=False)
 
-        channel = self.bot.get_channel(BUG_REPORT_CHANNEL)
+        channel = self.bot.get_channel(self.bot.config.channels.bug_report)
         await channel.send(embed=embed)
         await inter.response.send_message("Sent bug report.\nThank you for pointing it out.")
 
@@ -98,7 +97,7 @@ class SuggestionModal(disnake.ui.Modal):
 
         embed.add_field(name="Description", value=inter.text_values["description"], inline=False)
 
-        channel = self.bot.get_channel(SUGGESTIONS_CHANNEL)
+        channel = self.bot.get_channel(self.bot.config.channels.suggestion)
         await channel.send(embed=embed)
         await inter.response.send_message("Sent suggestion.\nThank you for your suggestion.")
 

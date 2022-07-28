@@ -7,11 +7,10 @@ from disnake.ext.commands import Cog
 class Log(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.logid = 988162723890217040
 
     @Cog.listener()
     async def on_user_update(self, before, after):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if before.name != after.name:
             embed = Embed(
                 title="Username change",
@@ -58,7 +57,7 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_member_update(self, before, after):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if before.display_name != after.display_name:
             embed = Embed(
                 title="Nickname change",
@@ -98,7 +97,7 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_message_edit(self, before, after):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if not after.author.bot:
             if before.content != after.content:
                 embed = Embed(
@@ -120,7 +119,7 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_message_delete(self, message):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if not message.author.bot:
             embed = Embed(
                 title="Message deletion",

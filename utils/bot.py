@@ -3,6 +3,7 @@ import disnake
 from disnake.ext import commands
 
 from utils.http import HTTPSession
+from utils.config import Config
 
 with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
@@ -12,7 +13,7 @@ class OGIROID(commands.Bot):
     def __init__(self, *args, **kwargs):
         self.db = None
         super().__init__(*args, **kwargs)
-
+        self.config = Config()
         self.session = HTTPSession(loop=self.loop)
 
     async def on_ready(self):
