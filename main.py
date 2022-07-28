@@ -26,6 +26,7 @@ client = OGIROID(
     case_insensitive=True,
 )
 
+
 def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):

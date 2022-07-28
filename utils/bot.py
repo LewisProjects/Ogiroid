@@ -4,6 +4,7 @@ from disnake.ext import commands
 
 from utils.http import HTTPSession
 from utils.config import Config
+
 with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
 

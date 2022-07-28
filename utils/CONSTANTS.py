@@ -10,9 +10,11 @@ class Channels:
     tickets: int = 990679557596135475
     logs: int = 988162723890217040
 
+
 @dataclass
 class Colors:
     invis: int = 0x2F3136
+
 
 TICKET_MESSAGE = 990679907795349554
 STAFF_ROLE = 985943266115584010
@@ -24,7 +26,7 @@ TICKET_PERMS = {
     "embed_links": True,
     "attach_files": True,
     "read_message_history": True,
-    "external_emojis": True
+    "external_emojis": True,
 }
 VALID_CODE_LANGUAGES = [
     "abap",

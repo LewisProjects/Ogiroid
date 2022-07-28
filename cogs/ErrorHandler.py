@@ -9,7 +9,6 @@ from datetime import datetime
 from utils.bot import OGIROID
 
 
-
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot

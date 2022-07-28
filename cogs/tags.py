@@ -29,8 +29,10 @@ class TagManager:
     async def create(self, name, content, owner):  # todo add owner or remove depending on what answer O get
         if await self.exists(name):
             raise TagAlreadyExists
-        await self.db.execute("INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
-                              [name, content, owner, int(time.time())], )
+        await self.db.execute(
+            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            [name, content, owner, int(time.time())],
+        )
         await self.db.commit()
 
     async def get(self, name) -> Tag | TagNotFound:
@@ -42,8 +44,7 @@ class TagManager:
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
-        async with self.db.execute(
-                f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
+        async with self.db.execute(f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -85,7 +86,8 @@ class TagManager:
     async def get_tags_by_owner(self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"):
         tags = []
         async with self.db.execute(
-                f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}") as cur:
+            f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
+        ) as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -136,12 +138,10 @@ class Tags(commands.Cog, name="Tags"):
     @commands.has_permissions(manage_messages=True)
     async def edittag(self, inter, name, *, content):
         try:
-            if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(
-                    inter):
+            if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You do not have permission to edit this tag").error().send()
             await self.tags.update(name, "content", content)
-            await QuickEmb(inter,
-                           f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
+            await QuickEmb(inter, f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -152,12 +152,13 @@ class Tags(commands.Cog, name="Tags"):
         try:
             if new_owner.bot:
                 return await QuickEmb(inter, "You can't transfer a tag to a bot!").error().send()
-            elif (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(
-                    inter):
+            elif (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to transfer it!").error().send()
             await self.tags.transfer(name, new_owner.id)
-            await inter.send(f"I have successfully transferred **{name}** to {new_owner.mention}",
-                             allowed_mentions=disnake.AllowedMentions(everyone=False, users=False), )
+            await inter.send(
+                f"I have successfully transferred **{name}** to {new_owner.mention}",
+                allowed_mentions=disnake.AllowedMentions(everyone=False, users=False),
+            )
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -173,8 +174,14 @@ class Tags(commands.Cog, name="Tags"):
             elif (await self.tags.get(name)).owner in [member.id for member in inter.guild.members]:
                 return await QuickEmb(inter, "The owner of this tag is still in this guild!").error().send()
             await self.tags.transfer(name, inter.author.id)
-            return await QuickEmb(inter,
-                                  f"You have now claimed this tag because the previous owner of the tag is no longer in {inter.guild.name}").success().send()
+            return (
+                await QuickEmb(
+                    inter,
+                    f"You have now claimed this tag because the previous owner of the tag is no longer in {inter.guild.name}",
+                )
+                .success()
+                .send()
+            )
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -197,8 +204,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.increment_views(name)
             tag = await self.tags.get(name)
             owner = self.bot.get_user(tag.owner)
-            emb = Embed(
-                color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
+            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
             emb.add_field(name="Name", value=tag.name)
             emb.add_field(name="Owner", value=owner.mention)
             emb.add_field(name="Created At", value=f"<t:{tag.created_at}:R>")
@@ -224,7 +230,7 @@ class Tags(commands.Cog, name="Tags"):
         try:
             tag_count = await self.tags.count()
         except AttributeError:
-            return await QuickEmb(ctx, 'wait for the bot to load').error().send()
+            return await QuickEmb(ctx, "wait for the bot to load").error().send()
         if tag_count == 0:
             return await QuickEmb(ctx, "There are no tags").error().send()
 
@@ -234,16 +240,16 @@ class Tags(commands.Cog, name="Tags"):
         nested_count = 0
         tag_content_count = 0
         for tag in tags:
-            #print(f'{tag.name}' + '      ' + f'{(len(tag.content) + tag_content_count) <= 1000}' + '     ' + str(tag_content_count + len(tag.content)))
+            # print(f'{tag.name}' + '      ' + f'{(len(tag.content) + tag_content_count) <= 1000}' + '     ' + str(tag_content_count + len(tag.content)))
             if (len(tag.content) + tag_content_count) <= 1989 and len(tag.content) <= 500:
-                #print('adding')
+                # print('adding')
                 tag_content_count += len(tag.content)
                 if isinstance(nested_tags[nested_count], Tag):
                     nested_count += 1
                     nested_tags.append([])
                 nested_tags[nested_count].append(tag)
             else:
-                #print('new')
+                # print('new')
                 tag_content_count = 0
                 nested_tags.append(tag)
                 nested_count += 1
@@ -253,20 +259,20 @@ class Tags(commands.Cog, name="Tags"):
                 continue
 
             if isinstance(tag_list, list):
-                emb = Embed(color=self.bot.config.colors.invis, description='')
+                emb = Embed(color=self.bot.config.colors.invis, description="")
                 for tag in tag_list:
-                    emb.add_field(name=f'**{tag.name}**', value=tag.content)
+                    emb.add_field(name=f"**{tag.name}**", value=tag.content)
 
                 tag_embs.append(emb)
             elif isinstance(tag_list, Tag):
-                emb = Embed(color=self.bot.config.colors.invis, description='')
-                emb.title = f'**{tag_list.name}**'
+                emb = Embed(color=self.bot.config.colors.invis, description="")
+                emb.title = f"**{tag_list.name}**"
                 emb.description = tag_list.content
                 tag_embs.append(emb)
             else:
                 print(tag_list)
 
-        tag_embs.append(Embed(color=self.bot.config.colors.invis, description='The end ;D'))
+        tag_embs.append(Embed(color=self.bot.config.colors.invis, description="The end ;D"))
         start_emb = Embed(title="Tags", color=self.bot.config.colors.invis)
         start_emb.description = f"There are currently {tag_count:,d} tags, use the arrows below to navigate through them"
         tag_embs.insert(0, start_emb)
@@ -276,10 +282,12 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def tag_help(self, ctx):
         await ctx.send(  # todo fix this
-            "```\n/tag [name] - Prints out the message for the given tag (or /t [name])\n/maketag [name] [content...] - Creates a new tag\n/deltag [name] - Deletes an existing tag\n/edittag [name] [new_contant...] - Edits and existing tag\n/taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```")
+            "```\n/tag [name] - Prints out the message for the given tag (or /t [name])\n/maketag [name] [content...] - Creates a new tag\n/deltag [name] - Deletes an existing tag\n/edittag [name] [new_contant...] - Edits and existing tag\n/taglist (or !!tags) - Shows a list of available tags\n\n**NOTE:** You must have the `Manage Messages` permission to use these commands.\n```"
+        )
 
 
 def setup(bot):
     bot.add_cog(Tags(bot))
+
 
 # todo make a rename tag command

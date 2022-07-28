@@ -35,7 +35,7 @@ class CreatePaginator(ui.View):
                 raise ()
 
         except:
-            await inter.send('Unable to change the page.', ephemeral=True)
+            await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⬅️", style=ButtonStyle.grey)
     async def previous(self, button, inter):
@@ -51,7 +51,7 @@ class CreatePaginator(ui.View):
                 raise ()
 
         except:
-            await inter.send('Unable to change the page.', ephemeral=True)
+            await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="➡️", style=ButtonStyle.grey)
     async def next(self, button, inter):
@@ -59,13 +59,12 @@ class CreatePaginator(ui.View):
             if inter.author.id != self.author and self.author != 123:
                 return await inter.send("You cannot interact with these buttons.", ephemeral=True)
             elif self.CurrentEmbed == len(self.embeds) - 1:
-                return await inter.send('you are already at the end', ephemeral=True)
+                return await inter.send("you are already at the end", ephemeral=True)
             await inter.response.edit_message(embed=self.embeds[self.CurrentEmbed + 1])
             self.CurrentEmbed += 1
 
         except:
-            await inter.send('Unable to change the page.', ephemeral=True)
-
+            await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⏭️", style=ButtonStyle.grey)
     async def end(self, button, inter):
@@ -73,9 +72,9 @@ class CreatePaginator(ui.View):
             if inter.author.id != self.author and self.author != 123:
                 return await inter.send("You cannot interact with these buttons.", ephemeral=True)
             elif self.CurrentEmbed == len(self.embeds) - 1:
-                return await inter.send('you are already at the end', ephemeral=True)
+                return await inter.send("you are already at the end", ephemeral=True)
             await inter.response.edit_message(embed=self.embeds[len(self.embeds) - 1])
             self.CurrentEmbed = len(self.embeds) - 1
 
         except:
-            await inter.send('Unable to change the page.', ephemeral=True)
+            await inter.send("Unable to change the page.", ephemeral=True)

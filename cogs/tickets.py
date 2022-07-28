@@ -11,7 +11,6 @@ class Tickets(commands.Cog):
         self.bot = bot
         self.ticket_channel = self.bot.config.channels.tickets
 
-
     @commands.Cog.listener()
     async def on_ready(self):
         channel = self.bot.get_channel(self.ticket_channel)
@@ -39,14 +38,8 @@ class Tickets(commands.Cog):
             emoji = self.bot.get_emoji(TICKET_EMOJI)
             ticket_channel = await reaction_message.guild.create_text_channel(f"ticket-{user.name}")
             await ticket_channel.set_permissions(reaction_message.guild.get_role(reaction_message.guild.id), read_messages=False)
-            await ticket_channel.set_permissions(
-                user,
-                **TICKET_PERMS
-            )
-            await ticket_channel.set_permissions(
-                staff,
-                **TICKET_PERMS
-            )
+            await ticket_channel.set_permissions(user, **TICKET_PERMS)
+            await ticket_channel.set_permissions(staff, **TICKET_PERMS)
             message_content = "Thank you for contacting support! A staff member will be here shortly!"
             em = disnake.Embed(
                 title=f"Ticket made by {user.name}#{user.discriminator}",
