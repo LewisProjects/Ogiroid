@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-
-from utils.CONSTANTS import Channels
+from utils.CONSTANTS import *
 
 
 @dataclass
 class Config:
     channels = Channels
+    colors = Colors
+    colours = colors
     debug = True  # todo change
