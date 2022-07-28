@@ -9,3 +9,9 @@ class Tag:
     owner: int
     created_at: int = time.time()
     views: int = 0
+
+
+@dataclass
+class Ticket:
+    channel_id: int
+    user_id: int

@@ -11,6 +11,6 @@ IF NOT EXISTS tags
 CREATE TABLE
 IF NOT EXISTS tickets
 (
-    channel_id TEXT,
-    user_id TEXT
+    channel_id INTEGER UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL
 );
