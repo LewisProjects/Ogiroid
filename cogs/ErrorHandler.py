@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 from disnake import Embed
 from disnake.ext import commands
 import disnake
-import asyncio
 import traceback
 from datetime import datetime
 
@@ -12,6 +13,7 @@ from utils.bot import OGIROID
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
+        self.debug_mode = self.bot.config.debug
 
     @commands.Cog.listener()
     async def on_slash_command_error(self, ctx, error):
@@ -23,6 +25,8 @@ class ErrorHandler(commands.Cog):
 
                 embed: Embed = await self.create_error_message(ctx, error)
                 await ctx.send(embed=embed, delete_after=10)
+                if self.debug_mode:
+                    return
                 bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
                 # print(bot_errors)
 
@@ -47,8 +51,9 @@ class ErrorHandler(commands.Cog):
         except Exception as e:
             embed = await self.create_error_message(ctx, e)
             await ctx.send(embed=embed, delete_after=10)
-
-            # Traceback
+            if self.debug_mode:
+                return
+                # Traceback
             e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
             e_embed = disnake.Embed(
                 title="Error Traceback",
