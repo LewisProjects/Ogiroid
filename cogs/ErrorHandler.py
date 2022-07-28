@@ -25,10 +25,9 @@ class ErrorHandler(commands.Cog):
 
                 embed: Embed = await self.create_error_message(ctx, error)
                 await ctx.send(embed=embed, delete_after=10)
-                if self.debug_mode:
-                    return
                 bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
-                # print(bot_errors)
+                if self.bot.config.debug:
+                    print(bot_errors)
 
                 error_embed = disnake.Embed(
                     title="Error Traceback",
@@ -51,10 +50,9 @@ class ErrorHandler(commands.Cog):
         except Exception as e:
             embed = await self.create_error_message(ctx, e)
             await ctx.send(embed=embed, delete_after=10)
-            if self.debug_mode:
-                return
-                # Traceback
             e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
+            if self.debug_mode:
+                print(e_traceback)
             e_embed = disnake.Embed(
                 title="Error Traceback",
                 description=f"See below!\n\n{e_traceback}",
