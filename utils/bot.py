@@ -21,7 +21,7 @@ class OGIROID(commands.Bot):
         await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
         print("--------------------------------------------------------------------------------")
         print("Bot is ready! Logged in as: " + self.user.name)
-        print("Bot author: HarryDaDev | FreebieII")
+        print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo")
         print("Bot version: 1.3")
         print("--------------------------------------------------------------------------------")
 

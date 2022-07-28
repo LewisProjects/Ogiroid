@@ -1,5 +1,5 @@
 # Ogiroid - A Multipurpose Discord Bot
-> Developed by @ImmaHarry & @FreebieII
+> Developed by @ImmaHarry, @FreebieII & @JasonLovesDoggo 
 
 **About the bot:**
 Ogiroid is a multipurpose Discord Bot developed for the YouTuber, [Lewis Menelaws'](https://www.youtube.com/c/CodingwithLewis) Discord Server. The bot offers sophesticated fun, basic moderation, utilities, games & reddit based commands. This bot is currently under it's *first* proud release (beta).
