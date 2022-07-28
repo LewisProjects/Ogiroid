@@ -9,3 +9,12 @@ class Tag:
     owner: int
     created_at: int = time.time()
     views: int = 0
+
+@dataclass
+class FakeEmbed:
+    title: str
+    description: str
+    color: int
+    fields: list
+    footer: str
+    timestamp: int
