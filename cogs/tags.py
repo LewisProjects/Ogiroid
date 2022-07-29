@@ -232,6 +232,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def edittag(self, inter, name, *, content):
         try:
+            name = name.casefold()
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You do not have permission to edit this tag").error().send()
             await self.tags.update(name, "content", content)
@@ -243,6 +244,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def transfertag(self, inter, name, new_owner: disnake.Member):
         try:
+            name = name.casefold()
             if new_owner.bot:
                 return await QuickEmb(inter, "You can't transfer a tag to a bot!").error().send()
             elif (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
@@ -256,6 +258,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def claimtag(self, inter, name):
         try:
+            name = name.casefold()
             if (await self.tags.get(name)).owner == inter.author.id:
                 return await QuickEmb(inter, "You already own this tag!").error().send()
             elif inter.author.guild_permissions.manage_messages or inter.author.guild_permissions.administrator:
@@ -279,6 +282,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def deltag(self, inter, name):
         try:
+            name = name.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
             await self.tags.delete(name)
@@ -375,6 +379,7 @@ class Tags(commands.Cog, name="Tags"):
     async def rename_tag(self, inter, name, new_name):
         try:
             name = name.casefold()
+            new_name = new_name.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to rename it!").error().send()
             elif not await self.valid_name(name):
@@ -393,6 +398,7 @@ class Tags(commands.Cog, name="Tags"):
     async def add_alias(self, inter, name, alias):
         try:
             name = name.casefold()
+            alias = alias.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
             elif not await self.valid_name(name):
@@ -412,6 +418,8 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def remove_alias(self, inter, name, alias):
         try:
+            name = name.casefold()
+            alias = alias.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
             await self.tags.remove_alias(name, alias)
