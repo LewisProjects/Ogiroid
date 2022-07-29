@@ -15,21 +15,20 @@ class CogName(commands.Cog):
         sortdict = dict(sorted(cmdsran.items(), key=lambda x: x[1], reverse=True))
         value_iterator = iter(sortdict.values())
         key_iterator = iter(sortdict.keys())
-        emby = disnake.Embed(title='edoC command Stats',
+        emby = disnake.Embed(title=f'{self.bot.user.display_name} command Stats',
                              description=f'{self.bot.total_commands_ran} Commands ran this boot\n',
                              color=disnake.Color.random())
-        emby.add_field(name='Top 10 commands ran', value=f'🥇: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🥈: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🥉: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n'
-                                                         f'🏅: **/**{next(key_iterator)} ({next(value_iterator)} uses)\n')
+        emby.add_field(name='Top 10 commands ran', value=f'🥇: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🥈: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🥉: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n'
+                                                         f'🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n')
 
-        emby.set_author(name=inter.author.name, icon_url=inter.author.display_avatar.url)
         await inter.send(embed=emby)
 
 
