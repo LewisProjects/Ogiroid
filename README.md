@@ -26,12 +26,9 @@ Developers:
 <ul>
 <li><a href="https://github.com/ImmaHarry">HarryDaDev</a></li>
 <li><a href="https://github.com/FreebieII">FreebieII</a></li>
-</ul>
-Active Contributors:
-<ul>
-<li><a href="https://github.com/JasonLovesDoggo">Jason</a></li>
-<li><a href="https://github.com/DWAA1660">DWAA1660</a></li>
+<li><a href="https://github.com/JasonLovesDoggo">JasonLovesDoggo</a></li>
 <li><a href="https://github.com/LevaniVashadze">Levani Vashadze</a></li>
+<li><a href="https://github.com/DWAA1660">DWAA1660</a></li>
 </ul>
 The bot is currently on release: <b>1.5.0</b>
 License: MIT
