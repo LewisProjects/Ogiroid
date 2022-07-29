@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import traceback
 from typing import List, Literal, Optional
 
 from disnake import Embed
@@ -14,6 +15,10 @@ from utils.models import *
 from utils.pagination import CreatePaginator
 from utils.shortcuts import QuickEmb, manage_messages_perms
 
+""" note to any future contributors:
+the self.exists() calls are very carefully used.
+if you add a call to ANY of the functions in TagManager MAKE SURE it's called once
+"""
 
 class TagManager:
     def __init__(self, bot, db):
@@ -32,14 +37,12 @@ class TagManager:
             for alias in aliases:
                 self.names["aliases"].append(alias)
             print(f"Loaded {len(tags)} tags and {len(aliases)} aliases")
-            print(self.names)
         except TagsNotFound:
             print("[TAGS] No tags found")
 
     async def exists(self, name, exception: TagException, should: bool) -> bool | TagException:
         full_list = (self.names["tags"] + (self.names["aliases"]))
         name = name.casefold()
-        print(self.names)  # todo remove
         if should:
             if name in full_list:
                 return True
@@ -85,7 +88,6 @@ class TagManager:
         await self.db.commit()
 
     async def update(self, name, param, new_value):
-        await self.exists(name, TagNotFound, should=True)
         async with self.db.execute(f"UPDATE tags SET {param} = ? WHERE tag_id = ?", [new_value, name]):
             await self.db.commit()
 
@@ -107,7 +109,6 @@ class TagManager:
         await self.update(name, "owner", new_owner)
 
     async def increment_views(self, name, tag: Tag = None):
-        await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
         if tag:
             current_views = tag.views
@@ -140,7 +141,7 @@ class TagManager:
             return int(tuple(await cur.fetchone())[0])
 
     async def get_name(self, name_or_alias):
-        await self.exists(name_or_alias, TagNotFound, should=True)
+        #await self.exists(name_or_alias, TagNotFound, should=True)
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
         async with self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]) as cur:
@@ -345,7 +346,6 @@ class Tags(commands.Cog, name="Tags"):
         nested_count = 0
         tag_content_count = 0
         for tag in tags:
-            # print(f'{tag.name}' + '      ' + f'{(len(tag.content) + tag_content_count) <= 1000}' + '     ' + str(tag_content_count + len(tag.content)))
             if (len(tag.content) + tag_content_count) <= 1989 and len(tag.content) <= 500:
                 tag_content_count += len(tag.content)
                 if isinstance(nested_tags[nested_count], Tag):
