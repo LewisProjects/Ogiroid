@@ -20,7 +20,7 @@ class TagManager:
         self.bot = bot
         self.db = db
         self.session = self.bot.session
-        self.names = {"tags": set(), "aliases": set()}
+        self.names = {"tags": [], "aliases": []}
 
     async def startup(self):
         print("[TAGS] Loading tags...")
@@ -28,18 +28,18 @@ class TagManager:
             tags = await self.all()
             aliases = await self.get_aliases()
             for tag in tags:
-                self.names["tags"].add(tag.name)
+                self.names["tags"].append(tag.name)
             for alias in aliases:
-                self.names["aliases"].add(alias)
+                self.names["aliases"].append(alias)
             print(f"Loaded {len(tags)} tags and {len(aliases)} aliases")
             print(self.names)
         except TagsNotFound:
             print("[TAGS] No tags found")
 
     async def exists(self, name, exception: TagException, should: bool) -> bool | TagException:
-        full_list = list(self.names["tags"].union(self.names["aliases"]))
+        full_list = (self.names["tags"] + (self.names["aliases"]))
         name = name.casefold()
-        print(self.names)
+        print(self.names)  # todo remove
         if should:
             if name in full_list:
                 return True
@@ -49,9 +49,9 @@ class TagManager:
                 return True
             raise exception
 
-    async def create(self, name, content, owner):  # todo add owner or remove depending on what answer O get
+    async def create(self, name, content, owner):
         await self.exists(name, TagAlreadyExists, should=False)
-        self.names["tags"].add(name)
+        self.names["tags"].append(name)
         await self.db.execute(
             "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
             [name, content, owner, int(time.time())],
@@ -98,8 +98,8 @@ class TagManager:
         await self.update(name, "tag_id", new_name)
         async with self.db.execute(f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?", [new_name, name]):
             await self.db.commit()
+        self.names["tags"].append(new_name)
         self.names["tags"].remove(name)
-        self.names["tags"].add(new_name)
 
     async def transfer(self, name, new_owner: int):
         await self.exists(name, TagNotFound, should=True)
@@ -152,7 +152,7 @@ class TagManager:
         await self.exists(name, TagNotFound, should=True)
         if alias in (await self.get_aliases(name)):
             raise AliasAlreadyExists
-        self.names["aliases"].add(alias)
+        self.names["aliases"].append(alias)
         await self.db.execute("INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias])
         await self.db.commit()
 
@@ -241,7 +241,7 @@ class Tags(commands.Cog, name="Tags"):
                 .error()
                 .send()
             )
-        try:  # todo add a check if the user is blacklisted note: do this later
+        try:
             await self.tags.create(name, content, inter.author.id)
             return await QuickEmb(inter, f"I have successfully made **{name}**. To view it do /tag {name}").success().send()
         except TagAlreadyExists:
@@ -461,6 +461,4 @@ def setup(bot):
     bot.add_cog(Tags(bot))
 
 
-# todo when you delete a tag it should also delete all aliases
 # todo go through all self.exists() calls and see if they are called more then once
-# todo switch TagManager.names to using lists
