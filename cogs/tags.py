@@ -384,7 +384,7 @@ class Tags(commands.Cog, name="Tags"):
                 return await QuickEmb(inter, "You must be the owner of the tag to rename it!").error().send()
             elif not await self.valid_name(name):
                 return (
-                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, underscores or dashes")
+                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes")
                     .error()
                     .send()
                 )
@@ -403,7 +403,7 @@ class Tags(commands.Cog, name="Tags"):
                 return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
             elif not await self.valid_name(name):
                 return (
-                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, underscores or dashes")
+                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes")
                     .error()
                     .send()
                 )
@@ -420,7 +420,9 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             alias = alias.casefold()
-            if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
+            if name == alias:
+                return await QuickEmb(inter, "You can't remove the tag's name from itself").error().send()
+            elif not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
             await self.tags.remove_alias(name, alias)
             await QuickEmb(inter, f"I have successfully removed **{alias}** from **{name}**").success().send()
