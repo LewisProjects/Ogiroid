@@ -32,17 +32,20 @@ TICKET_PERMS = {
 }
 tag_help = {
     "public": {
+        "maketag": "Creates a tag",
         "taghelp": "Gives you this help",
         "tag": "Gives you the tags value",
         "taginfo": "Gives you the tags info (views, owner, etc)",
-        "taglist": "Lists tags (use the arrows to navigate)",
-        "maketag": "Creates a tag",
+        "taglist": "Gives you a lists of tags (use the arrows to navigate)",
         "claimtag": "Claims a tag (can only be used if the previous owner is no longer in the server)",
     },
     "owner_only": {
+        "tagrename": "Renames a tag",
         "edittag": "Edits a tag",
-        "tagtransfer": "Transfers a tag to another user",
+        "transfertag": "Transfers a tag to another user",
         "deltag": "Deletes a tag",
+        "tagalias-add": "Adds an alias to a tag",
+        "tagalias-remove": "Removes an alias from a tag",
     },
 }
 VALID_CODE_LANGUAGES = [

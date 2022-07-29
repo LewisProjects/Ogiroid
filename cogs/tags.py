@@ -230,7 +230,6 @@ class Tags(commands.Cog, name="Tags"):
 
     @commands.slash_command(name="edittag", description="Edits the tag")
     @commands.guild_only()
-    # @commands.has_permissions(manage_messages=True)
     async def edittag(self, inter, name, *, content):
         try:
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
@@ -278,7 +277,6 @@ class Tags(commands.Cog, name="Tags"):
 
     @commands.slash_command(name="deltag", description="Deletes the tag.")
     @commands.guild_only()
-    # @commands.has_permissions(manage_messages=True)
     async def deltag(self, inter, name):
         try:
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
