@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import disnake
 
 from disnake import Embed
@@ -20,3 +22,7 @@ class QuickEmb:
     async def send(self):
         emb = Embed(description=self.msg, color=self.color)
         await self.inter.send(embed=emb)
+
+
+def manage_messages_perms(inter):
+    return inter.channel.permissions_for(inter.author).manage_messages
