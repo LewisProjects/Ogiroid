@@ -4,6 +4,7 @@ from disnake.ext import commands
 
 from utils.http import HTTPSession
 from utils.config import Config
+from utils.CONSTANTS import __VERSION__
 
 with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
@@ -22,7 +23,7 @@ class OGIROID(commands.Bot):
         print("--------------------------------------------------------------------------------")
         print("Bot is ready! Logged in as: " + self.user.name)
         print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo")
-        print("Bot version: 1.3")
+        print(f"Bot version: {__VERSION__}")
         print("--------------------------------------------------------------------------------")
 
     async def start(self, *args, **kwargs):

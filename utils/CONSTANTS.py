@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-
+__VERSION__ = "1.4.5"
 @dataclass
 class Channels:
     suggestion: int = 985554459948122142
@@ -38,6 +38,7 @@ tag_help = {
         "claimtag": "Claims a tag (can only be used if the previous owner is no longer in the server)",
     },
     'owner_only': {
+
         "edittag": "Edits a tag",
         "tagtransfer": "Transfers a tag to another user",
         "deltag": "Deletes a tag",
