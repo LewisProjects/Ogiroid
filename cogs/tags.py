@@ -217,9 +217,10 @@ class Tags(commands.Cog, name="Tags"):
         try:
             tag = await self.tags.get(name)
             await self.tags.increment_views(name, tag)
+            owner = self.bot.get_user(tag.owner)
             emb = Embed(color=disnake.Color.random(seed=hash(tag.name)),
-                        title=f'{tag.name}')  # hash -> seed makes the color the same for the tag
-            emb.set_footer(text=f'Called by {inter.author.display_name}', icon_url=inter.author.avatar.url)
+                        title=f'{tag.name}')
+            emb.set_footer(text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}')
             emb.description = tag.content
             await inter.send(embed=emb)
         except TagNotFound:
