@@ -106,10 +106,13 @@ class TagManager:
         name = await self.get_name(name)
         await self.update(name, "owner", new_owner)
 
-    async def increment_views(self, name):
+    async def increment_views(self, name, tag: Tag = None):
         await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
-        current_views = (await self.get(name)).views
+        if tag:
+            current_views = tag.views
+        else:
+            current_views = (await self.get(name)).views
         await self.update(name, "views", (current_views + 1))
 
     async def get_top(self, limit=10):
@@ -207,6 +210,21 @@ class Tags(commands.Cog, name="Tags"):
     def db(self):
         return self.bot.db
 
+    @commands.slash_command(name="tag", description="Gives you the tags value")
+    @commands.guild_only()
+    async def tag(self, inter, name):
+        name = name.casefold()
+        try:
+            tag = await self.tags.get(name)
+            await self.tags.increment_views(name, tag)
+            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)),
+                        title=f'{tag.name}')  # hash -> seed makes the color the same for the tag
+            emb.set_footer(text=f'Called by {inter.author.display_name}', icon_url=inter.author.avatar.url)
+            emb.description = tag.content
+            await inter.send(embed=emb)
+        except TagNotFound:
+            await QuickEmb(inter, f"tag {name} does not exist").error().send()
+
     @commands.slash_command(name="maketag", description="Creates a tag")
     @commands.guild_only()
     async def make_tag(self, inter, name, *, content):
@@ -295,8 +313,8 @@ class Tags(commands.Cog, name="Tags"):
     async def taginfo(self, inter, name):
         name = name.casefold()
         try:
-            await self.tags.increment_views(name)
             tag = await self.tags.get(name)
+            await self.tags.increment_views(name, tag)
             owner = self.bot.get_user(tag.owner)
             emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
             emb.add_field(name="Name", value=tag.name)
@@ -308,17 +326,6 @@ class Tags(commands.Cog, name="Tags"):
             await inter.send(embed=emb)
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
-
-    @commands.slash_command(name="tag", description="Gives you the tags value")
-    @commands.guild_only()
-    async def tag(self, inter, name):
-        name = name.casefold()
-        try:
-            await self.tags.increment_views(name)
-            tag = await self.tags.get(name)
-            await inter.send(f"**{name}**\n__{tag.content}__")  # todo redo this cmd
-        except TagNotFound:
-            await inter.send(f"tag {name} does not exist")
 
     @commands.slash_command(name="taglist", description="Lists tags")
     @commands.guild_only()
