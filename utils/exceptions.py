@@ -24,3 +24,13 @@ class AliasAlreadyExists(AliasException):
 
 class AliasNotFound(AliasException):
     pass
+
+
+class CityNotFound(Exception):
+    def __init__(self, city):
+        super().__init__(f"City '{city}' not found!")
+
+
+class InvalidAPIKEY(Exception):
+    def __init__(self):
+        super().__init__(f"You have an invalid API key!")

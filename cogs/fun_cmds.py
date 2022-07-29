@@ -17,7 +17,7 @@ from requests import session
 from utils.assorted import renderBar
 from utils.bot import OGIROID
 from utils.http import HTTPSession
-from utils.shortcuts import QuickEmb
+from utils.shortcuts import QuickEmb, errorEmb
 
 load_dotenv("../secrets.env")
 
@@ -44,9 +44,9 @@ class Fun(commands.Cog):
             lambda s: isinstance(s, disnake.Spotify), user.activities
         )
         if not spotify:
-            return await QuickEmb(inter,
+            return await errorEmb(inter,
                                   f"{user} is not listening to Spotify!"
-                                  ).error().send()
+                                  )
 
         e = (
             Embed(

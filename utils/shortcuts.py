@@ -4,6 +4,9 @@ import disnake
 
 from disnake import Embed
 
+async def errorEmb(inter, text):
+    emb = Embed(description=text, color=disnake.Color.red())
+    await inter.send(embed=emb)
 
 class QuickEmb:
     def __init__(self, inter, msg, color=disnake.Color.red()):

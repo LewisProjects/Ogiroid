@@ -13,7 +13,7 @@ from utils.bot import OGIROID
 from utils.exceptions import *
 from utils.models import *
 from utils.pagination import CreatePaginator
-from utils.shortcuts import QuickEmb, manage_messages_perms
+from utils.shortcuts import QuickEmb, manage_messages_perms, errorEmb
 
 """ note to any future contributors:
 the self.exists() calls are very carefully used.
@@ -225,14 +225,14 @@ class Tags(commands.Cog, name="Tags"):
             emb.description = tag.content
             await inter.send(embed=emb)
         except TagNotFound:
-            await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="maketag", description="Creates a tag")
     @commands.guild_only()
     async def make_tag(self, inter, name, *, content):
         name = name.casefold()
         if len(content) >= 1980:
-            return await QuickEmb(inter, "The tag's content must be under 1980 chars").error().send()
+            return await errorEmb(inter, "The tag's content must be under 1980 chars")
         elif not await self.valid_name(name):
             return (
                 await QuickEmb(
@@ -246,7 +246,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.create(name, content, inter.author.id)
             return await QuickEmb(inter, f"I have successfully made **{name}**. To view it do /tag {name}").success().send()
         except TagAlreadyExists:
-            return await QuickEmb(inter, f"tag {name} already exists").error().send()
+            return await errorEmb(inter, f"tag {name} already exists")
 
     @commands.slash_command(name="edittag", description="Edits the tag")
     @commands.guild_only()
@@ -254,11 +254,11 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
-                return await QuickEmb(inter, "You do not have permission to edit this tag").error().send()
+                return await errorEmb(inter, "You do not have permission to edit this tag")
             await self.tags.update(name, "content", content)
             await QuickEmb(inter, f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="transfertag", description="Transfers the tag's owner")
     @commands.guild_only()
@@ -266,13 +266,13 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             if new_owner.bot:
-                return await QuickEmb(inter, "You can't transfer a tag to a bot!").error().send()
+                return await errorEmb(inter, "You can't transfer a tag to a bot!")
             elif (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
-                return await QuickEmb(inter, "You must be the owner of the tag to transfer it!").error().send()
+                return await errorEmb(inter, "You must be the owner of the tag to transfer it!")
             await self.tags.transfer(name, new_owner.id)
             await QuickEmb(inter, f"I have successfully transferred **{name}** to {new_owner.display_name}").success().send()
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="claimtag", description="Claims ownership of the tag if the owner isn't in the guild")
     @commands.guild_only()
@@ -280,12 +280,12 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             if (await self.tags.get(name)).owner == inter.author.id:
-                return await QuickEmb(inter, "You already own this tag!").error().send()
+                return await errorEmb(inter, "You already own this tag!")
             elif inter.author.guild_permissions.manage_messages or inter.author.guild_permissions.administrator:
                 await self.tags.transfer(name, inter.author.id)
                 return await QuickEmb(inter, f"I have transferred **{name}** to you").success().send()
             elif (await self.tags.get(name)).owner in [member.id for member in inter.guild.members]:
-                return await QuickEmb(inter, "The owner of this tag is still in this guild!").error().send()
+                return await errorEmb(inter, "The owner of this tag is still in this guild!")
             await self.tags.transfer(name, inter.author.id)
             return (
                 await QuickEmb(
@@ -296,7 +296,7 @@ class Tags(commands.Cog, name="Tags"):
                 .send()
             )
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="deltag", description="Deletes the tag.")
     @commands.guild_only()
@@ -304,11 +304,11 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
-                return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
+                return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             await self.tags.delete(name)
             await QuickEmb(inter, f"I have successfully deleted **{name}**.").success().send()
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="taginfo", description="Gives you the tags info")
     @commands.guild_only()
@@ -327,7 +327,7 @@ class Tags(commands.Cog, name="Tags"):
             emb.add_field(name="Times Called", value=abs(tag.views))
             await inter.send(embed=emb)
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="taglist", description="Lists tags")
     @commands.guild_only()
@@ -336,9 +336,9 @@ class Tags(commands.Cog, name="Tags"):
         try:
             tag_count = await self.tags.count()
         except AttributeError:
-            return await QuickEmb(ctx, "wait for the bot to load").error().send()
+            return await errorEmb(ctx, "wait for the bot to load")
         if tag_count == 0:
-            return await QuickEmb(ctx, "There are no tags").error().send()
+            return await errorEmb(ctx, "There are no tags")
 
         tags = await self.tags.all(limit=0)
         tag_embs = []
@@ -389,7 +389,7 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             new_name = new_name.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
-                return await QuickEmb(inter, "You must be the owner of the tag to rename it!").error().send()
+                return await errorEmb(inter, "You must be the owner of the tag to rename it!")
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes")
@@ -399,7 +399,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.rename(name, new_name)
             await QuickEmb(inter, f"I have successfully renamed **{name}** to **{new_name}**.").success().send()
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
 
     @commands.slash_command(name="tagalias-add", description="Adds an alias to a tag")
     @commands.guild_only()
@@ -408,7 +408,7 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             alias = alias.casefold()
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
-                return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
+                return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes")
@@ -418,9 +418,9 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.add_alias(name, alias)
             await QuickEmb(inter, f"I have successfully added **{alias}** as an alias for **{name}**").success().send()
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
         except AliasAlreadyExists:
-            return await QuickEmb(inter, f"tag {alias} already exists").error().send()
+            return await errorEmb(inter, f"tag {alias} already exists")
 
     @commands.slash_command(name="tagalias-remove", description="Removes an alias from a tag")
     @commands.guild_only()
@@ -429,15 +429,15 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             alias = alias.casefold()
             if name == alias:
-                return await QuickEmb(inter, "You can't remove the tag's name from itself").error().send()
+                return await errorEmb(inter, "You can't remove the tag's name from itself")
             elif not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
-                return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
+                return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             await self.tags.remove_alias(name, alias)
             await QuickEmb(inter, f"I have successfully removed **{alias}** from **{name}**").success().send()
         except TagNotFound:
-            return await QuickEmb(inter, f"tag {name} does not exist").error().send()
+            return await errorEmb(inter, f"tag {name} does not exist")
         except AliasNotFound:
-            return await QuickEmb(inter, f"alias {alias} does not exist").error().send()
+            return await errorEmb(inter, f"alias {alias} does not exist")
 
     @commands.slash_command(name="taghelp", description="Help for the tag system")
     @commands.guild_only()
