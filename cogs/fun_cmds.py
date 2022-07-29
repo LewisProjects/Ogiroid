@@ -1,3 +1,4 @@
+from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 import disnake
 import random
@@ -6,13 +7,17 @@ import io
 import asyncio
 import akinator as ak
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import os
+
+from disnake.utils import utcnow
 from dotenv import load_dotenv
 from requests import session
 
+from utils.assorted import renderBar
 from utils.bot import OGIROID
 from utils.http import HTTPSession
+from utils.shortcuts import QuickEmb
 
 load_dotenv("../secrets.env")
 
@@ -29,10 +34,65 @@ class Fun(commands.Cog):
         TOKEN = os.getenv("TOKEN")
         self.togetherControl = await DiscordTogether(TOKEN)
 
+    @commands.slash_command(description="Show what song a member listening to in Spotify")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.guild_only()
+    async def spotifyinfo(self, inter: ApplicationCommandInteraction, user: Member):
+        user = user or inter.author
+
+        spotify: disnake.Spotify = disnake.utils.find(
+            lambda s: isinstance(s, disnake.Spotify), user.activities
+        )
+        if not spotify:
+            return await QuickEmb(inter,
+                                  f"{user} is not listening to Spotify!"
+                                  ).error().send()
+
+        e = (
+            Embed(
+                title=spotify.title,
+                colour=spotify.colour,
+                url=f"https://open.spotify.com/track/{spotify.track_id}"
+            ).set_author(name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png"
+                         ).set_thumbnail(url=spotify.album_cover_url)
+        )
+
+        # duration
+        cur, dur = (
+            utcnow() - spotify.start.replace(tzinfo=timezone.utc),
+            spotify.duration,
+        )
+
+        # Bar stuff
+        barLength = 5 if user.is_on_mobile() else 17
+        bar = renderBar(
+            int((cur.seconds / dur.seconds) * 100),
+            fill="─",
+            empty="─",
+            point="⬤",
+            length=barLength,
+        )
+
+        e.add_field(name="Artist", value=", ".join(spotify.artists))
+
+        e.add_field(name="Album", value=spotify.album)
+
+        e.add_field(
+            name="Duration",
+            value=(
+                    f"{cur.seconds // 60:02}:{cur.seconds % 60:02}"
+                    + f" {bar} "
+                    + f"{dur.seconds // 60:02}:"
+                    + f"{dur.seconds % 60:02}"
+            ),
+            inline=False,
+        )
+        await inter.send(embed=e)
+
     @commands.slash_command(
         name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
     @commands.has_permissions(manage_messages=True)
-    async def poll(self, inter, question, choice1, choice2, choice3=None, choice4=None, choice5=None, choice6=None,):
+    async def poll(self, inter, question, choice1, choice2, choice3=None, choice4=None, choice5=None, choice6=None, ):
         """
         Makes a poll quickly.
         """
@@ -267,9 +327,9 @@ class Fun(commands.Cog):
 
             def check(msg):
                 return (
-                    msg.author == ctx.author
-                    and msg.channel == ctx.channel
-                    and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
+                        msg.author == ctx.author
+                        and msg.channel == ctx.channel
+                        and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
                 )
 
             try:
@@ -338,7 +398,8 @@ class Fun(commands.Cog):
     async def bored(self, inter):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
-            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
+            async with activitySession.get(f"https://boredapi.com/api/activity",
+                                           ssl=False) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 
