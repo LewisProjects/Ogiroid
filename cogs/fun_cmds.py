@@ -34,7 +34,7 @@ class Fun(commands.Cog):
         TOKEN = os.getenv("TOKEN")
         self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.slash_command(description="Show what song a member listening to in Spotify")
+    @commands.slash_command(name='spotify', description="Show what song a member listening to in Spotify")
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
     async def spotifyinfo(self, inter: ApplicationCommandInteraction, user: Member):
