@@ -35,7 +35,7 @@ class TagManager:
     async def exists(self, name, exception: TagException, should: bool) -> bool | TagException:
         if should:
             if name in self.names:
-                return True # if it should exist and it does.
+                return True
             raise exception
         else:
             if name not in self.names:
