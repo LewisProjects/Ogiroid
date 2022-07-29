@@ -29,6 +29,37 @@ class Fun(commands.Cog):
         TOKEN = os.getenv("TOKEN")
         self.togetherControl = await DiscordTogether(TOKEN)
 
+    @commands.slash_command(
+        name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
+    @commands.has_permissions(manage_messages=True)
+    async def poll(self, inter, question, choice1, choice2, choice3=None, choice4=None, choice5=None, choice6=None,):
+        """
+        Makes a poll quickly.
+        """
+        emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"]
+        choices = [choice1, choice2, choice3, choice4, choice5, choice6]
+        choices = [choice for choice in choices if choice is not None]
+        choices_str = ""
+        emojis = emojis[:len(choices)]  # trims emojis list to length of inputted choices
+        i = 0
+        for emoji in emojis:
+            choices_str += f"{emoji}  {choices[i]}\n\n"
+            i += 1
+
+        embed = disnake.Embed(
+            title=question,
+            description=choices_str,
+            colour=0xFFFFFF
+        )
+
+        embed.set_footer(
+            text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+
+        await inter.response.send_message(embed=embed)
+        poll = await inter.original_message()  # Gets the message wich got sent
+        for emoji in emojis:
+            await poll.add_reaction(emoji)
+
     @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
     async def youtube(self, ctx):
         """Watch YouTube in a Discord VC with your friends"""

@@ -19,7 +19,7 @@ class Staff(commands.Cog):
         channel = self.bot.get_channel(self.bot.config.channels.reddit_faq)
         await channel.send(f"{person.mention}", delete_after=2)
         # Sending Done so this Application didn't respond error can be avoided
-        await ctx.send("Done", delete_after=1)
+        await ctx.send("Done", delete_after=1, ephemeral=True)
 
     @commands.slash_command(name="prune")
     @commands.guild_only()

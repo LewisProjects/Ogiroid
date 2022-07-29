@@ -23,7 +23,7 @@ class ErrorHandler(commands.Cog):
                 error_channel = self.bot.get_channel(self.bot.config.channels.errors)
 
                 embed: Embed = await self.create_error_message(ctx, error)
-                await ctx.send(embed=embed, delete_after=10)
+                await ctx.send(embed=embed, ephemeral=True)
                 bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
                 if self.bot.config.debug:
                     print(bot_errors)
@@ -48,7 +48,7 @@ class ErrorHandler(commands.Cog):
 
         except Exception as e:
             embed = await self.create_error_message(ctx, e)
-            await ctx.send(embed=embed, delete_after=10)
+            await ctx.send(embed=embed, ephemeral=True)
             e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
             if self.debug_mode:
                 print(e_traceback)
