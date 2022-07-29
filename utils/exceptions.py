@@ -1,8 +1,10 @@
 class TagException(BaseException):
     pass
 
+
 class AliasException(TagException):
     pass
+
 
 class TagNotFound(TagException, KeyError):
     pass

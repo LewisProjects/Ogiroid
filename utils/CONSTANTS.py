@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 __VERSION__ = "1.4.5"
+
+
 @dataclass
 class Channels:
     suggestion: int = 985554459948122142
@@ -29,7 +31,7 @@ TICKET_PERMS = {
     "external_emojis": True,
 }
 tag_help = {
-    'public': {
+    "public": {
         "taghelp": "Gives you this help",
         "tag": "Gives you the tags value",
         "taginfo": "Gives you the tags info (views, owner, etc)",
@@ -37,13 +39,11 @@ tag_help = {
         "maketag": "Creates a tag",
         "claimtag": "Claims a tag (can only be used if the previous owner is no longer in the server)",
     },
-    'owner_only': {
-
+    "owner_only": {
         "edittag": "Edits a tag",
         "tagtransfer": "Transfers a tag to another user",
         "deltag": "Deletes a tag",
     },
-
 }
 VALID_CODE_LANGUAGES = [
     "abap",

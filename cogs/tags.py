@@ -20,7 +20,7 @@ class TagManager:
         self.bot = bot
         self.db = db
         self.session = self.bot.session
-        self.names = {'tags': set(), 'aliases': set()}
+        self.names = {"tags": set(), "aliases": set()}
 
     async def startup(self):
         print("[TAGS] Loading tags...")
@@ -28,16 +28,16 @@ class TagManager:
             tags = await self.all()
             aliases = await self.get_aliases()
             for tag in tags:
-                self.names['tags'].add(tag.name)
+                self.names["tags"].add(tag.name)
             for alias in aliases:
-                self.names['aliases'].add(alias)
+                self.names["aliases"].add(alias)
             print(f"Loaded {len(tags)} tags and {len(aliases)} aliases")
             print(self.names)
         except TagsNotFound:
             print("[TAGS] No tags found")
 
     async def exists(self, name, exception: TagException, should: bool) -> bool | TagException:
-        full_list = list(self.names['tags'].union(self.names['aliases']))
+        full_list = list(self.names["tags"].union(self.names["aliases"]))
         name = name.casefold()
         print(self.names)
         if should:
@@ -51,9 +51,11 @@ class TagManager:
 
     async def create(self, name, content, owner):  # todo add owner or remove depending on what answer O get
         await self.exists(name, TagAlreadyExists, should=False)
-        self.names['tags'].add(name)
-        await self.db.execute("INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
-                              [name, content, owner, int(time.time())], )
+        self.names["tags"].add(name)
+        await self.db.execute(
+            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            [name, content, owner, int(time.time())],
+        )
         await self.db.commit()
 
     async def get(self, name) -> Tag | TagNotFound:
@@ -65,8 +67,7 @@ class TagManager:
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
-        async with self.db.execute(
-                f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
+        async with self.db.execute(f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -76,10 +77,10 @@ class TagManager:
     async def delete(self, name):
         await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
-        for tag in (await self.get_aliases(name)):
-            self.names['aliases'].remove(tag)
+        for tag in await self.get_aliases(name):
+            self.names["aliases"].remove(tag)
         await self.remove_aliases(name)
-        self.names['tags'].remove(name)
+        self.names["tags"].remove(name)
         await self.db.execute("DELETE FROM tags WHERE tag_id = ?", [name])
         await self.db.commit()
 
@@ -89,14 +90,16 @@ class TagManager:
             await self.db.commit()
 
     async def rename(self, name, new_name):
-        await self.exists(name, TagNotFound, should=True) # if the tag doesn't exist, it will raise TagNotFound
-        await self.exists(new_name, TagAlreadyExists, should=False) # if new tag's name already exists, it will raise TagAlreadyExists
+        await self.exists(name, TagNotFound, should=True)  # if the tag doesn't exist, it will raise TagNotFound
+        await self.exists(
+            new_name, TagAlreadyExists, should=False
+        )  # if new tag's name already exists, it will raise TagAlreadyExists
         name = await self.get_name(name)
         await self.update(name, "tag_id", new_name)
         async with self.db.execute(f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?", [new_name, name]):
             await self.db.commit()
-        self.names['tags'].remove(name)
-        self.names['tags'].add(new_name)
+        self.names["tags"].remove(name)
+        self.names["tags"].add(new_name)
 
     async def transfer(self, name, new_owner: int):
         await self.exists(name, TagNotFound, should=True)
@@ -121,7 +124,8 @@ class TagManager:
     async def get_tags_by_owner(self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"):
         tags = []
         async with self.db.execute(
-                f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}") as cur:
+            f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
+        ) as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -134,10 +138,10 @@ class TagManager:
 
     async def get_name(self, name_or_alias):
         await self.exists(name_or_alias, TagNotFound, should=True)
-        if name_or_alias in self.names['tags']:
-            return name_or_alias # it's  a tag
+        if name_or_alias in self.names["tags"]:
+            return name_or_alias  # it's  a tag
         async with self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]) as cur:
-            async for row in cur: # it's an alias
+            async for row in cur:  # it's an alias
                 return row[0]
 
     async def add_alias(self, name, alias):
@@ -145,7 +149,7 @@ class TagManager:
         await self.exists(name, TagNotFound, should=True)
         if alias in (await self.get_aliases(name)):
             raise AliasAlreadyExists
-        self.names['aliases'].add(alias)
+        self.names["aliases"].add(alias)
         await self.db.execute("INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias])
         await self.db.commit()
 
@@ -166,14 +170,14 @@ class TagManager:
     async def get_aliases(self, name: Optional = None) -> List[str] | TagNotFound:
         if not name:
             async with self.db.execute("SELECT * FROM tag_relations") as cur:
-                content = (await cur.fetchall())
+                content = await cur.fetchall()
                 if content is None:
                     return []
                 return [row[1] for row in content]
         await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
         async with self.db.execute("SELECT * FROM tag_relations WHERE tag_id = ?", [name]) as cur:
-            content = (await cur.fetchall())
+            content = await cur.fetchall()
             if content is None:
                 return []
         return [alias for tag_id, alias in list(set(content))]
@@ -193,7 +197,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @staticmethod
     async def valid_name(name) -> bool:
-        if bool(re.match(r'[a-z0-9_-]+$', name)):
+        if bool(re.match(r"[a-z0-9_-]+$", name)):
             if len(name) >= 25:
                 return False
             return True
@@ -210,7 +214,14 @@ class Tags(commands.Cog, name="Tags"):
         if len(content) >= 1980:
             return await QuickEmb(inter, "The tag's content must be under 1980 chars").error().send()
         elif not await self.valid_name(name):
-            return await QuickEmb(inter, "The tag's name must be under 26 chars & only contain numbers, lowercase letters, underscores or dashes").error().send()
+            return (
+                await QuickEmb(
+                    inter,
+                    "The tag's name must be under 26 chars & only contain numbers, lowercase letters, underscores or dashes",
+                )
+                .error()
+                .send()
+            )
         try:  # todo add a check if the user is blacklisted note: do this later
             await self.tags.create(name, content, inter.author.id)
             return await QuickEmb(inter, f"I have successfully made **{name}**. To view it do /tag {name}").success().send()
@@ -225,8 +236,7 @@ class Tags(commands.Cog, name="Tags"):
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You do not have permission to edit this tag").error().send()
             await self.tags.update(name, "content", content)
-            await QuickEmb(inter,
-                           f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
+            await QuickEmb(inter, f"I have successfully updated **{name}**. \n\n **{name}**\n__{content}__").success().send()
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -255,8 +265,14 @@ class Tags(commands.Cog, name="Tags"):
             elif (await self.tags.get(name)).owner in [member.id for member in inter.guild.members]:
                 return await QuickEmb(inter, "The owner of this tag is still in this guild!").error().send()
             await self.tags.transfer(name, inter.author.id)
-            return (await QuickEmb(inter,
-                                   f"You have now claimed this tag because the previous owner of the tag is no longer in {inter.guild.name}", ).success().send())
+            return (
+                await QuickEmb(
+                    inter,
+                    f"You have now claimed this tag because the previous owner of the tag is no longer in {inter.guild.name}",
+                )
+                .success()
+                .send()
+            )
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
 
@@ -280,12 +296,11 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.increment_views(name)
             tag = await self.tags.get(name)
             owner = self.bot.get_user(tag.owner)
-            emb = Embed(
-                color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
+            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
             emb.add_field(name="Name", value=tag.name)
             emb.add_field(name="Owner", value=owner.mention)
             if await self.tags.get_aliases(name):
-                emb.add_field(name="Aliases", value=', '.join(tag for tag in (await self.tags.get_aliases(name))))
+                emb.add_field(name="Aliases", value=", ".join(tag for tag in (await self.tags.get_aliases(name))))
             emb.add_field(name="Created At", value=f"<t:{tag.created_at}:R>")
             emb.add_field(name="Times Called", value=abs(tag.views))
             await inter.send(embed=emb)
@@ -299,7 +314,7 @@ class Tags(commands.Cog, name="Tags"):
         try:
             await self.tags.increment_views(name)
             tag = await self.tags.get(name)
-            await inter.send(f"**{name}**\n__{tag.content}__") # todo redo this cmd
+            await inter.send(f"**{name}**\n__{tag.content}__")  # todo redo this cmd
         except TagNotFound:
             await inter.send(f"tag {name} does not exist")
 
@@ -350,7 +365,9 @@ class Tags(commands.Cog, name="Tags"):
 
         tag_embs.append(Embed(color=self.bot.config.colors.invis, description="The end ;D"))
         start_emb = Embed(title="Tags", color=self.bot.config.colors.invis)
-        start_emb.description = f"There are currently {tag_count:,d} tag{'s' if tag_count > 1 else ''}, use the arrows below to navigate through them"
+        start_emb.description = (
+            f"There are currently {tag_count:,d} tag{'s' if tag_count > 1 else ''}, use the arrows below to navigate through them"
+        )
         tag_embs.insert(0, start_emb)
         await ctx.send(embed=tag_embs[0], view=CreatePaginator(tag_embs, ctx.author.id))
 
@@ -363,13 +380,15 @@ class Tags(commands.Cog, name="Tags"):
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to rename it!").error().send()
             elif not await self.valid_name(name):
-                return await QuickEmb(inter,
-                                      "The tag's name must be only contain numbers, lowercase letters, underscores or dashes").error().send()
+                return (
+                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, underscores or dashes")
+                    .error()
+                    .send()
+                )
             await self.tags.rename(name, new_name)
             await QuickEmb(inter, f"I have successfully renamed **{name}** to **{new_name}**.").success().send()
         except TagNotFound:
             return await QuickEmb(inter, f"tag {name} does not exist").error().send()
-
 
     @commands.slash_command(name="tagalias-add", description="Adds an alias to a tag")
     @commands.guild_only()
@@ -379,8 +398,11 @@ class Tags(commands.Cog, name="Tags"):
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await QuickEmb(inter, "You must be the owner of the tag to delete it!").error().send()
             elif not await self.valid_name(name):
-                return await QuickEmb(inter,
-                                      "The tag's name must be only contain numbers, lowercase letters, underscores or dashes").error().send()
+                return (
+                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, underscores or dashes")
+                    .error()
+                    .send()
+                )
             await self.tags.add_alias(name, alias)
             await QuickEmb(inter, f"I have successfully added **{alias}** as an alias for **{name}**").success().send()
         except TagNotFound:
@@ -405,23 +427,23 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def tag_help(self, ctx):
         emb = Embed(title="Tag Help", color=self.bot.config.colors.invis)
-        general_cmds = ''
-        owner_cmds = ''
+        general_cmds = ""
+        owner_cmds = ""
 
-        for cmd, desc in tag_help['public'].items():
+        for cmd, desc in tag_help["public"].items():
             general_cmds += f"**/{cmd}** *~~* {desc}\n\t"
-        for cmd, desc in tag_help['owner_only'].items():
+        for cmd, desc in tag_help["owner_only"].items():
             owner_cmds += f"**/{cmd}** *~~* {desc} (only usable by the tag's owner)\n"
 
-        emb.add_field(name=f"General commands", value=general_cmds + '\n\n', inline=False)
+        emb.add_field(name=f"General commands", value=general_cmds + "\n\n", inline=False)
         emb.add_field(name=f"Owner only commands", value=owner_cmds, inline=False)
-        emb.set_footer(text="Tag system made by @JasonLovesDoggo & @FreebieII",
-                       icon_url=self.bot.user.display_avatar.url)
+        emb.set_footer(text="Tag system made by @JasonLovesDoggo & @FreebieII", icon_url=self.bot.user.display_avatar.url)
         await ctx.send(embed=emb)
 
 
 def setup(bot):
     bot.add_cog(Tags(bot))
+
 
 # todo when you delete a tag it should also delete all aliases
 # todo go through all self.exists() calls and see if they are called more then once

@@ -67,7 +67,7 @@ class Staff(commands.Cog):
         # Adding the button to the message:
         self.bot.buttons.append(button)
         await ctx.send(f"Added!")"""
-        
+
 
 def setup(bot):
     bot.add_cog(Staff(bot))
