@@ -20,6 +20,7 @@ the self.exists() calls are very carefully used.
 if you add a call to ANY of the functions in TagManager MAKE SURE it's called once
 """
 
+
 class TagManager:
     def __init__(self, bot, db):
         self.bot = bot
@@ -41,7 +42,7 @@ class TagManager:
             print("[TAGS] No tags found")
 
     async def exists(self, name, exception: TagException, should: bool) -> bool | TagException:
-        full_list = (self.names["tags"] + (self.names["aliases"]))
+        full_list = self.names["tags"] + (self.names["aliases"])
         name = name.casefold()
         if should:
             if name in full_list:
@@ -141,7 +142,7 @@ class TagManager:
             return int(tuple(await cur.fetchone())[0])
 
     async def get_name(self, name_or_alias):
-        #await self.exists(name_or_alias, TagNotFound, should=True)
+        # await self.exists(name_or_alias, TagNotFound, should=True)
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
         async with self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]) as cur:
@@ -219,8 +220,7 @@ class Tags(commands.Cog, name="Tags"):
             tag = await self.tags.get(name)
             await self.tags.increment_views(name, tag)
             owner = self.bot.get_user(tag.owner)
-            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)),
-                        title=f'{tag.name}')
+            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)), title=f"{tag.name}")
             emb.set_footer(text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}')
             emb.description = tag.content
             await inter.send(embed=emb)
@@ -392,7 +392,9 @@ class Tags(commands.Cog, name="Tags"):
                 return await errorEmb(inter, "You must be the owner of the tag to rename it!")
             elif not await self.valid_name(name):
                 return (
-                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes")
+                    await QuickEmb(
+                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                    )
                     .error()
                     .send()
                 )
@@ -411,7 +413,9 @@ class Tags(commands.Cog, name="Tags"):
                 return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             elif not await self.valid_name(name):
                 return (
-                    await QuickEmb(inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes")
+                    await QuickEmb(
+                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                    )
                     .error()
                     .send()
                 )
