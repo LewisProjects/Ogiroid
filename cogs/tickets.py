@@ -4,6 +4,8 @@ from utils.bot import OGIROID
 from utils.CONSTANTS import STAFF_ROLE, TICKET_PERMS
 from utils.shortcuts import errorEmb
 
+from datetime import datetime
+
 
 class Tickets(commands.Cog):
     """🎫 Ticketing system commands (Staff)"""
@@ -35,6 +37,7 @@ class Tickets(commands.Cog):
     @commands.Cog.listener("on_button_click")
     async def on_button_click(self, inter):
         ticket_channel = self.bot.get_channel(self.ticket_channel)
+        category = ticket_channel.category
         guild = self.bot.get_guild(inter.guild_id)
         user = guild.get_member(inter.author.id)
         if user.id == self.bot.application_id:
@@ -53,25 +56,23 @@ class Tickets(commands.Cog):
             except ValueError:
                 pass
 
-        ticket = await inter.guild.create_text_channel(f"ticket-{user.id}")
+        ticket = await category.create_text_channel(f"ticket-{user.id}")
         await ticket.set_permissions(inter.guild.get_role(inter.guild.id), read_messages=False)
         await ticket.set_permissions(user, **TICKET_PERMS)
         await ticket.set_permissions(staff, **TICKET_PERMS)
-        message_content = "Thank you for contacting support! A staff member will be here shortly!"
+        message_content = "Thank you for contacting support! A staff member will be here shortly!\nTo close the the tag use ``/close``"
         em = disnake.Embed(
             title=f"Ticket made by {user.name}#{user.discriminator}",
             description=f"{message_content}",
             color=0x26FF00,
         )
-        em.set_footer(text="ticket", icon_url=user.avatar.url)
-        await ticket.send(f"Thank you for contacting support! A staff member will be here shortly!\n")
-        await ticket.send(f"{user.mention} I have already pinged the `@Staff` team. No need for you to ping them.")
+        em.set_footer(text=f'{user} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+        await ticket.send(embed=em)
         await inter.send(f"Created Ticket. Your ticket: {ticket.mention}", ephemeral=True)
 
     @commands.slash_command(description="Close ticket")
-    @commands.has_role("Staff")
     async def close(self, inter):
-        if "ticket-" in inter.channel.name:
+        if self.check_if_ticket_channel(inter):
             await inter.channel.delete()
         else:
             await errorEmb(inter, "This is not a ticket channel.")
@@ -79,7 +80,7 @@ class Tickets(commands.Cog):
     @commands.slash_command(name="adduser", description="Add user to channel")
     @commands.has_role("Staff")
     async def add_user(self, inter, member: disnake.Member):
-        if "ticket-" in inter.channel.name:
+        if self.check_if_ticket_channel(inter):
             await inter.channel.set_permissions(
                 member,
                 send_messages=True,
@@ -101,7 +102,7 @@ class Tickets(commands.Cog):
     @commands.slash_command(name="removeuser", description="Remove user from channel")
     @commands.has_role("Staff")
     async def remove_user(self, inter, member: disnake.Member):
-        if "ticket-" in inter.channel.name:
+        if self.check_if_ticket_channel(inter):
             await inter.channel.set_permissions(member, overwrite=None)
             em = disnake.Embed(
                 title="Remove",
@@ -110,6 +111,13 @@ class Tickets(commands.Cog):
             await inter.send(embed=em)
         else:
             await errorEmb(inter, "This is not a ticket channel.")
+
+    @staticmethod
+    def check_if_ticket_channel(inter):
+        if "ticket-" in inter.channel.name and len(inter.channel.name) > 10 and any(char.isdigit() for char in inter.channel.name):
+            return True
+        else:
+            return False
 
 
 def setup(bot: OGIROID):

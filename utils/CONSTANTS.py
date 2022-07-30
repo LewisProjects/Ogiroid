@@ -5,11 +5,11 @@ __VERSION__ = "1.4.6"
 
 @dataclass
 class Channels:
-    suggestion: int = 985554459948122142
-    bug_report: int = 985554479405490216
+    suggestion: int = 985554479405490216
+    bug_report: int = 985554459948122142
     errors: int = 986531210283069450
     reddit_faq: int = 985908874362093620
-    tickets: int = 990679557596135475
+    tickets: int = 1003006753564262452
     logs: int = 988162723890217040
 
 

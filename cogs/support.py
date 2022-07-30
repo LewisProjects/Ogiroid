@@ -60,7 +60,7 @@ class BugModal(disnake.ui.Modal):
 
         channel = self.bot.get_channel(self.bot.config.channels.bug_report)
         await channel.send(embed=embed)
-        await inter.response.send_message("Sent bug report.\nThank you for pointing it out.")
+        await inter.send("Sent bug report.\nThank you for pointing it out.", ephemeral=True)
 
 
 class SuggestionModal(disnake.ui.Modal):
@@ -99,7 +99,7 @@ class SuggestionModal(disnake.ui.Modal):
 
         channel = self.bot.get_channel(self.bot.config.channels.suggestion)
         await channel.send(embed=embed)
-        await inter.response.send_message("Sent suggestion.\nThank you for your suggestion.")
+        await inter.response.send_message("Sent suggestion.\nThank you for your suggestion.", ephemeral=True)
 
 
 class BotSupport(commands.Cog, name="Bot Support"):
