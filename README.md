@@ -40,6 +40,7 @@ License: MIT
 <li>Created a new code command which opens a windows for the code and language using modals.</li>
 <li>Better Error Handling!</li>
 <li>Tag System Revamped!</li>
+<li>Ticket System revamped</li>
 <li>Bug Report & Suggestions using modals.</li>
 <li>New Moderation Commands</li>
 <li>Modified /code command</li>
