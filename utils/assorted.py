@@ -17,6 +17,4 @@ def renderBar(
     # handles gaps
     gapFill = " " * gap if gap else ""
 
-    return gapFill.join(
-        [fill] * (fillLength - len(point)) + [point] + [empty] * emptyLength
-    )
+    return gapFill.join([fill] * (fillLength - len(point)) + [point] + [empty] * emptyLength)

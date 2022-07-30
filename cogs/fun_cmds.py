@@ -34,27 +34,20 @@ class Fun(commands.Cog):
         TOKEN = os.getenv("TOKEN")
         self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.slash_command(name='spotify', description="Show what song a member listening to in Spotify")
+    @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
     async def spotifyinfo(self, inter: ApplicationCommandInteraction, user: Member):
         user = user or inter.author
 
-        spotify: disnake.Spotify = disnake.utils.find(
-            lambda s: isinstance(s, disnake.Spotify), user.activities
-        )
+        spotify: disnake.Spotify = disnake.utils.find(lambda s: isinstance(s, disnake.Spotify), user.activities)
         if not spotify:
-            return await errorEmb(inter,
-                                  f"{user} is not listening to Spotify!"
-                                  )
+            return await errorEmb(inter, f"{user} is not listening to Spotify!")
 
         e = (
-            Embed(
-                title=spotify.title,
-                colour=spotify.colour,
-                url=f"https://open.spotify.com/track/{spotify.track_id}"
-            ).set_author(name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png"
-                         ).set_thumbnail(url=spotify.album_cover_url)
+            Embed(title=spotify.title, colour=spotify.colour, url=f"https://open.spotify.com/track/{spotify.track_id}")
+            .set_author(name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png")
+            .set_thumbnail(url=spotify.album_cover_url)
         )
 
         # duration
@@ -80,19 +73,28 @@ class Fun(commands.Cog):
         e.add_field(
             name="Duration",
             value=(
-                    f"{cur.seconds // 60:02}:{cur.seconds % 60:02}"
-                    + f" {bar} "
-                    + f"{dur.seconds // 60:02}:"
-                    + f"{dur.seconds % 60:02}"
+                f"{cur.seconds // 60:02}:{cur.seconds % 60:02}"
+                + f" {bar} "
+                + f"{dur.seconds // 60:02}:"
+                + f"{dur.seconds % 60:02}"
             ),
             inline=False,
         )
         await inter.send(embed=e)
 
-    @commands.slash_command(
-        name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
+    @commands.slash_command(name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
     @commands.has_permissions(manage_messages=True)
-    async def poll(self, inter, question, choice1, choice2, choice3=None, choice4=None, choice5=None, choice6=None, ):
+    async def poll(
+        self,
+        inter,
+        question,
+        choice1,
+        choice2,
+        choice3=None,
+        choice4=None,
+        choice5=None,
+        choice6=None,
+    ):
         """
         Makes a poll quickly.
         """
@@ -100,20 +102,15 @@ class Fun(commands.Cog):
         choices = [choice1, choice2, choice3, choice4, choice5, choice6]
         choices = [choice for choice in choices if choice is not None]
         choices_str = ""
-        emojis = emojis[:len(choices)]  # trims emojis list to length of inputted choices
+        emojis = emojis[: len(choices)]  # trims emojis list to length of inputted choices
         i = 0
         for emoji in emojis:
             choices_str += f"{emoji}  {choices[i]}\n\n"
             i += 1
 
-        embed = disnake.Embed(
-            title=question,
-            description=choices_str,
-            colour=0xFFFFFF
-        )
+        embed = disnake.Embed(title=question, description=choices_str, colour=0xFFFFFF)
 
-        embed.set_footer(
-            text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+        embed.set_footer(text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
 
         await inter.response.send_message(embed=embed)
         poll = await inter.original_message()  # Gets the message wich got sent
@@ -327,9 +324,9 @@ class Fun(commands.Cog):
 
             def check(msg):
                 return (
-                        msg.author == ctx.author
-                        and msg.channel == ctx.channel
-                        and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
+                    msg.author == ctx.author
+                    and msg.channel == ctx.channel
+                    and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
                 )
 
             try:
@@ -398,8 +395,7 @@ class Fun(commands.Cog):
     async def bored(self, inter):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
-            async with activitySession.get(f"https://boredapi.com/api/activity",
-                                           ssl=False) as activityData:  # keep as http
+            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 
