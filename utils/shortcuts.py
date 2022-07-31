@@ -11,7 +11,7 @@ async def errorEmb(inter, text):
 
 
 class QuickEmb:
-    def __init__(self, inter, msg, color=disnake.Color.red()):
+    def __init__(self, inter, msg, color=0xFFFFFF):
         self.inter = inter
         self.msg = msg
         self.color = color

@@ -60,7 +60,9 @@ class Tickets(commands.Cog):
         await ticket.set_permissions(inter.guild.get_role(inter.guild.id), read_messages=False)
         await ticket.set_permissions(user, **TICKET_PERMS)
         await ticket.set_permissions(staff, **TICKET_PERMS)
-        message_content = "Thank you for contacting support! A staff member will be here shortly!\nTo close the the tag use ``/close``"
+        message_content = (
+            "Thank you for contacting support! A staff member will be here shortly!\nTo close the the tag use ``/close``"
+        )
         em = disnake.Embed(
             title=f"Ticket made by {user.name}#{user.discriminator}",
             description=f"{message_content}",
@@ -114,7 +116,11 @@ class Tickets(commands.Cog):
 
     @staticmethod
     def check_if_ticket_channel(inter):
-        if "ticket-" in inter.channel.name and len(inter.channel.name) > 10 and any(char.isdigit() for char in inter.channel.name):
+        if (
+            "ticket-" in inter.channel.name
+            and len(inter.channel.name) > 10
+            and any(char.isdigit() for char in inter.channel.name)
+        ):
             return True
         else:
             return False
