@@ -9,9 +9,11 @@ async def errorEmb(inter, text):
     emb = Embed(description=text, color=disnake.Color.red())
     await inter.send(embed=emb, ephemeral=True)
 
+
 async def sucEmb(inter, text, ephemeral=True):
     emb = Embed(description=text, color=disnake.Color.green())
     await inter.send(embed=emb, ephemeral=ephemeral)
+
 
 class QuickEmb:
     def __init__(self, inter, msg, color=0xFFFFFF):
@@ -34,3 +36,5 @@ class QuickEmb:
 
 def manage_messages_perms(inter):
     return inter.channel.permissions_for(inter.author).manage_messages
+
+
