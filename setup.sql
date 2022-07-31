@@ -21,3 +21,14 @@ IF NOT EXISTS tickets
     channel_id TEXT,
     user_id TEXT
 );
+
+CREATE TABLE
+IF NOT EXISTS blacklist
+(
+    user_id INTEGER,
+    reason TEXT,
+    bot BOOLEAN,
+    tickets BOOLEAN,
+    tags BOOLEAN,
+    expires INTEGER
+);

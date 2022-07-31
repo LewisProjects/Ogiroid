@@ -1,4 +1,10 @@
-class TagException(BaseException):
+class BotException(BaseException):
+    pass
+
+class BlacklistException(BotException):
+    pass
+
+class TagException(BotException):
     pass
 
 
@@ -25,12 +31,14 @@ class AliasAlreadyExists(AliasException):
 class AliasNotFound(AliasException):
     pass
 
+class BlacklistNotFound(BlacklistException):
+    pass
 
-class CityNotFound(Exception):
+class CityNotFound(BotException):
     def __init__(self, city):
         super().__init__(f"City '{city}' not found!")
 
 
-class InvalidAPIKEY(Exception):
+class InvalidAPIKEY(BotException):
     def __init__(self):
         super().__init__(f"You have an invalid API key!")

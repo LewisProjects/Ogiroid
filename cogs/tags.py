@@ -29,6 +29,7 @@ class TagManager:
         self.names = {"tags": [], "aliases": []}
 
     async def startup(self):
+        await self.bot.wait_until_ready()
         print("[TAGS] Loading tags...")
         try:
             tags = await self.all()

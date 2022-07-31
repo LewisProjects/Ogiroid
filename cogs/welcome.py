@@ -1,7 +1,5 @@
 from disnake.ext.commands import Cog
-import aiohttp
 from datetime import datetime
-import io
 import disnake
 
 from utils.bot import OGIROID
