@@ -50,7 +50,11 @@ class Blacklist(Cog):
         self.blacklist: BlacklistHandler = BlacklistHandler(self.bot, self.bot.db)
         await self.blacklist.startup()
 
-    @commands.slash_command()
+    @commands.slash_command(description="Blacklist base command", hidden=True)
+    async def blacklist(self, inter):
+        pass
+
+    @blacklist.sub_command(name="add", description="Add a user to the blacklist")
     async def blacklist_add(self, inter, user: Member, reason: str, bot: bool, tickets: bool, tags: bool, expires: int):
 
         await self.blacklist.add(user.id, reason, bot, tickets, tags, expires)
