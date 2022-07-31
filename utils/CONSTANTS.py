@@ -30,20 +30,20 @@ TICKET_PERMS = {
 }
 tag_help = {
     "public": {
-        "maketag": "Creates a tag",
-        "taghelp": "Gives you this help",
-        "tag": "Gives you the tags value",
-        "taginfo": "Gives you the tags info (views, owner, etc)",
-        "taglist": "Gives you a lists of tags (use the arrows to navigate)",
-        "claimtag": "Claims a tag (can only be used if the previous owner is no longer in the server)",
+        "tag get": "Gives you the tags value",
+        "tag create": "Creates a tag",
+        "tag help": "Gives you this help",
+        "tag info": "Gives you the tags info (views, owner, etc)",
+        "tag list": "Gives you a lists of tags (use the arrows to navigate)",
+        "tag claim": "Claims a tag (can only be used if the previous owner is no longer in the server)",
     },
     "owner_only": {
-        "tagrename": "Renames a tag",
-        "edittag": "Edits a tag",
-        "transfertag": "Transfers a tag to another user",
-        "deltag": "Deletes a tag",
-        "tagalias-add": "Adds an alias to a tag",
-        "tagalias-remove": "Removes an alias from a tag",
+        "tag rename": "Renames a tag",
+        "tag edit": "Edits a tag",
+        "tag transfer": "Transfers a tag to another user",
+        "tag delete": "Deletes a tag",
+        "tag alias add": "Adds an alias to a tag",
+        "tag alias remove": "Removes an alias from a tag",
     },
 }
 COUNTRIES = {
