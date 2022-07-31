@@ -1,4 +1,4 @@
-from typing import  List
+from typing import List
 
 from disnake import Member
 from disnake.ext import commands
@@ -25,8 +25,7 @@ class BlacklistHandler:
 
     async def load_blacklist(self):
         blacklist = []
-        async with self.db.execute(
-                f"SELECT * FROM blacklist") as cur:
+        async with self.db.execute(f"SELECT * FROM blacklist") as cur:
             async for row in cur:
                 blacklist.append(BlacklistedUser(*row))
         if len(blacklist) == 0:
@@ -35,10 +34,12 @@ class BlacklistHandler:
 
     async def add(self, user_id: int, reason: str, bot: bool, tickets: bool, tags: bool, expires: int):
         await self.db.execute(
-                f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
-                [user_id, reason, bot, tickets, tags, expires])
+            f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
+            [user_id, reason, bot, tickets, tags, expires],
+        )
         await self.db.commit()
         self._blacklist.append(BlacklistedUser(user_id, reason, bot, tickets, tags, expires))
+
 
 class Blacklist(Cog):
     def __init__(self, bot: OGIROID):
@@ -60,7 +61,6 @@ class Blacklist(Cog):
         await self.blacklist.add(user.id, reason, bot, tickets, tags, expires)
         await sucEmb(inter, f"{user.mention} added to blacklist", ephemeral=False)
         print(self.blacklist._blacklist)
-
 
 
 def setup(bot):

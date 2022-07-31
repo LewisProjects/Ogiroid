@@ -1,8 +1,10 @@
 class BotException(BaseException):
     pass
 
+
 class BlacklistException(BotException):
     pass
+
 
 class TagException(BotException):
     pass
@@ -31,8 +33,10 @@ class AliasAlreadyExists(AliasException):
 class AliasNotFound(AliasException):
     pass
 
+
 class BlacklistNotFound(BlacklistException):
     pass
+
 
 class CityNotFound(BotException):
     def __init__(self, city):

@@ -226,8 +226,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.increment_views(name, tag)
             owner = self.bot.get_user(tag.owner)
             emb = Embed(color=disnake.Color.random(seed=hash(tag.name)), title=f"{tag.name}")
-            emb.set_footer(
-                text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}')
+            emb.set_footer(text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}')
             emb.description = tag.content
             await inter.send(embed=emb)
         except TagNotFound:
@@ -262,7 +261,9 @@ class Tags(commands.Cog, name="Tags"):
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You do not have permission to edit this tag")
             await self.tags.update(name, "content", content)
-            await QuickEmb(inter, f"I have successfully updated **{name}**.\n\nuse /tag get {name} to access it.").success().send()
+            await QuickEmb(
+                inter, f"I have successfully updated **{name}**.\n\nuse /tag get {name} to access it."
+            ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag {name} does not exist")
 
@@ -441,8 +442,7 @@ class Tags(commands.Cog, name="Tags"):
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter,
-                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
                     )
                     .error()
                     .send()
@@ -455,7 +455,7 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, f"tag {alias} already exists")
 
     @alias.sub_command(name="remove", description="Removes an alias from a tag")
-    @commands.guild_only()  
+    @commands.guild_only()
     async def remove_alias(self, inter, name, alias):
         try:
             name = name.casefold()
@@ -470,6 +470,7 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, f"tag {name} does not exist")
         except AliasNotFound:
             return await errorEmb(inter, f"alias {alias} does not exist")
+
 
 def setup(bot):
     bot.add_cog(Tags(bot))
