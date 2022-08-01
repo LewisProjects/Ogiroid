@@ -234,10 +234,10 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="create", description="Creates a tag")
     @commands.guild_only()
-    async def create(self, inter, name, *, content):
+    async def create(self, inter, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
-        if len(content) >= 1980:
-            return await errorEmb(inter, "The tag's content must be under 1980 chars")
+        if len(content) >= 1900:
+            return await errorEmb(inter, "The tag's content must be under 1900 chars")
         elif not await self.valid_name(name):
             return (
                 await QuickEmb(
@@ -255,11 +255,13 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="edit", description="Edits the tag")
     @commands.guild_only()
-    async def edit(self, inter, name, *, content):
+    async def edit(self, inter, name, *, content: str = commands.Param(le=1900)):
+        name = name.casefold()
         try:
-            name = name.casefold()
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You do not have permission to edit this tag")
+            if len(content) > 900:
+                return await errorEmb(inter, "Reason must be under 900 chars")
             await self.tags.update(name, "content", content)
             await QuickEmb(
                 inter, f"I have successfully updated **{name}**.\n\nuse /tag get {name} to access it."
@@ -353,7 +355,7 @@ class Tags(commands.Cog, name="Tags"):
         nested_count = 0
         tag_content_count = 0
         for tag in tags:
-            if (len(tag.content) + tag_content_count) <= 1989 and len(tag.content) <= 500:
+            if (len(tag.content) + tag_content_count) <= 1989 :
                 tag_content_count += len(tag.content)
                 if isinstance(nested_tags[nested_count], Tag):
                     nested_count += 1
