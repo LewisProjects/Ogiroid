@@ -415,7 +415,7 @@ class Fun(commands.Cog):
                 if key == char.lower():
                     encoded_list.append(self.morse[key])
 
-        encoded_string = ' '.join(encoded_list)
+        encoded_string = " ".join(encoded_list)
         await inter.send(f"``{encoded_string}``")
 
     @morse.sub_command(name="decode", description="Decodes Morse Code into Text.")
@@ -429,7 +429,7 @@ class Fun(commands.Cog):
                 if value == item:
                     decoded_list.append(key)
 
-        decoded_string = ''.join(decoded_list)
+        decoded_string = "".join(decoded_list)
         await inter.send(f"``{decoded_string}``")
 
     def wyr(self):
@@ -438,7 +438,7 @@ class Fun(commands.Cog):
         # note to harry use aiohttp instead of requests
         # Check if there was no errors getting it.
         if r.status_code == 200:
-            # Saves the two question. NOTE: Blue is option 1 and red is option 2. It was easier for me to call it blue and red cause thats how the website is formated.
+            # Saves the two question. NOTE: Blue is option 1 and red is option 2.It was easier for me to call it blue and red cause that's how the website is formated.
             for count, option in enumerate(r.html.find(".option-text")):
                 if count == 0:
                     blue = option.text
