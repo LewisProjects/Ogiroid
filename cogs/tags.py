@@ -200,9 +200,6 @@ class Tags(commands.Cog, name="Tags"):
         self.tags: TagManager = TagManager(self.bot, self.bot.db)
         await self.tags.startup()
 
-
-
-
     @staticmethod
     async def valid_name(name) -> bool:
         if bool(re.match(r"[a-z0-9_ -]+$", name)):
