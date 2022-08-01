@@ -4,9 +4,25 @@ import time
 from disnake.ext import commands
 
 from utils.bot import OGIROID
+from utils.shortcuts import QuickEmb
+from collections import Counter
+from utils.CONSTANTS import status
 
 global startTime
 startTime = time.time()
+
+
+class plural:
+    def __init__(self, value):
+        self.value = value
+
+    def __format__(self, format_spec):
+        v = self.value
+        singular, sep, plural = format_spec.partition("|")
+        plural = plural or f"{singular}s"
+        if abs(v) != 1:
+            return f"{v} {plural}"
+        return f"{v} {singular}"
 
 
 class Commands(commands.Cog):
@@ -15,6 +31,7 @@ class Commands(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
+    # Can be deprecated since there is a serverinfo command now and its specific to the Lewis's Server
     @commands.slash_command(name="membercount", description="Get the member count of the server")
     async def membercount(self, inter):
         """Count the members in the server"""
@@ -78,6 +95,163 @@ class Commands(commands.Cog):
         )
 
         await inter.response.send_message(embed=embed)
+
+    @commands.slash_command()
+    @commands.guild_only()
+    async def serverinfo(self, inter, *, guild_id=None):
+        """Shows info about the current server."""
+        if guild_id is not None and await self.bot.is_owner(inter.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                await QuickEmb(inter, "Invalid Guild ID given or im not in that guild").error().send()
+                return
+        else:
+            guild = inter.guild
+
+        roles = [role.name.replace("@", "@\u200b") for role in guild.roles]
+
+        if not guild.chunked:
+            async with inter.typing():
+                await guild.chunk(cache=True)
+
+        # figure out what channels are 'secret'
+        everyone = guild.default_role
+        everyone_perms = everyone.permissions.value
+        secret = Counter()
+        totals = Counter()
+        for channel in guild.channels:
+            allow, deny = channel.overwrites_for(everyone).pair()
+            perms = disnake.Permissions((everyone_perms & ~deny.value) | allow.value)
+            channel_type = type(channel)
+            if channel_type == disnake.channel.CategoryChannel:
+                continue
+            totals[channel_type] += 1
+            if not perms.read_messages:
+                secret[channel_type] += 1
+            elif isinstance(channel, disnake.VoiceChannel) and (not perms.connect or not perms.speak):
+                secret[channel_type] += 1
+        e = disnake.Embed(colour=0xFFFFFF)
+        e.title = guild.name
+        e.description = f"**ID**: {guild.id}\n**Owner**: {guild.owner}"
+        if guild.icon:
+            e.set_thumbnail(url=guild.icon.url)
+        if inter.guild.banner:
+            e.set_image(url=inter.guild.banner.with_format("png").with_size(1024))
+        channel_info = []
+        for key, total in totals.items():
+            secrets = secret[key]
+
+            if secrets:
+                channel_info.append(f"Text Channels: {total} ({secrets} locked)")
+            else:
+                channel_info.append(f"Voice Channels: {total}")
+
+        info = []
+        features = set(guild.features)
+        all_features = {
+            "PARTNERED": "Partnered",
+            "VERIFIED": "Verified",
+            "DISCOVERABLE": "Server Discovery",
+            "COMMUNITY": "Community Server",
+            "FEATURABLE": "Featured",
+            "WELCOME_SCREEN_ENABLED": "Welcome Screen",
+            "INVITE_SPLASH": "Invite Splash",
+            "VIP_REGIONS": "VIP Voice Servers",
+            "VANITY_URL": "Vanity Invite",
+            "COMMERCE": "Commerce",
+            "LURKABLE": "Lurkable",
+            "NEWS": "News Channels",
+            "ANIMATED_ICON": "Animated Icon",
+            "BANNER": "Banner",
+        }
+
+        for feature, label in all_features.items():
+            if feature in features:
+                info.append(f"{inter.tick(True)}: {label}")
+
+        if info:
+            e.add_field(name="Features", value="\n".join(info))
+
+        e.add_field(name="Channels", value="\n".join(channel_info))
+
+        if guild.premium_tier != 0:
+            boosts = f"Level {guild.premium_tier}\n{guild.premium_subscription_count} boosts"
+            last_boost = max(guild.members, key=lambda m: m.premium_since or guild.created_at)
+            if last_boost.premium_since is not None:
+                boosts = f"{boosts}\nLast Boost: {last_boost}"
+            e.add_field(name="Boosts", value=boosts, inline=False)
+
+        bots = sum(m.bot for m in guild.members)
+        fmt = f"Total: {guild.member_count} ({plural(bots):bot})"
+
+        e.add_field(name="Members", value=fmt, inline=False)
+        e.add_field(name="Roles", value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles")
+
+        emoji_stats = Counter()
+        for emoji in guild.emojis:
+            if emoji.animated:
+                emoji_stats["animated"] += 1
+                emoji_stats["animated_disabled"] += not emoji.available
+            else:
+                emoji_stats["regular"] += 1
+                emoji_stats["disabled"] += not emoji.available
+                gel = guild.emoji_limit
+                fmt = f'Regular: {emoji_stats["regular"]}/{gel}\nAnimated: {emoji_stats["animated"]}/{gel}\n'
+                if emoji_stats["disabled"] or emoji_stats["animated_disabled"]:
+                    fmt = f'{fmt}Disabled: {emoji_stats["disabled"]} regular, {emoji_stats["animated_disabled"]} animated\n'
+
+        fmt = f"{fmt}Total Emojis: {len(guild.emojis)}/{guild.emoji_limit * 2}"
+        e.add_field(name="Emoji", value=fmt, inline=False)
+        e.set_footer(text=f'Created: {guild.created_at.strftime("%m/%d/%Y")}')
+        await inter.send(embed=e)
+
+    @commands.slash_command()
+    async def whois(self, inter, *, user: disnake.User = None):
+        """Shows info about a user."""
+        if user == None:
+            user = inter.author
+        e = disnake.Embed(description="")
+        roles = [
+            role.name.replace("@", "@\u200b") for role in getattr(user, "roles", []) if not role.id == inter.guild.default_role.id
+        ]
+        bottag = "<:bot_tag:880193490556944435>"
+        e.set_author(name=f'{user}{bottag if user.bot else ""}')
+        join_position = sorted(inter.guild.members, key=lambda m: m.joined_at).index(user) + 1
+
+        e.add_field(name="Join Position", value=join_position)
+        e.add_field(name="ID", value=user.id, inline=False)
+        e.add_field(name="Joined", value=getattr(user, "joined_at", None).strftime("%m/%d/%Y"), inline=False)
+        e.add_field(name="Created", value=user.created_at.strftime("%m/%d/%Y"), inline=False)
+
+        voice = getattr(user, "voice", None)
+        if voice is not None:
+            vc = voice.channel
+            other_people = len(vc.members) - 1
+            voice = f"{vc.name} with {other_people} others" if other_people else f"{vc.name} by themselves"
+            e.add_field(name="Voice", value=voice, inline=False)
+
+        if roles:
+            e.add_field(name="Roles", value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles", inline=False)
+
+        colour = user.colour
+        if colour.value:
+            e.colour = colour
+
+        e.colour = 0xFFFFFF
+
+        if user.avatar:
+            e.set_thumbnail(url=user.avatar.url)
+
+        if isinstance(user, disnake.User):
+            e.set_footer(text="This member is not in this server.")
+
+        e.description += (
+            f"Mobile {status(str(user.mobile_status))}  "
+            f"Desktop {status(str(user.desktop_status))}  "
+            f"Web browser {status(str(user.web_status))}"
+        )
+
+        await inter.send(embed=e)
 
 
 def setup(bot):

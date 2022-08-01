@@ -14,6 +14,7 @@ from disnake.utils import utcnow
 from dotenv import load_dotenv
 from requests import session
 
+from utils.CONSTANTS import morse
 from utils.assorted import renderBar
 from utils.bot import OGIROID
 from utils.http import HTTPSession
@@ -28,6 +29,7 @@ class Fun(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.togetherControl = None
         self.bot = bot
+        self.morse = morse
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -399,13 +401,44 @@ class Fun(commands.Cog):
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 
+    @commands.slash_command(name="morse", description="Encode text into morse code and decode morse code.")
+    async def morse(self, inter):
+        pass
+
+    @morse.sub_command(name="encode", description="Encodes text into morse code.")
+    async def encode(self, inter, text: str):
+        encoded_list = []
+
+        for char in text:
+
+            for key in self.morse:
+                if key == char.lower():
+                    encoded_list.append(self.morse[key])
+
+        encoded_string = " ".join(encoded_list)
+        await inter.send(f"``{encoded_string}``")
+
+    @morse.sub_command(name="decode", description="Decodes Morse Code into Text.")
+    async def decode(self, inter, morse_code):
+        decoded_list = []
+        morse_list = morse_code.split()
+
+        for item in morse_list:
+
+            for key, value in self.morse.items():
+                if value == item:
+                    decoded_list.append(key)
+
+        decoded_string = "".join(decoded_list)
+        await inter.send(f"``{decoded_string}``")
+
     def wyr(self):
         # grabs the source code of a random question
         r = session.get(f"https://www.either.io/{str(random.randint(3, 100000))}")
         # note to harry use aiohttp instead of requests
         # Check if there was no errors getting it.
         if r.status_code == 200:
-            # Saves the two question. NOTE: Blue is option 1 and red is option 2. It was easier for me to call it blue and red cause thats how the website is formated.
+            # Saves the two question. NOTE: Blue is option 1 and red is option 2.It was easier for me to call it blue and red cause that's how the website is formated.
             for count, option in enumerate(r.html.find(".option-text")):
                 if count == 0:
                     blue = option.text
