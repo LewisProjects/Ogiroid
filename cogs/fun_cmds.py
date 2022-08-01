@@ -418,7 +418,7 @@ class Fun(commands.Cog):
         encoded_string = ' '.join(encoded_list)
         await inter.send(f"``{encoded_string}``")
 
-    @morse.sub_command(name="decode", description="Decodes Morse Code into Text")
+    @morse.sub_command(name="decode", description="Decodes Morse Code into Text.")
     async def decode(self, inter, morse_code):
         decoded_list = []
         morse_list = morse_code.split()
