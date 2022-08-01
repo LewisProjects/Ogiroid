@@ -14,6 +14,7 @@ from disnake.utils import utcnow
 from dotenv import load_dotenv
 from requests import session
 
+from utils.CONSTANTS import morse
 from utils.assorted import renderBar
 from utils.bot import OGIROID
 from utils.http import HTTPSession
@@ -28,6 +29,7 @@ class Fun(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.togetherControl = None
         self.bot = bot
+        self.morse = morse
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -398,6 +400,37 @@ class Fun(commands.Cog):
             async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
+
+    @commands.slash_command(name="morse", description="Encode text into morse code and decode morse code.")
+    async def morse(self, inter):
+        pass
+
+    @morse.sub_command(name="encode", description="Encodes text into morse code.")
+    async def encode(self, inter, text: str):
+        encoded_list = []
+
+        for char in text:
+
+            for key in self.morse:
+                if key == char.lower():
+                    encoded_list.append(self.morse[key])
+
+        encoded_string = ' '.join(encoded_list)
+        await inter.send(f"``{encoded_string}``")
+
+    @morse.sub_command(name="decode", description="Decodes Morse Code into Text")
+    async def decode(self, inter, morse_code):
+        decoded_list = []
+        morse_list = morse_code.split()
+
+        for item in morse_list:
+
+            for key, value in self.morse.items():
+                if value == item:
+                    decoded_list.append(key)
+
+        decoded_string = ''.join(decoded_list)
+        await inter.send(f"``{decoded_string}``")
 
     def wyr(self):
         # grabs the source code of a random question
