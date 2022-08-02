@@ -355,7 +355,7 @@ class Tags(commands.Cog, name="Tags"):
         nested_count = 0
         tag_content_count = 0
         for tag in tags:
-            if (len(tag.content) + tag_content_count) <= 1989 :
+            if (len(tag.content) + tag_content_count) <= 1989:
                 tag_content_count += len(tag.content)
                 if isinstance(nested_tags[nested_count], Tag):
                     nested_count += 1
