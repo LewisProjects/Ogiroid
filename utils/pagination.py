@@ -11,7 +11,7 @@ class CreatePaginator(ui.View):
     author: int
         The ID of the author who can interact with the buttons. Anyone can interact with the Paginator Buttons if not specified.
     timeout: float
-        How long the Paginator should timeout in, after the last interaction.
+        How long the Paginator should time out in, after the last interaction.
 
     """
 

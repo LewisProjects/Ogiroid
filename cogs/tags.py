@@ -202,7 +202,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @staticmethod
     async def valid_name(name) -> bool:
-        if bool(re.match(r"[a-z0-9_-]+$", name)):
+        if bool(re.match(r"[a-z0-9_ -]+$", name)):
             if len(name) >= 25:
                 return False
             return True
@@ -249,7 +249,7 @@ class Tags(commands.Cog, name="Tags"):
             )
         try:
             await self.tags.create(name, content, inter.author.id)
-            return await QuickEmb(inter, f"I have successfully made **{name}**. To view it do /tag {name}").success().send()
+            return await QuickEmb(inter, f"I have successfully made **{name}**. To view it do /tag get {name}").success().send()
         except TagAlreadyExists:
             return await errorEmb(inter, f"tag {name} already exists")
 
