@@ -1,9 +1,13 @@
 import disnake
 import os
+
+from disnake import ApplicationCommandInteraction
 from disnake.ext.commands import when_mentioned_or
 from dotenv import load_dotenv
 
 from utils.bot import OGIROID
+from utils.exceptions import UserBlacklisted
+from utils.shortcuts import errorEmb
 
 load_dotenv("secrets.env")
 
@@ -25,6 +29,22 @@ client = OGIROID(
     sync_commands_debug=True,  # todo change
     case_insensitive=True,
 )
+
+
+@client.before_invoke
+async def blacklist_norm_invoke(ctx):
+    await client.wait_until_ready()
+    if await client.blacklist.blacklisted(ctx.author.id):
+        await errorEmb(ctx, "You are blacklisted from using this bot!")
+        raise UserBlacklisted
+
+
+@client.before_slash_command_invoke
+async def slash_command(inter: ApplicationCommandInteraction):
+    await client.wait_until_ready()
+    if await client.blacklist.blacklisted(inter.author.id):
+        await errorEmb(inter, "You are blacklisted from using this bot!")
+        raise UserBlacklisted # todo find out how to have this not print anything
 
 
 def main():

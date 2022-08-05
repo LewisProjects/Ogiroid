@@ -3,6 +3,7 @@ import disnake
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 
+from cogs.blacklist import BlacklistHandler
 from utils.http import HTTPSession
 from utils.config import Config
 from utils.CONSTANTS import __VERSION__
@@ -13,12 +14,13 @@ with open("setup.sql", "r") as sql_file:
 
 class OGIROID(commands.Bot):
     def __init__(self, *args, **kwargs):
-        self.db = None
         super().__init__(*args, **kwargs)
-        self.config = Config()
         self.session = HTTPSession(loop=self.loop)
+        self.config = Config()
         self.commands_ran = {}
         self.total_commands_ran = 0
+        self.db = None
+        self.blacklist: BlacklistHandler = None
 
     async def on_command(self, ctx):
         self.total_commands_ran += 1
@@ -36,14 +38,19 @@ class OGIROID(commands.Bot):
 
     async def on_ready(self):
         await self.wait_until_ready()
+        await self._setup()
         await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
-        for command in self.application_commands:
-            self.commands_ran[f"{command.qualified_name}"] = 0
         print("--------------------------------------------------------------------------------")
         print("Bot is ready! Logged in as: " + self.user.name)
         print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")
         print(f"Bot version: {__VERSION__}")
         print("--------------------------------------------------------------------------------")
+
+    async def _setup(self):
+        for command in self.application_commands:
+            self.commands_ran[f"{command.qualified_name}"] = 0
+        self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
+        await self.blacklist.startup()
 
     async def start(self, *args, **kwargs):
         async with aiosqlite.connect("data.db") as self.db:

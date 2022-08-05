@@ -37,6 +37,12 @@ class AliasNotFound(AliasException):
 class BlacklistNotFound(BlacklistException):
     pass
 
+class UserBlacklisted(BlacklistException):
+    async def __call__(self, ctx):
+        pass
+    def __init__(self, *args, **kwargs):
+        pass
+
 
 class CityNotFound(BotException):
     def __init__(self, city):
