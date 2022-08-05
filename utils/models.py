@@ -7,6 +7,7 @@ from utils.shortcuts import get_expiry
 
 """careful moving the order of the below dataclasses as it will break the corresponding calls to them"""
 
+
 @dataclass
 class BlacklistedUser:
     id: int

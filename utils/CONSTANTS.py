@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 __VERSION__ = "1.4.8"
 
+
 @dataclass
 class Channels:
     suggestion: int = 985554479405490216

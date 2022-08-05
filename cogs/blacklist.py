@@ -55,7 +55,8 @@ class BlacklistHandler:
     async def add(self, user_id: int, reason: str, bot: bool, tickets: bool, tags: bool, expires: int):
         await self.db.execute(
             f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
-            [user_id, reason, bot, tickets, tags, expires], )
+            [user_id, reason, bot, tickets, tags, expires],
+        )
         await self.db.commit()
         self._blacklist.append(BlacklistedUser(user_id, reason, bot, tickets, tags, expires))
 
@@ -69,24 +70,20 @@ class BlacklistHandler:
 
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
         await self.db.execute(
-            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?",
-            [bot, tickets, tags, user_id])
+            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
+        )
         await self.db.commit()
         self._blacklist[self._blacklist.index(self.get_user(user_id))].bot = bot
         self._blacklist[self._blacklist.index(self.get_user(user_id))].tickets = tickets  # todo simplify this
         self._blacklist[self._blacklist.index(self.get_user(user_id))].tags = tags
 
     async def edit_reason(self, user_id: int, reason: str):
-        await self.db.execute(
-            f"UPDATE blacklist SET reason = ? WHERE user_id = ?",
-            [reason, user_id])
+        await self.db.execute(f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id])
         await self.db.commit()
         self._blacklist[self._blacklist.index(self.get_user(user_id))].reason = reason
 
     async def edit_expiry(self, user_id: int, expires: int):
-        await self.db.execute(
-            f"UPDATE blacklist SET expires = ? WHERE user_id = ?",
-            [expires, user_id])
+        await self.db.execute(f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id])
         await self.db.commit()
         self._blacklist[self._blacklist.index(self.get_user(user_id))].expires = expires
 
@@ -101,7 +98,7 @@ class Blacklist(Cog):
 
     @staticmethod
     def approve_expiry(expires: str):
-        if expires == 'never':
+        if expires == "never":
             return True
         elif expires.isnumeric():
             pass  # todo
@@ -126,7 +123,7 @@ class Blacklist(Cog):
         pass
 
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @blacklist.sub_command(name='info', description="Get info about a blacklisted user")
+    @blacklist.sub_command(name="info", description="Get info about a blacklisted user")
     async def blacklist_info(self, inter, user: Member):
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
@@ -157,8 +154,9 @@ class Blacklist(Cog):
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.edit_reason(user.id, reason)
-        await sucEmb(inter,
-                     f"Edited {user.mention}'s reason in the blacklist to see the full reason use /blacklist info {user.mention}")
+        await sucEmb(
+            inter, f"Edited {user.mention}'s reason in the blacklist to see the full reason use /blacklist info {user.mention}"
+        )
 
     @commands.has_permissions(manage_messages=True)
     @edit.sub_command(name="expiry", description="Edit the user's blacklist expiry in the blacklist")
@@ -167,8 +165,7 @@ class Blacklist(Cog):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         time = int((await timeconversions.convert(expires)).dt.timestamp())
         await self.blacklist.edit_expiry(user.id, time)
-        await sucEmb(inter,
-                     f"Edited the expiry of {user.mention}'s blacklist to expire {get_expiry(time)}")
+        await sucEmb(inter, f"Edited the expiry of {user.mention}'s blacklist to expire {get_expiry(time)}")
 
     @commands.has_permissions(manage_messages=True)
     @blacklist.sub_command(name="remove", description="Remove a user from the blacklist")
@@ -179,38 +176,44 @@ class Blacklist(Cog):
         await sucEmb(inter, f"{user.mention} has been removed from blacklist", ephemeral=False)
 
     @commands.has_permissions(manage_messages=True)
-    @blacklist.sub_command(name="add", description="Add a user to the blacklist",
-                           options=[
-                               Option("user", description="User to blacklist", type=OptionType.user, required=True),
-                               Option("bot", description="Whether to blacklist the user from using the entire bot",
-                                      type=OptionType.boolean,
-                                      required=True),
-                               Option("tickets", description="Whether to blacklist the user from using tickets",
-                                      type=OptionType.boolean,
-                                      required=True),
-                               Option("tags", description="Whether to blacklist the user from using tags",
-                                      type=OptionType.boolean,
-                                      required=True),
-                               Option("expires", description="When the blacklist should expire (e.g. 1w, 5m, never)",
-                                      type=OptionType.string,
-                                      required=False),
-                               Option("reason", description="Reason for blacklisting the user", type=OptionType.string,
-                                      required=False)
-                           ])
-    async def blacklist_add(self, inter, user, bot, tickets, tags,
-                            reason='No Reason Specified', expires='never'):
+    @blacklist.sub_command(
+        name="add",
+        description="Add a user to the blacklist",
+        options=[
+            Option("user", description="User to blacklist", type=OptionType.user, required=True),
+            Option(
+                "bot",
+                description="Whether to blacklist the user from using the entire bot",
+                type=OptionType.boolean,
+                required=True,
+            ),
+            Option(
+                "tickets", description="Whether to blacklist the user from using tickets", type=OptionType.boolean, required=True
+            ),
+            Option("tags", description="Whether to blacklist the user from using tags", type=OptionType.boolean, required=True),
+            Option(
+                "expires",
+                description="When the blacklist should expire (e.g. 1w, 5m, never)",
+                type=OptionType.string,
+                required=False,
+            ),
+            Option("reason", description="Reason for blacklisting the user", type=OptionType.string, required=False),
+        ],
+    )
+    async def blacklist_add(self, inter, user, bot, tickets, tags, reason="No Reason Specified", expires="never"):
         if not any((bot, tickets, tags)):  # todo check expiration format or never
-            return await errorEmb(inter,
-                                  "You can't blacklist a user without specifying either bot, tickets and/or tags")
+            return await errorEmb(inter, "You can't blacklist a user without specifying either bot, tickets and/or tags")
         if len(reason) > 900:
             return await errorEmb(inter, "Reason must be under 900 chars")
         elif await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is already in the blacklist")
-        expires = ((await timeconversions.convert(expires)).dt.timestamp())
+        expires = (await timeconversions.convert(expires)).dt.timestamp()
         await self.blacklist.add(user.id, reason, bot, tickets, tags, expires)
-        await sucEmb(inter,
-                     f"{user.mention} added to blacklist\nthe user's blacklist will {f'expire on <t:{expires}:R>' if str(expires) != str(9999999999) else 'never expire'}",
-                     ephemeral=False)
+        await sucEmb(
+            inter,
+            f"{user.mention} added to blacklist\nthe user's blacklist will {f'expire on <t:{expires}:R>' if str(expires) != str(9999999999) else 'never expire'}",
+            ephemeral=False,
+        )
 
     @commands.cooldown(1, 30, commands.BucketType.user)
     @blacklist.sub_command(name="list", description="List all blacklisted users")
@@ -244,14 +247,15 @@ class Blacklist(Cog):
             if isinstance(blacklist_list, list):
                 emb = Embed(color=self.bot.config.colors.invis, description="")
                 for user in blacklist_list:
-                    emb.add_field(name=f"**{self.get_user(user.id).name}**",
-                                  value=f'Expires: {user.get_expiry}\nReason: {user.reason}\n')
+                    emb.add_field(
+                        name=f"**{self.get_user(user.id).name}**", value=f"Expires: {user.get_expiry}\nReason: {user.reason}\n"
+                    )
 
                 blacklist_embs.append(emb)
             elif isinstance(blacklist_list, BlacklistedUser):
                 emb = Embed(color=self.bot.config.colors.invis, description="")
                 emb.title = f"**{self.get_user(blacklist_list.id).name}**"  # todo get user name
-                emb.description = f'Expires: {blacklist_list.get_expiry}\nReason: {blacklist_list.reason}\n'
+                emb.description = f"Expires: {blacklist_list.get_expiry}\nReason: {blacklist_list.reason}\n"
                 blacklist_embs.append(emb)
 
         blacklist_embs.append(Embed(color=self.bot.config.colors.invis, description="The end ;D"))

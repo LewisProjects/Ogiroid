@@ -6,7 +6,8 @@ from disnake import Embed
 
 
 def get_expiry(time):
-    return f'<t:{time}:R>' if str(time) != str(9999999999) else 'never'
+    return f"<t:{time}:R>" if str(time) != str(9999999999) else "never"
+
 
 async def errorEmb(inter, text):
     emb = Embed(description=text, color=disnake.Color.red())

@@ -44,7 +44,7 @@ async def slash_command(inter: ApplicationCommandInteraction):
     await client.wait_until_ready()
     if await client.blacklist.blacklisted(inter.author.id):
         await errorEmb(inter, "You are blacklisted from using this bot!")
-        raise UserBlacklisted # todo find out how to have this not print anything
+        raise UserBlacklisted  # todo find out how to have this not print anything
 
 
 def main():
