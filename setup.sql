@@ -32,3 +32,12 @@ IF NOT EXISTS blacklist
     tags BOOLEAN,
     expires TEXT
 );
+
+CREATE TABLE
+IF NOT EXISTS flag_quizz
+(
+    user_id INTEGER,
+    tries INTEGER,
+    correct INTEGER,
+    completed INTEGER
+);
