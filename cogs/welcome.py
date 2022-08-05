@@ -1,7 +1,4 @@
 import random
-from secrets import choice
-from discord import Member
-from disnake import Guild
 from disnake.ext.commands import Cog
 from datetime import datetime
 import disnake
@@ -30,9 +27,9 @@ class Welcome(Cog):
         )
         embed.set_author(
             name=f"{random.choice(greetings)}, {member.name}",
-            icon_url=f"{Member.display_avatar}",
+            icon_url=f"{member.display_avatar}",
         )
-        embed.set_thumbnail(url=Member.display_avatar)
+        embed.set_thumbnail(url=member.display_avatar)
         await chan.send(f"{member.mention}, Welcome to Coding w/ Lewis' official Discord Server!", embed=embed)
 
     @Cog.listener()
@@ -46,10 +43,10 @@ class Welcome(Cog):
         )
         embed.set_author(
             name="Member Left!",
-            url=f"{Member.display_avatar}",
-            icon_url=f"{Member.display_avatar}",
+            url=f"{member.display_avatar}",
+            icon_url=f"{member.display_avatar}",
         )
-        embed.set_image(url=Member.display_avatar)
+        embed.set_image(url=member.display_avatar)
         embed.set_footer(text="Member Left")
         await channel.send(f"{member.mention} has left!", embed=embed)
 

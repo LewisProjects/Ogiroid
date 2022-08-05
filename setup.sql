@@ -16,13 +16,6 @@ IF NOT EXISTS tag_relations
 );
 
 CREATE TABLE
-IF NOT EXISTS tickets
-(
-    channel_id TEXT,
-    user_id TEXT
-);
-
-CREATE TABLE
 IF NOT EXISTS blacklist
 (
     user_id INTEGER,

@@ -1,7 +1,6 @@
 import asyncio
 import random
 import time
-from prettytable import PrettyTable
 
 import disnake
 import textdistance
