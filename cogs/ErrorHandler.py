@@ -15,15 +15,15 @@ class ErrorHandler(commands.Cog):
         self.debug_mode = self.bot.config.debug
 
     @commands.Cog.listener()
-    async def on_slash_command_error(self, ctx, error):
+    async def on_slash_command_error(self, inter, error):
         try:
-            if hasattr(ctx.application_command, "on_error"):
+            if hasattr(inter.application_command, "on_error"):
                 return
             else:
                 error_channel = self.bot.get_channel(self.bot.config.channels.errors)
 
-                embed: Embed = await self.create_error_message(ctx, error)
-                await ctx.send(embed=embed, ephemeral=True)
+                embed: Embed = await self.create_error_message(inter, error)
+                await inter.send(embed=embed, ephemeral=True)
                 bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
                 if self.bot.config.debug:
                     print(bot_errors)
@@ -39,7 +39,7 @@ class ErrorHandler(commands.Cog):
                 )
 
                 debug_info = (
-                    f"```\n{ctx.author} {ctx.author.id}: /{ctx.application_command.name}"[:200]
+                    f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
                     + "```"
                     + f"```py\n{traceback_nice}"[: 2000 - 206]
                     + "```"
@@ -47,8 +47,8 @@ class ErrorHandler(commands.Cog):
                 await error_channel.send(debug_info)
 
         except Exception as e:
-            embed = await self.create_error_message(ctx, e)
-            await ctx.send(embed=embed, ephemeral=True)
+            embed = await self.create_error_message(inter, e)
+            await inter.send(embed=embed, ephemeral=True)
             e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
             if self.debug_mode:
                 print(e_traceback)
@@ -64,7 +64,7 @@ class ErrorHandler(commands.Cog):
             traceback_nice_e = "".join(traceback.format_exception(type(e), e, e.__traceback__, 4)).replace("```", "")
 
             debug_info_e = (
-                f"```\n{ctx.author} {ctx.author.id}: /{ctx.application_command.name}"[:200]
+                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
                 + "```"
                 + f"```py\n{traceback_nice_e}"[: 2000 - 206]
                 + "```"
@@ -72,9 +72,9 @@ class ErrorHandler(commands.Cog):
             await error_channel.send(debug_info_e)
 
     @staticmethod
-    async def create_error_message(ctx, error):
+    async def create_error_message(inter, error):
         embed = disnake.Embed(
-            title=f"❌An error occurred while executing: ``/{ctx.application_command.name}``",
+            title=f"❌An error occurred while executing: ``/{inter.application_command.name}``",
             description=f"{error}",
             colour=disnake.Color.blurple(),
             timestamp=datetime.utcnow(),
@@ -84,7 +84,7 @@ class ErrorHandler(commands.Cog):
             value="\nUse the ``/reportbug`` command to report a bug.",
         )
         embed.set_footer(
-            text=f"Executed by {ctx.author}",
+            text=f"Executed by {inter.author}",
             icon_url="https://www.collinsdictionary.com/images/full/lo_163792823.jpg",
         )
         return embed
