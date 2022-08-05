@@ -30,5 +30,5 @@ IF NOT EXISTS blacklist
     bot BOOLEAN,
     tickets BOOLEAN,
     tags BOOLEAN,
-    expires INTEGER
+    expires TEXT
 );

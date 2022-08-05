@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-__VERSION__ = "1.4.6"
-
+__VERSION__ = "1.4.8"
 
 @dataclass
 class Channels:
