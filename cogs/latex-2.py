@@ -15,7 +15,7 @@ class Latex(commands.Cog):
     async def strtolatex(self, ctx, expression:str):
         """Convert a string to LaTeX"""
         expression_url = f"https://latex.codecogs.com/gif.latex?{expression}"
-        embed = disnake.Embed(title="LaTeX", description=f"```{expression}```", color=0x00ff00)
+        embed = disnake.Embed(title="LaTeX", description=f"```{expression}```", color=0x000000)
         embed.set_image(url=expression_url)
         await ctx.send(embed=embed)
 
