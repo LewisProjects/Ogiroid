@@ -1,5 +1,6 @@
 import random
 from secrets import choice
+from discord import Member
 from disnake import Guild
 from disnake.ext.commands import Cog
 from datetime import datetime
@@ -29,14 +30,14 @@ class Welcome(Cog):
         )
         embed.set_author(
             name=f"{random.choice(greetings)}, {member.name}",
-            icon_url=f"{member.url}",
+            icon_url=f"{Member.display_avatar}",
         )
-        embed.set_thumbnail(url=member.url)
+        embed.set_thumbnail(url=Member.display_avatar)
         await chan.send(f"{member.mention}, Welcome to Coding w/ Lewis' official Discord Server!", embed=embed)
 
     @Cog.listener()
     async def on_member_remove(self, member):
-        chan = self.get_channel(905183354930995320)
+        channel = self.get_channel(985961186107461673)
         embed = disnake.Embed(
             title="Goodbye :(",
             description=f"{member.mention} has left the server. There are now `{member.guild.member_count}` members",
@@ -45,12 +46,12 @@ class Welcome(Cog):
         )
         embed.set_author(
             name="Member Left!",
-            url=f"{member.url}",
-            icon_url=f"{member.url}",
+            url=f"{Member.display_avatar}",
+            icon_url=f"{Member.display_avatar}",
         )
-        embed.set_image(url=member.url)
+        embed.set_image(url=Member.display_avatar)
         embed.set_footer(text="Member Left")
-        await chan.send(f"{member.mention} has left!", embed=embed)
+        await channel.send(f"{member.mention} has left!", embed=embed)
 
 
 def setup(bot):
