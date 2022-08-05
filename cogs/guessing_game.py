@@ -1,19 +1,83 @@
-from disnake.ext import commands
-import time
-import disnake
-import random
-import textdistance
-
 import asyncio
-from utils.bot import OGIROID
+import random
+import time
+from prettytable import PrettyTable
+
+import disnake
+import textdistance
+from disnake.ext import commands
+
 from utils.CONSTANTS import COUNTRIES
+from utils.bot import OGIROID
+from utils.exceptions import FlagQuizUserNotFound
+from utils.models import FlagQuizUser
 from utils.shortcuts import QuickEmb
+
+
+class FlagQuizHandler:
+    def __init__(self, bot, db):
+        self.bot = bot
+        self.db = db
+
+    async def get_user(self, user_id: int):
+        users = []
+        async with self.db.execute(f"SELECT * FROM flag_quizz WHERE user_id = {user_id}") as cur:
+            async for row in cur:
+                users.append(FlagQuizUser(*row))
+        if len(users) == 0:
+            raise FlagQuizUserNotFound
+        return users
+
+    async def get_leaderboard(self, order_by="correct"):
+        leaderboard = []
+        async with self.db.execute(
+                f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10") as cur:
+            async for row in cur:
+                leaderboard.append(FlagQuizUser(*row))
+            if len(leaderboard) == 0:
+                raise FlagQuizUserNotFound
+            return leaderboard
+
+    async def add_data(self, user_id: int, tries: int, correct: int):
+        try:
+            user = await self.get_user(user_id)
+            user = user[0]
+        except FlagQuizUserNotFound:
+            await self.add_user(user_id, tries, correct)
+            return
+
+        if correct == 199:
+            completed = user.completed + 1
+        else:
+            completed = user.completed
+        tries += user.tries
+        correct += user.correct
+
+        async with self.db.execute(
+                f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"):
+            await self.db.commit()
+
+    async def add_user(self, user_id: int, tries: int, correct: int):
+        if correct == 199:
+            completed = 1
+        else:
+            completed = 0
+
+        async with self.db.execute(
+                f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"):
+            await self.db.commit()
 
 
 class GuessingGame(commands.Cog, name="Guessing Games"):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.countries = COUNTRIES
+        self.flag_quiz: FlagQuizHandler = None
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.bot.wait_until_ready()
+        self.flag_quiz: FlagQuizHandler = FlagQuizHandler(self.bot, self.bot.db)
 
     #
     # Made by github.com/FreebieII
@@ -37,7 +101,8 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 100
 
-        await ctx.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
+        await ctx.send(
+            "I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
 
         time.sleep(5)
         embed = disnake.Embed(title="Number Guesser", color=0x729FCF)
@@ -173,7 +238,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             time.sleep(5)
         await ctx.send(f"`{number}`")
 
-    @commands.slash_command(name="flagquizz", description="Guess the flags.")
+    @commands.slash_command(name="flagquiz", description="Guess the flags.")
     async def guess_the_flag(self, inter):
         await QuickEmb(inter, "Starting the quiz..").send()
         channel = inter.channel
@@ -193,7 +258,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
-                    f"Current Score: {correct}/{tries - 1}",
+                                f"Current Score: {correct}/{tries - 1}",
                     color=0xFFFFFF,
                 )
                 await channel.send(embed=embed)
@@ -201,25 +266,62 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                 try:
                     guess = await self.bot.wait_for("message", check=check, timeout=60.0)
                 except asyncio.exceptions.TimeoutError:
-                    await QuickEmb(channel, "Due to no response the quiz ended early.").send()
+                    await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
+                    await self.flag_quiz.add_data(inter.author.id, tries - 1, correct)
                     return
 
                 if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.8:
-                    embed = QuickEmb(channel, f"Correct. The country indeed was {country}")
-                    await embed.success().send()
+                    await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
                     correct += 1
                     retry = False
                 elif guess.content.lower() == "skip":
                     await QuickEmb(channel, f"The country was {country}").send()
                     retry = False
                 elif guess.content.lower() == "give up":
+                    await guess.reply("Are you sure you want to quit? Type yes to confirm.")
+                    try:
+                        response = await self.bot.wait_for("message", check=check, timeout=60.0)
+                    except asyncio.exceptions.TimeoutError:
+                        await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
+                    else:
+                        if response.content.lower() == "yes" or response.content.lower() == "y" or response.content.lower() == "ye":
+                            pass
+                        else:
+                            continue
                     await QuickEmb(channel, f"Your Score: {correct}/{tries}. Thanks for playing.").send()
+                    await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
                     return
                 else:
                     embed = QuickEmb(channel, "Incorrect")
                     await embed.error().send()
 
+        await self.flag_quiz.add_data(inter.author.id, tries, correct)
         await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
+
+    @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
+    async def flag_quiz_leaderboard(self, inter, sortby: str = commands.Param(
+        choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}
+    )):
+
+        leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
+
+        # Translate sortby parameter to grammatically correct text
+        translator = {"correct": "Correct Guesses", "tries": "Guesses", "completed": "Fully Completed"}
+
+        leaderboard_string = ""
+        leaderboard_header = "Place   -   User   -   Correct Guesses/Total Guesses   -   Completed   "
+        i = 0
+        for user in leaderboard:
+            i += 1
+            username = self.bot.get_user(user.user_id)
+            leaderboard_string += f"**{i}**. {username} - {user.correct}/{user.tries} - {user.completed}\n"
+        embed = disnake.Embed(
+            title="Flag Quiz All time Leaderboard",
+            description=f"The top 10 Flag Quiz Users are on this Leaderboard. Sorted by: {translator[sortby]}\n"
+        )
+        embed.add_field(name=leaderboard_header, value=leaderboard_string)
+
+        await inter.send(embed=embed)
 
 
 def setup(bot):

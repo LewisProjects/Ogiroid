@@ -299,7 +299,7 @@ COUNTRIES = {
     "🇺🇾": "Uruguay",
     "🇺🇿": "Uzbekistan",
     "🇻🇺": "Vanuatu",
-    "🇻🇦": "Vatican City (Holy See)",
+    "🇻🇦": "Vatican City",
     "🇻🇪": "Venezuela",
     "🇻🇳": "Vietnam",
     "🇾🇪": "Yemen",
