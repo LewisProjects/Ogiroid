@@ -14,6 +14,10 @@ class AliasException(TagException):
     pass
 
 
+class FlagQuizException(BotException):
+    pass
+
+
 class TagNotFound(TagException, KeyError):
     pass
 
@@ -31,6 +35,10 @@ class AliasAlreadyExists(AliasException):
 
 
 class AliasNotFound(AliasException):
+    pass
+
+
+class FlagQuizUserNotFound(FlagQuizException):
     pass
 
 

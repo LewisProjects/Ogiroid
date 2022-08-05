@@ -46,3 +46,11 @@ class Tag:
 class Alias:
     tag_id: str
     alias: str
+
+
+@dataclass
+class FlagQuizUser:
+    user_id: int
+    tries: int
+    correct: int
+    completed: int
