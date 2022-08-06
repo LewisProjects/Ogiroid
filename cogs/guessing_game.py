@@ -10,7 +10,7 @@ from utils.CONSTANTS import COUNTRIES
 from utils.bot import OGIROID
 from utils.exceptions import FlagQuizUserNotFound
 from utils.models import FlagQuizUser
-from utils.shortcuts import QuickEmb
+from utils.shortcuts import QuickEmb, errorEmb
 
 
 class FlagQuizHandler:
@@ -269,7 +269,8 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                     await self.flag_quiz.add_data(inter.author.id, tries - 1, correct)
                     return
 
-                if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.8:
+                # Checks if the guess is similar to the actual name to account typos
+                if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.7:
                     await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
                     correct += 1
                     retry = False
@@ -316,10 +317,32 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             leaderboard_string += f"**{i}**. {username} - {user.correct}/{user.tries} - {user.completed}\n"
         embed = disnake.Embed(
             title="Flag Quiz All time Leaderboard",
-            description=f"The top 10 Flag Quiz Users are on this Leaderboard. Sorted by: {translator[sortby]}\n"
+            description=f"The top 10 Flag Quiz Users are on this Leaderboard. Sorted by: {translator[sortby]}\n",
+            color=0xFFFFFF
         )
         embed.add_field(name=leaderboard_header, value=leaderboard_string)
 
+        await inter.send(embed=embed)
+
+    @commands.slash_command(name="flag-quiz-user", description="Get Flag Quiz User Stats about a particular user.")
+    async def flag_quiz_user(self, inter, user: disnake.User = None):
+        if user:
+            id = user.id
+        else:
+            id = inter.author.id
+        try:
+            player = await self.flag_quiz.get_user(id)
+        except FlagQuizUserNotFound:
+            await errorEmb(inter, "This user never took part in the flag quiz or doesn't exist.")
+            return
+
+        player = player[0]
+        user = self.bot.get_user(player.user_id)
+        embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
+        embed.set_thumbnail(url=user.display_avatar.url)
+        embed.add_field(name=f"Player:", value=f"{user}")
+        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}", inline=False)
+        embed.add_field(name="Got all 199 Flags correct in one Run", value=f"{player.completed} times")
         await inter.send(embed=embed)
 
 
