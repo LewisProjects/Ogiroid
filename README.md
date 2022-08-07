@@ -1,4 +1,4 @@
-<h1>Ogiroid, a multipurpose discord bot!</h1>
+<h1>Ogiroid - a multipurpose discord bot!</h1>
 <hr>
 <img src="https://media.discordapp.net/attachments/985729550732394536/1002138392554897479/Ogiroid.png?width=1440&height=583" alt="img">
 <hr>
@@ -36,15 +36,20 @@ License: MIT
 <h3>Changelog 28-07-2022:</h3>
 <ol>
 <li>Made the commands case-insensitive.</li>
-<li>Made all commands to be slash_commands.</li>
+<li>All commands are now slash commands.</li>
 <li>Created a new code command which opens a windows for the code and language using modals.</li>
-<li>Better Error Handling!</li>
-<li>Tag System Revamped!</li>
-<li>Ticket System revamped</li>
+<li>Better Error Handling.</li>
+<li>Tag System Revamped.</li>
+<li>New Ticket System.</li>
 <li>Bug Report & Suggestions using modals.</li>
-<li>New Moderation Commands</li>
-<li>Modified /code command</li>
-<li>Fixed Bugs</li>
+<li>New Moderation Commands.</li>
+<li>Flag Quiz Command.</li>
+<li>Server Info Command.</li>
+<li>Whois Command.</li>
+<li>Blacklist command.</li>
+<li>Maths Commands.</li>
 <li>New readme.md file! :)</li>
+<li>Staff Vote Command</li>
 </ol>
+<p><i>Some</i> of these commands are on their first version, but they should be functional!</p>
 <hr>
