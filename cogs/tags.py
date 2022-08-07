@@ -14,6 +14,7 @@ from utils.models import *
 from utils.pagination import CreatePaginator
 from utils.shortcuts import QuickEmb, manage_messages_perms, errorEmb
 
+
 class Tags(commands.Cog, name="Tags"):
     """Everything Tag related"""
 

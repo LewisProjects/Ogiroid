@@ -227,9 +227,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                     except asyncio.exceptions.TimeoutError:
                         await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                     else:
-                        if (
-                            response.content.lower() in ["yes", 'y', "yeah", "yeah", "yep", "yup", "sure", "ok", 'ye']
-                        ):
+                        if response.content.lower() in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
                             pass
                         else:
                             continue

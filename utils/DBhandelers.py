@@ -24,7 +24,7 @@ class FlagQuizHandler:
     async def get_leaderboard(self, order_by="correct"):
         leaderboard = []
         async with self.db.execute(
-                f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
+            f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
         ) as cur:
             async for row in cur:
                 leaderboard.append(FlagQuizUser(*row))
@@ -48,7 +48,7 @@ class FlagQuizHandler:
         correct += user.correct
 
         async with self.db.execute(
-                f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
+            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
         ):
             await self.db.commit()
 
@@ -59,7 +59,7 @@ class FlagQuizHandler:
             completed = 0
 
         async with self.db.execute(
-                f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
+            f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
         ):
             await self.db.commit()
 
@@ -195,8 +195,7 @@ class TagManager:
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
-        async with self.db.execute(
-                f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
+        async with self.db.execute(f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -254,7 +253,7 @@ class TagManager:
     async def get_tags_by_owner(self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"):
         tags = []
         async with self.db.execute(
-                f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
+            f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
         ) as cur:
             async for row in cur:
                 tags.append(Tag(*row))
