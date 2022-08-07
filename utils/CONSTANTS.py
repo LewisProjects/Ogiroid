@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
-__VERSION__ = "1.4.8"
+__VERSION__ = "1.5.0"
 
 
 @dataclass
@@ -420,4 +422,7 @@ VALID_CODE_LANGUAGES = [
     "yaml",
     "yeethon",
     "zig",
+]
+IGNORE_EXCEPTIONS = [
+    'UserBlacklisted'
 ]

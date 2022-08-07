@@ -6,11 +6,10 @@ import disnake
 import traceback
 from datetime import datetime
 
+from utils.CONSTANTS import IGNORE_EXCEPTIONS
 from utils.bot import OGIROID
 
-IGNORE_EXCEPTIONS = [
-    'UserBlacklisted'
-]
+
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
