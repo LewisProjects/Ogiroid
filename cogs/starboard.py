@@ -1,10 +1,13 @@
-from disnake.ext import commands
-import disnake
 from datetime import datetime
+
+import disnake
+from disnake.ext import commands
+
+from utils.bot import OGIROID
 
 
 class Starboard(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
         self.starboard_channel_id = 985936949581865030
         self.star_emoji = "⭐"
@@ -15,21 +18,14 @@ class Starboard(commands.Cog):
         if reaction.emoji == self.star_emoji:
             message = reaction.message
             for reaction in message.reactions:
-                if (
-                    reaction.emoji == self.star_emoji
-                    and reaction.count == self.num_of_stars
-                ):
-                    starboard_channel = message.guild.get_channel(
-                        self.starboard_channel_id
-                    )
+                if reaction.emoji == self.star_emoji and reaction.count == self.num_of_stars:
+                    starboard_channel = message.guild.get_channel(self.starboard_channel_id)
                     embed = disnake.Embed(
                         description=f"{message.content}\n\n**[Jump to message!]({message.jump_url})**",
                         color=disnake.Color.gold(),
                         timestamp=datetime.utcnow(),
                     )
-                    embed.set_author(
-                        name=message.author, icon_url=message.author.avatar.url
-                    )
+                    embed.set_author(name=message.author, icon_url=message.author.avatar.url)
                     await starboard_channel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -38,21 +34,14 @@ class Starboard(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         if payload.emoji.name == self.star_emoji:
             for reaction in message.reactions:
-                if (
-                    reaction.emoji == self.star_emoji
-                    and reaction.count == self.num_of_stars
-                ):
-                    starboard_channel = message.guild.get_channel(
-                        self.starboard_channel_id
-                    )
+                if reaction.emoji == self.star_emoji and reaction.count == self.num_of_stars:
+                    starboard_channel = message.guild.get_channel(self.starboard_channel_id)
                     embed = disnake.Embed(
                         description=f"{message.content}\n\n**[Jump to message]({message.jump_url})**",
                         color=disnake.Color.gold(),
                         timestamp=datetime.utcnow(),
                     )
-                    embed.set_author(
-                        name=message.author, icon_url=message.author.avatar.url
-                    )
+                    embed.set_author(name=message.author, icon_url=message.author.avatar.url)
                     await starboard_channel.send(embed=embed)
 
 

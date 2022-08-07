@@ -1,12 +1,28 @@
-import requests
-from disnake import TextInputStyle
 import disnake
-from datetime import datetime
-from disnake.ext.commands import Cog
-from disnake.ext.commands import command
-from disnake import Color, Embed
+from disnake import Embed
+from disnake import TextInputStyle, Color
 from disnake.ext import commands
 from disnake.ext.commands import Cog
+
+from utils.CONSTANTS import VALID_CODE_LANGUAGES
+from utils.bot import OGIROID
+from utils.http import session
+
+
+class CodeExec(Cog, name="Code"):
+    """
+    💻 Run code and get results instantly!
+    """
+
+    def __init__(self, bot: OGIROID):
+        self.bot = bot
+
+    @commands.slash_command(name="code", description="Run code and get results instantly. Window for code will pop up.")
+    async def code(self, ctx):
+        """
+        Run code and get results instantly
+        """
+        await ctx.response.send_modal(modal=CodeModal())
 
 
 class CodeModal(disnake.ui.Modal):
@@ -35,6 +51,10 @@ class CodeModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
+        if not self._check_valid_lang(inter.text_values["language"]):
+            embed = disnake.Embed(title=f"{inter.text_values['language']} is not a valid language", colour=Color.red())
+            return await inter.response.send_message(embed=embed)
+
         embed = disnake.Embed(title="Running Code")
         embed.add_field(
             name="Language",
@@ -43,23 +63,20 @@ class CodeModal(disnake.ui.Modal):
         )
         embed.add_field(
             name="Code",
-            value=f"```{inter.text_values['language']}\n"
-                  f"{inter.text_values['code'][:1024]}\n"
-                  f"```",
+            value=f"```{inter.text_values['language']}\n" f"{inter.text_values['code'][:999]}\n" f"```",
             inline=False,
         )
         await inter.response.send_message(embed=embed)
-        result = await self._run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
+        result = await self.run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
         await self._send_result(inter, result)
 
-    async def _run_code(self, *, lang: str, code: str):
-        res = requests.post(
-            "https://emkc.org/api/v1/piston/execute",
-            json={"language": lang, "source": code},
-        )
-        return res.json()
+    @staticmethod
+    async def run_code(*, lang: str, code: str):
+        code = await session.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code})
+        return await code.json()
 
-    async def _send_result(self, inter, result: dict):
+    @staticmethod
+    async def _send_result(inter, result: dict):
         output = result["output"]
         # if len(output) > 2000: HAVE TO FIX THIS!!!!
         # url = await create_guest_paste_bin(self.session, output)
@@ -75,25 +92,12 @@ class CodeModal(disnake.ui.Modal):
 
         await inter.send(embed=embed)
 
-
-class CodeExec(Cog, name="Code"):
-    """
-    💻 Run code and get results instantly!
-    """
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.slash_command(
-        name="code",
-        description="Run code and get results instantly. Window for code will pop up."
-    )
-    async def code(self, ctx):
-        """
-        Run code and get results instantly
-        """
-        await ctx.response.send_modal(modal=CodeModal())
+    @staticmethod
+    def _check_valid_lang(param):
+        if str(param).casefold() not in VALID_CODE_LANGUAGES:
+            return False
+        return True
 
 
-def setup(bot: commands.Bot):
+def setup(bot: OGIROID):
     bot.add_cog(CodeExec(bot))

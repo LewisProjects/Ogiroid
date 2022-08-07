@@ -1,11 +1,13 @@
-from disnake.ext import commands
 import disnake
+from disnake.ext import commands
+
+from utils.bot import OGIROID
 
 
 class HelpCommand(commands.Cog, name="Help"):
     """Help Command"""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
         self.COLOUR = 0xFFFFFF
 
@@ -31,13 +33,18 @@ class HelpCommand(commands.Cog, name="Help"):
             if value == "":
                 continue
 
+            if name == "Tickets":
+                continue
+
             if cog and cog.description:
                 value = "{0}\n{1}".format(cog.description, value)
 
             embed.add_field(name=name, value=value)
 
-        embed.set_footer(text="If you want more information on a particular command start typing out the command "
-                              "and a description will show up")
+        embed.set_footer(
+            text="If you want more information on a particular command start typing out the command "
+            "and a description will show up"
+        )
         await inter.send(embed=embed)
 
 

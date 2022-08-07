@@ -1,12 +1,12 @@
 import disnake
 from disnake.ext import commands
-import aiohttp
-from disnake.ext.commands.cooldowns import BucketType
 from disnake.ext.commands import Cog
+
+from utils.bot import OGIROID
 
 
 class Utilities(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: OGIROID):
         """Utility Commands"""
         self.bot = bot
         self.delete_snipes = dict()
@@ -29,9 +29,7 @@ class Utilities(commands.Cog):
         try:
             sniped_message = self.delete_snipes[ctx.channel]
         except KeyError:
-            await ctx.send(
-                "There are no deleted messages in this channel to snipe!"
-            )
+            await ctx.send("There are no deleted messages in this channel to snipe!")
         else:
             result = disnake.Embed(
                 color=disnake.Color.red(),
@@ -43,9 +41,7 @@ class Utilities(commands.Cog):
                 icon_url=sniped_message.author.avatar.url,
             )
             try:
-                result.set_image(
-                    url=self.delete_snipes_attachments[ctx.channel][0].url
-               )
+                result.set_image(url=self.delete_snipes_attachments[ctx.channel][0].url)
             except:
                 pass
             await ctx.send(embed=result)
@@ -63,9 +59,7 @@ class Utilities(commands.Cog):
             result = disnake.Embed(color=disnake.Color.red(), timestamp=after.edited_at)
             result.add_field(name="Before", value=before.content, inline=False)
             result.add_field(name="After", value=after.content, inline=False)
-            result.set_author(
-                name=after.author.display_name, icon_url=after.author.avatar.url
-            )
+            result.set_author(name=after.author.display_name, icon_url=after.author.avatar.url)
             await ctx.send(embed=result)
 
 

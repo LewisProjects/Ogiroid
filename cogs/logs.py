@@ -2,17 +2,15 @@ from datetime import datetime
 
 from disnake import Embed
 from disnake.ext.commands import Cog
-from disnake.ext.commands import command
 
 
 class Log(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.logid = 977581277010100315
 
     @Cog.listener()
     async def on_user_update(self, before, after):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if before.name != after.name:
             embed = Embed(
                 title="Username change",
@@ -54,14 +52,12 @@ class Log(Cog):
 
             embed.set_thumbnail(url=before.avatar.url)
             embed.set_image(url=after.avatar.url)
-            embed.set_footer(
-                text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url
-            )
+            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
             await log_channel.send(embed=embed)
 
     @Cog.listener()
     async def on_member_update(self, before, after):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if before.display_name != after.display_name:
             embed = Embed(
                 title="Nickname change",
@@ -76,9 +72,7 @@ class Log(Cog):
 
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
-            embed.set_footer(
-                text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url
-            )
+            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
             await log_channel.send(embed=embed)
 
         elif before.roles != after.roles:
@@ -97,13 +91,13 @@ class Log(Cog):
                 embed.add_field(name=name, value=value, inline=inline)
             embed.set_footer(
                 text=f"{after.name}#{after.discriminator}",
-                icon_url=after.author.avatar.url,
+                icon_url=after.avatar,
             )
             await log_channel.send(embed=embed)
 
     @Cog.listener()
     async def on_message_edit(self, before, after):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if not after.author.bot:
             if before.content != after.content:
                 embed = Embed(
@@ -120,14 +114,12 @@ class Log(Cog):
 
                 for name, value, inline in fields:
                     embed.add_field(name=name, value=value, inline=inline)
-                embed.set_footer(
-                    text=f"{after.author.name}#{after.author.discriminator}"
-                )
+                embed.set_footer(text=f"{after.author.name}#{after.author.discriminator}")
                 await log_channel.send(embed=embed)
 
     @Cog.listener()
     async def on_message_delete(self, message):
-        log_channel = self.bot.get_channel(self.logid)
+        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if not message.author.bot:
             embed = Embed(
                 title="Message deletion",
@@ -141,9 +133,7 @@ class Log(Cog):
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
 
-            embed.set_footer(
-                text=f"{message.author.name}#{message.author.discriminator}"
-            )
+            embed.set_footer(text=f"{message.author.name}#{message.author.discriminator}")
             await log_channel.send(embed=embed)
 
 

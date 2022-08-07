@@ -1,34 +1,126 @@
-from disnake.ext import commands
-import disnake
-import random
-import requests
-from discord_together import DiscordTogether
-import io
-import aiohttp
 import asyncio
-import akinator as ak
-import time
-from datetime import datetime
+import io
 import os
+import random
+import time
+from datetime import datetime, timezone
+
+import akinator as ak
+import disnake
+from discord_together import DiscordTogether
+from disnake import Embed, ApplicationCommandInteraction, Member
+from disnake.ext import commands
+from disnake.utils import utcnow
 from dotenv import load_dotenv
+from requests import session
+
+from utils.CONSTANTS import morse
+from utils.assorted import renderBar
+from utils.bot import OGIROID
+from utils.http import HTTPSession
+from utils.shortcuts import errorEmb
 
 load_dotenv("../secrets.env")
-TOKEN = os.getenv("TOKEN")
 
 
 class Fun(commands.Cog):
     """Fun Commands!"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
+        self.togetherControl = None
         self.bot = bot
+        self.morse = morse
 
     @commands.Cog.listener()
     async def on_ready(self):
+        TOKEN = os.getenv("TOKEN")
+        # noinspection PyUnresolvedReferences
         self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.slash_command(
-        name="youtube", description="Watch YouTube in a Discord VC with your friends"
-    )
+    @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.guild_only()
+    async def spotifyinfo(self, inter: ApplicationCommandInteraction, user: Member):
+        user = user or inter.author
+
+        spotify: disnake.Spotify = disnake.utils.find(lambda s: isinstance(s, disnake.Spotify), user.activities)
+        if not spotify:
+            return await errorEmb(inter, f"{user} is not listening to Spotify!")
+
+        e = (
+            Embed(title=spotify.title, colour=spotify.colour, url=f"https://open.spotify.com/track/{spotify.track_id}")
+            .set_author(name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png")
+            .set_thumbnail(url=spotify.album_cover_url)
+        )
+
+        # duration
+        cur, dur = (
+            utcnow() - spotify.start.replace(tzinfo=timezone.utc),
+            spotify.duration,
+        )
+
+        # Bar stuff
+        barLength = 5 if user.is_on_mobile() else 17
+        bar = renderBar(
+            int((cur.seconds / dur.seconds) * 100),
+            fill="─",
+            empty="─",
+            point="⬤",
+            length=barLength,
+        )
+
+        e.add_field(name="Artist", value=", ".join(spotify.artists))
+
+        e.add_field(name="Album", value=spotify.album)
+
+        e.add_field(
+            name="Duration",
+            value=(
+                f"{cur.seconds // 60:02}:{cur.seconds % 60:02}"
+                + f" {bar} "
+                + f"{dur.seconds // 60:02}:"
+                + f"{dur.seconds % 60:02}"
+            ),
+            inline=False,
+        )
+        await inter.send(embed=e)
+
+    @commands.slash_command(name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
+    @commands.has_permissions(manage_messages=True)
+    async def poll(
+        self,
+        inter,
+        question,
+        choice1,
+        choice2,
+        choice3=None,
+        choice4=None,
+        choice5=None,
+        choice6=None,
+    ):
+        """
+        Makes a poll quickly.
+        """
+        emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"]
+        choices = [choice1, choice2, choice3, choice4, choice5, choice6]
+        choices = [choice for choice in choices if choice is not None]
+        choices_str = ""
+        emojis = emojis[: len(choices)]  # trims emojis list to length of inputted choices
+        i = 0
+        for emoji in emojis:
+            choices_str += f"{emoji}  {choices[i]}\n\n"
+            i += 1
+
+        embed = disnake.Embed(title=question, description=choices_str, colour=0xFFFFFF)
+
+        embed.set_footer(text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+
+        await inter.response.send_message(embed=embed)
+        poll = await inter.original_message()  # Gets the message wich got sent
+        for emoji in emojis:
+            await poll.add_reaction(emoji)
+
+    @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
     async def youtube(self, ctx):
         """Watch YouTube in a Discord VC with your friends"""
         if ctx.author.voice:
@@ -46,9 +138,7 @@ class Fun(commands.Cog):
             )
             await ctx.send(embed=embed)
         else:
-            e = await ctx.send(
-                "**You must be in a voice channel to use this command!**"
-            )
+            e = await ctx.send("**You must be in a voice channel to use this command!**")
             time.sleep(5)
             await e.delete()
 
@@ -56,8 +146,8 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 2, commands.BucketType.user)
     async def joke(self, inter):
         """Get a random joke!"""
-        response = requests.get("https://some-random-api.ml/joke")
-        data = response.json()
+        response = await self.bot.session.get("https://some-random-api.ml/joke")
+        data = await response.json()
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
             text=f"Command issued by: {inter.author.name}",
@@ -75,12 +165,9 @@ class Fun(commands.Cog):
         """Time to get triggered."""
         if not member:
             member = inter.author
-        async with aiohttp.ClientSession() as trigSession:
-            async with trigSession.get(
-                f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}"
-            ) as trigImg:
-                imageData = io.BytesIO(await trigImg.read())
-                await inter.send(file=disnake.File(imageData, "triggered.gif"))
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}")
+        imageData = io.BytesIO(await trigImg.read())
+        await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
     @commands.slash_command(
         name="sus",
@@ -94,47 +181,34 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
         impostor = random.choice(["true", "false"])
-        apikey = "2v17XOE5VvsUWukKdKIwuVd7v"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
-            ) as resp:
-                if 300 > resp.status >= 200:
-                    fp = io.BytesIO(await resp.read())
-                    await inter.send(file=disnake.File(fp, "amogus.gif"))
-                else:
-                    await inter.send("Couldnt get image :(")
-                await session.close()
+        apikey = os.getenv("SRA_API_KEY")
+        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
+        resp = await self.bot.session.get(uri)
+        if 300 > resp.status >= 200:
+            fp = io.BytesIO(await resp.read())
+            await inter.send(file=disnake.File(fp, "amogus.gif"))
+        else:
+            await inter.send("Couldnt get image :(")
 
-    @commands.slash_command(
-        name="invert", brief="invert", description="Invert the colours of your icon"
-    )
+    @commands.slash_command(name="invert", brief="invert", description="Invert the colours of your icon")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def invert(self, inter, member: disnake.Member = None):
         """Invert your profile picture."""
         if not member:
             member = inter.author
-        async with aiohttp.ClientSession() as trigSession:
-            async with trigSession.get(
-                f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}"
-            ) as trigImg:
-                imageData = io.BytesIO(await trigImg.read())
-                await inter.send(file=disnake.File(imageData, "invert.png"))
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}")
+        imageData = io.BytesIO(await trigImg.read())
+        await inter.send(file=disnake.File(imageData, "invert.png"))
 
-    @commands.slash_command(
-        name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
-    )
+    @commands.slash_command(name="pixelate", brief="pixelate", description="Turn yourself into 144p!")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pixelate(self, inter, member: disnake.Member = None):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
-        async with aiohttp.ClientSession() as trigSession:
-            async with trigSession.get(
-                f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}"
-            ) as trigImg:
-                imageData = io.BytesIO(await trigImg.read())
-                await inter.send(file=disnake.File(imageData, "pixelate.png"))
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}")
+        imageData = io.BytesIO(await trigImg.read())
+        await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
     @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -142,12 +216,10 @@ class Fun(commands.Cog):
         """Go to horny jail"""
         if not member:
             member = inter.author
-        async with aiohttp.ClientSession() as trigSession:
-            async with trigSession.get(
-                f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}"
-            ) as trigImg:
-                imageData = io.BytesIO(await trigImg.read())
-                await inter.send(file=disnake.File(imageData, "jail.png"))
+
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}")
+        imageData = io.BytesIO(await trigImg.read())
+        await inter.send(file=disnake.File(imageData, "jail.png"))
 
     @commands.slash_command(
         name="beer", description="Give someone a beer! 🍻"
@@ -173,28 +245,18 @@ class Fun(commands.Cog):
 
         try:
             await msg.add_reaction("🍻")
-            await self.bot.wait_for(
-                "raw_reaction_add", timeout=30.0, check=reaction_check
-            )
-            await msg.edit(
-                content=f"**{user.name}** and **{ctx.author.name}** are enjoying a lovely beer together 🍻"
-            )
+            await self.bot.wait_for("raw_reaction_add", timeout=30.0, check=reaction_check)
+            await msg.edit(content=f"**{user.name}** and **{ctx.author.name}** are enjoying a lovely beer together 🍻")
         except asyncio.TimeoutError:
             await msg.delete()
-            await ctx.send(
-                f"well, doesn't seem like **{user.name}** wanted a beer with you **{ctx.author.name}** ;-;"
-            )
+            await ctx.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{ctx.author.name}** ;-;")
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
             beer_offer = f"**{user.name}**, you got a 🍺 from **{ctx.author.name}**"
-            beer_offer = (
-                f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
-            )
+            beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
             await msg.edit(content=beer_offer)
 
-    @commands.slash_command(
-        aliases=["slots", "bet"]
-    )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
+    @commands.slash_command(aliases=["slots", "bet"])  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def slot(self, ctx):
         """Roll the slot machine"""
         emojis = "💻💾💿🖥🖨🖱🌐⌨"
@@ -208,9 +270,7 @@ class Fun(commands.Cog):
         else:
             await ctx.send(f"{slotmachine} No match, you lost 😢")
 
-    @commands.slash_command(
-        name="8ball", brief="8ball", description="Ask the magic 8ball a question"
-    )
+    @commands.slash_command(name="8ball", brief="8ball", description="Ask the magic 8ball a question")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def eightball(self, inter, *, question):
         """Ask the magic 8ball a question"""
@@ -236,9 +296,7 @@ class Fun(commands.Cog):
             "Outlook not so good.",
             "Very doubtful.",
         ]
-        await inter.send(
-            f"Question: {question}\nAnswer: **{random.choice(responses)}**"
-        )
+        await inter.send(f"Question: {question}\nAnswer: **{random.choice(responses)}**")
 
     @commands.slash_command(
         name="askogiroid",
@@ -255,9 +313,7 @@ class Fun(commands.Cog):
             intro.set_thumbnail(
                 url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
             )
-            intro.set_footer(
-                text="Think about a real or fictional character. I will try to guess who it is"
-            )
+            intro.set_footer(text="Think about a real or fictional character. I will try to guess who it is")
             bye = disnake.Embed(
                 title="Ogiroid",
                 description="Bye, " + ctx.author.mention,
@@ -273,31 +329,24 @@ class Fun(commands.Cog):
                 return (
                     msg.author == ctx.author
                     and msg.channel == ctx.channel
-                    and msg.content.lower()
-                    in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
+                    and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
                 )
 
             try:
                 aki = ak.Akinator()
                 q = aki.start_game(language="en")
                 while aki.progression <= 80:
-                    question = disnake.Embed(
-                        title="Question", description=q, color=0xFFFFFF
-                    )
+                    question = disnake.Embed(title="Question", description=q, color=0xFFFFFF)
                     question.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )
                     question.set_footer(text="Your answer:(y/n/p/idk/b)")
                     question_sent = await ctx.send(embed=question)
                     try:
-                        msg = await self.bot.wait_for(
-                            "message", check=check, timeout=30
-                        )
+                        msg = await self.bot.wait_for("message", check=check, timeout=30)
                     except asyncio.TimeoutError:
                         # await question_sent.delete()
-                        await ctx.send(
-                            "Sorry you took too long to respond!(waited for 30sec)"
-                        )
+                        await ctx.send("Sorry you took too long to respond!(waited for 30sec)")
                         await ctx.send(embed=bye)
                         return
                     # await question_sent.delete()
@@ -323,9 +372,7 @@ class Fun(commands.Cog):
                 await ctx.send(embed=answer)
                 # await ctx.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
                 try:
-                    correct = await self.bot.wait_for(
-                        "message", check=check, timeout=30
-                    )
+                    correct = await self.bot.wait_for("message", check=check, timeout=30)
                 except asyncio.TimeoutError:
                     await ctx.send("Sorry you took too long to respond! [30 seconds+]")
                     await ctx.send(embed=bye)
@@ -346,18 +393,71 @@ class Fun(commands.Cog):
             except Exception as e:
                 await ctx.send(e)
 
-    @commands.slash_command(
-        name="bored", brief="activity", description="Returns an activity"
-    )
+    @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def bored(self, inter):
         """Returns an activity"""
-        async with aiohttp.ClientSession() as activitySession:
-            async with activitySession.get(
-                f"http://boredapi.com/api/activity", ssl=False
-            ) as activityData:
+        async with HTTPSession() as activitySession:
+            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
+
+    @commands.slash_command(name="morse", description="Encode text into morse code and decode morse code.")
+    async def morse(self, inter):
+        pass
+
+    @morse.sub_command(name="encode", description="Encodes text into morse code.")
+    async def encode(self, inter, text: str):
+        encoded_list = []
+
+        for char in text:
+
+            for key in self.morse:
+                if key == char.lower():
+                    encoded_list.append(self.morse[key])
+
+        encoded_string = " ".join(encoded_list)
+        await inter.send(f"``{encoded_string}``")
+
+    @morse.sub_command(name="decode", description="Decodes Morse Code into Text.")
+    async def decode(self, inter, morse_code):
+        decoded_list = []
+        morse_list = morse_code.split()
+
+        for item in morse_list:
+
+            for key, value in self.morse.items():
+                if value == item:
+                    decoded_list.append(key)
+
+        decoded_string = "".join(decoded_list)
+        await inter.send(f"``{decoded_string}``")
+
+    # noinspection PyUnboundLocalVariable
+    """def wyr(self):  # todo delete
+        # grabs the source code of a random question
+        r = session.get(f"https://www.either.io/{str(random.randint(3, 100000))}")
+        # note to harry use aiohttp instead of requests
+        # Check if there was no errors getting it.
+        if r.status_code == 200:
+            # Saves the two question. NOTE: Blue is option 1 and red is option 2.It was easier for me to call it blue and red cause that's how the website is formated.
+            for count, option in enumerate(r.html.find(".option-text")):
+                if count == 0:
+                    blue = option.text
+                elif count == 1:
+                    red = option.text
+            # Saves how many people pick each option.
+            for count, option in enumerate(r.html.find(".count")):
+                if count == 0:
+                    blue_count = option.text
+                elif count == 1:
+                    red_count = option.text
+
+            # format the question and responce
+            question = f"would you rather {blue} or {red}?"
+            response = f"{blue_count} pick {blue} and {red_count} picked {red}."
+
+            return question, response"""
 
 
 def setup(bot):
