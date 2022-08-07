@@ -66,20 +66,20 @@ class Staff(commands.Cog):
         # Adding the button to the message:
         self.bot.buttons.append(button)
         await ctx.send(f"Added!")"""
-    
+
     @commands.slash_command(name="staffvote")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def staffvote(self, ctx, title:str, proposition:str):
+    async def staffvote(self, ctx, title: str, proposition: str):
         """Staff vote command"""
         channel = self.bot.get_channel(self.bot.config.channels.staff_vote)
-        #Creating an Embed!
+        # Creating an Embed!
         embed = disnake.Embed(title=f"Title: {title}", description=f"Proposition: {proposition}", color=0xFFFFFF)
         embed.set_footer(text="Started by: {}".format(ctx.author.name))
-        #Sending the Embed to the channel.
+        # Sending the Embed to the channel.
         embed_msg = await channel.send(embed=embed)
         reactions = ["✅", "❌"]
-        for reaction in reactions: #adding reactions to embed_msg
+        for reaction in reactions:  # adding reactions to embed_msg
             await embed_msg.add_reaction(reaction)
         await ctx.send("Your vote has been started successfully!", delete_after=3)
 

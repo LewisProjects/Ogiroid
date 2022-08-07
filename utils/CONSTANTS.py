@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 __VERSION__ = "1.6.0"
 
+
 @dataclass
 class Channels:
     suggestion: int = 982353129913851924
@@ -32,6 +33,7 @@ class Roles:
     def dev(cls):
         cls.staff: int = 1005904440039047208
         return cls
+
 
 @dataclass
 class Colors:
