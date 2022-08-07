@@ -7,6 +7,7 @@ TOKEN = os.getenv("TOKEN")
 
 bot = OGIROID()
 
+
 def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):

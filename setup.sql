@@ -23,7 +23,7 @@ IF NOT EXISTS blacklist
     bot BOOLEAN,
     tickets BOOLEAN,
     tags BOOLEAN,
-    expires TEXT
+    expires INTEGER
 );
 
 CREATE TABLE

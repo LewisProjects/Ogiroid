@@ -302,4 +302,3 @@ class Tags(commands.Cog, name="Tags"):
 
 def setup(bot):
     bot.add_cog(Tags(bot))
-

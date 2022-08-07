@@ -68,14 +68,10 @@ class BlacklistHandler:
     def __init__(self, bot, db):
         self.bot = bot
         self.db = db
-        self._blacklist: List[BlacklistedUser] = []
+        self.blacklist: List[BlacklistedUser] = []
 
-    def get_user(self, user_id: int):
-        return [user for user in self._blacklist if user.id == user_id][0]
-
-    @property
-    def blacklist(self):
-        return self._blacklist
+    def get_user(self, user_id: int) -> BlacklistedUser:
+        return [user for user in self.blacklist if user.id == user_id][0]
 
     async def startup(self):
         await self.bot.wait_until_ready()
@@ -85,7 +81,7 @@ class BlacklistHandler:
             print("[TAGS] No blacklisted users found")
 
     async def count(self):
-        return len(self._blacklist)
+        return len(self.blacklist)
 
     async def load_blacklist(self):
         blacklist = []
@@ -94,7 +90,7 @@ class BlacklistHandler:
                 blacklist.append(BlacklistedUser(*row).fix_db_types())
         if len(blacklist) == 0:
             raise BlacklistNotFound
-        self._blacklist = blacklist
+        self.blacklist = blacklist
 
     async def get(self, user_id: int):
         return self.get_user(user_id)
@@ -105,37 +101,37 @@ class BlacklistHandler:
             [user_id, reason, bot, tickets, tags, expires],
         )
         await self.db.commit()
-        self._blacklist.append(BlacklistedUser(user_id, reason, bot, tickets, tags, expires))
+        self.blacklist.append(BlacklistedUser(user_id, reason, bot, tickets, tags, expires))
 
     async def remove(self, user_id: int):
         await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
         await self.db.commit()
-        self._blacklist.remove(self.get_user(user_id))
+        self.blacklist.remove(self.get_user(user_id))
 
     async def blacklisted(self, user_id: int):
-        return any(user.id == user_id for user in self._blacklist)
+        return any(user.id == user_id for user in self.blacklist)
 
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
         await self.db.execute(
             f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
         )
         await self.db.commit()
-        self._blacklist[self.get_user_index(user_id)].bot = bot
-        self._blacklist[self.get_user_index(user_id)].tickets = tickets
-        self._blacklist[self.get_user_index(user_id)].tags = tags
+        self.blacklist[self.get_user_index(user_id)].bot = bot
+        self.blacklist[self.get_user_index(user_id)].tickets = tickets
+        self.blacklist[self.get_user_index(user_id)].tags = tags
 
     async def edit_reason(self, user_id: int, reason: str):
         await self.db.execute(f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id])
         await self.db.commit()
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].reason = reason
+        self.blacklist[self.blacklist.index(self.get_user(user_id))].reason = reason
 
     async def edit_expiry(self, user_id: int, expires: int):
         await self.db.execute(f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id])
         await self.db.commit()
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].expires = expires
+        self.blacklist[self.blacklist.index(self.get_user(user_id))].expires = expires
 
     def get_user_index(self, user_id):
-        return self._blacklist.index(self.get_user(user_id))
+        return self.blacklist.index(self.get_user(user_id))
 
 
 """ note to any future contributors:

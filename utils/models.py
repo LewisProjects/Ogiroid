@@ -21,12 +21,13 @@ class BlacklistedUser:
         self.bot = bool(self.bot)
         self.tickets = bool(self.tickets)
         self.tags = bool(self.tags)
+        self.expires = int(self.expires)
         return self
 
     def is_expired(self):
         if self.expires == 9999999999:
             return False
-        return time.time() > self.expires
+        return int(time.time()) > self.expires
 
     @property
     def get_expiry(self):

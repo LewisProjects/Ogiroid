@@ -23,8 +23,15 @@ async def get_prefix(bot, message):
 class OGIROID(commands.Bot):
     def __init__(self, *args, **kwargs):
 
-        super().__init__(command_prefix=get_prefix, intents=disnake.Intents.all(), help_command=None,
-                         sync_commands_debug=True, case_insensitive=True, *args, **kwargs)
+        super().__init__(
+            command_prefix=get_prefix,
+            intents=disnake.Intents.all(),
+            help_command=None,
+            sync_commands_debug=True,
+            case_insensitive=True,
+            *args,
+            **kwargs,
+        )
         self.session = HTTPSession(loop=self.loop)
         self.config = Config()
         self.commands_ran = {}

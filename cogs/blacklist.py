@@ -1,3 +1,6 @@
+import asyncio
+import time
+
 import disnake
 from disnake import Member, Embed, Option, OptionType
 from disnake.ext import commands, tasks
@@ -7,9 +10,10 @@ from utils import timeconversions
 from utils.DBhandelers import BlacklistHandler
 from utils.models import BlacklistedUser
 from utils.pagination import CreatePaginator
-from utils.shortcuts import sucEmb, errorEmb, get_expiry
+from utils.shortcuts import sucEmb, errorEmb, get_expiry, wait_until
 from typing import TYPE_CHECKING
 
+HOUR = 3600
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
@@ -19,25 +23,35 @@ class Blacklist(Cog):
     def __init__(self, bot: "OGIROID"):
         self.bot = bot
         self.blacklist: BlacklistHandler = None
+        self.del_que = []
 
     def get_user(self, user_id):
         return self.bot.get_user(user_id)
 
-    @staticmethod
-    def approve_expiry(expires: str):
-        if expires == "never":
-            return True
-        elif expires.isnumeric():
-            pass  # todo
+    async def run_at(self, dt, coro, _id):
+        await wait_until(dt)
+        self.del_que.remove(_id)
+        await coro(_id)
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=59)
     async def check_blacklist(self):
+        await asyncio.sleep(5)  # ample time for other blacklist module to load
         remove_que = []
         for user in self.bot.blacklist.blacklist:
-            if user.is_expired():
+            able_to_remove = await self.check_user_removal(user)
+            if able_to_remove:
                 remove_que.append(user.id)
         for user_id in remove_que:
             await self.blacklist.remove(user_id)
+
+    async def check_user_removal(self, user: BlacklistedUser):
+        if user.id in self.del_que:
+            return  # already being removed
+        elif user.is_expired():
+            return True
+        elif int(time.time()) <= user.expires <= (int(time.time()) + HOUR):
+            self.del_que.append(user.id)
+            await self.run_at(user.expires, self.blacklist.remove, user.id)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -93,6 +107,7 @@ class Blacklist(Cog):
         time = int((await timeconversions.convert(expires)).dt.timestamp())
         await self.blacklist.edit_expiry(user.id, time)
         await sucEmb(inter, f"Edited the expiry of {user.mention}'s blacklist to expire {get_expiry(time)}")
+        await self.check_user_removal(self.blacklist.get_user(user.id))
 
     @commands.has_permissions(manage_messages=True)
     @blacklist.sub_command(name="remove", description="Remove a user from the blacklist")
@@ -128,19 +143,22 @@ class Blacklist(Cog):
         ],
     )
     async def blacklist_add(self, inter, user, bot, tickets, tags, reason="No Reason Specified", expires="never"):
-        if not any((bot, tickets, tags)):  # todo check expiration format or never
+        if not any((bot, tickets, tags)):
             return await errorEmb(inter, "You can't blacklist a user without specifying either bot, tickets and/or tags")
-        if len(reason) > 900:
+        elif len(reason) > 900:
             return await errorEmb(inter, "Reason must be under 900 chars")
+        elif user.id == inter.author.id:
+            return await errorEmb(inter, "You can't blacklist yourself")
         elif await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is already in the blacklist")
         expires = (await timeconversions.convert(expires)).dt.timestamp()
         await self.blacklist.add(user.id, reason, bot, tickets, tags, expires)
         await sucEmb(
             inter,
-            f"{user.mention} added to blacklist\nthe user's blacklist will {f'expire on <t:{expires}:R>' if str(expires) != str(9999999999) else 'never expire'}",
+            f"{user.mention} added to blacklist\nthe user's blacklist will {f'expire on <t:{int(expires)}:R>' if str(expires) != str(9999999999) else 'never expire'}",
             ephemeral=False,
         )
+        await self.check_user_removal(self.blacklist.get_user(user.id))
 
     @commands.cooldown(1, 30, commands.BucketType.user)
     @blacklist.sub_command(name="list", description="List all blacklisted users")
@@ -181,7 +199,7 @@ class Blacklist(Cog):
                 blacklist_embs.append(emb)
             elif isinstance(blacklist_list, BlacklistedUser):
                 emb = Embed(color=self.bot.config.colors.invis, description="")
-                emb.title = f"**{self.get_user(blacklist_list.id).name}**"  # todo get user name
+                emb.title = f"**{self.get_user(blacklist_list.id).name}**"
                 emb.description = f"Expires: {blacklist_list.get_expiry}\nReason: {blacklist_list.reason}\n"
                 blacklist_embs.append(emb)
 

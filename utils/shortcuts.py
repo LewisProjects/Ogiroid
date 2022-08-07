@@ -1,11 +1,21 @@
 from __future__ import annotations
 
+import asyncio
+from datetime import datetime
+
 import disnake
 
 from disnake import Embed
 
 
-def get_expiry(time):
+async def wait_until(timestamp):
+    now = datetime.now()
+    dt = datetime.fromtimestamp(timestamp)
+    await asyncio.sleep((dt - now).total_seconds())
+
+
+def get_expiry(time: int):
+    time = int(time)
     return f"<t:{time}:R>" if str(time) != str(9999999999) else "never"
 
 
