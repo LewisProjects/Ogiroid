@@ -2,7 +2,6 @@ import disnake
 from disnake.ext import commands
 
 from utils.bot import OGIROID
-from utils.CONSTANTS import Channels
 
 
 class Staff(commands.Cog):
@@ -73,7 +72,7 @@ class Staff(commands.Cog):
     @commands.has_role("Staff")
     async def staffvote(self, ctx, title:str, proposition:str):
         """Staff vote command"""
-        channel = self.bot.get_channel(Channels.staff_vote)
+        channel = self.bot.get_channel(self.bot.config.channels.staff_vote)
         #Creating an Embed!
         embed = disnake.Embed(title=f"Title: {title}", description=f"Proposition: {proposition}", color=0xFFFFFF)
         embed.set_footer(text="Started by: {}".format(ctx.author.name))
