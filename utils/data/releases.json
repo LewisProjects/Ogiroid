@@ -1,0 +1,26 @@
+{
+  "1.6.0": {
+    "contributors": [
+      "JasonLovesDoggo",
+      "ImmaHarry",
+      "LevaniVashadze",
+      "FreebieII",
+      "DWAA1660"
+    ],
+    "date": "2022-08-07",
+    "description": "This is the second release of OGIROID with a massive new set of features with are listed in the changelog",
+    "changelog": [
+      "Revamped Tag system",
+      "Blacklist system",
+      "Tickets system",
+      "Flag quiz system",
+      "polls",
+      "tons of fun and assorted commands"
+    ],
+    "commands": [
+      "whois",
+      "serverinfo",
+      "math"
+    ]
+  }
+}
