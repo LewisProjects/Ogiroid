@@ -78,7 +78,7 @@ class BlacklistHandler:
         try:
             await self.load_blacklist()
         except BlacklistNotFound:
-            print("[TAGS] No blacklisted users found")
+            print("[BLACKLIST] No blacklisted users found")
 
     async def count(self):
         return len(self.blacklist)

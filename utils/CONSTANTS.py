@@ -27,7 +27,7 @@ class Channels:
 
 @dataclass
 class Roles:
-    staff: int = 985943266115584010
+    staff: int = 980700205328502794
 
     @classmethod
     def dev(cls):
