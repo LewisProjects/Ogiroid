@@ -8,7 +8,9 @@ from datetime import datetime
 
 from utils.bot import OGIROID
 
-
+IGNORE_EXCEPTIONS = [
+    'UserBlacklisted'
+]
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
@@ -18,6 +20,8 @@ class ErrorHandler(commands.Cog):
     async def on_slash_command_error(self, inter, error):
         try:
             if hasattr(inter.application_command, "on_error"):
+                return
+            elif error.__class__.__name__ in IGNORE_EXCEPTIONS:
                 return
             else:
                 error_channel = self.bot.get_channel(self.bot.config.channels.errors)

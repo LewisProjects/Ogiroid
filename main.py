@@ -31,22 +31,6 @@ client = OGIROID(
 )
 
 
-@client.before_invoke
-async def blacklist_norm_invoke(ctx):
-    await client.wait_until_ready()
-    if await client.blacklist.blacklisted(ctx.author.id):
-        await errorEmb(ctx, "You are blacklisted from using this bot!")
-        raise UserBlacklisted
-
-
-@client.before_slash_command_invoke
-async def slash_command(inter: ApplicationCommandInteraction):
-    await client.wait_until_ready()
-    if await client.blacklist.blacklisted(inter.author.id):
-        await errorEmb(inter, "You are blacklisted from using this bot!")
-        raise UserBlacklisted  # todo find out how to have this not print anything
-
-
 def main():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):

@@ -1,3 +1,6 @@
+from disnake.ext.commands import CheckFailure
+
+
 class BotException(BaseException):
     pass
 
@@ -46,7 +49,7 @@ class BlacklistNotFound(BlacklistException):
     pass
 
 
-class UserBlacklisted(BlacklistException):
+class UserBlacklisted(CheckFailure, BlacklistException):
     async def __call__(self, ctx):
         pass
 

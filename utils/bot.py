@@ -4,9 +4,11 @@ from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 
 from cogs.blacklist import BlacklistHandler
+from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
 from utils.config import Config
 from utils.CONSTANTS import __VERSION__
+from utils.shortcuts import errorEmb
 
 with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
@@ -21,6 +23,16 @@ class OGIROID(commands.Bot):
         self.total_commands_ran = 0
         self.db = None
         self.blacklist: BlacklistHandler = None
+        self.add_check(self.blacklist_check)
+        self.add_app_command_check(self.blacklist_check, slash_commands=True)
+
+    async def blacklist_check(self, ctx):
+        await self.wait_until_ready()
+        if await self.blacklist.blacklisted(ctx.author.id):
+            await errorEmb(ctx, "You are blacklisted from using this bot!")
+            raise UserBlacklisted
+        return True
+
 
     async def on_command(self, ctx):
         self.total_commands_ran += 1
