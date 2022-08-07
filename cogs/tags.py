@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 
 import disnake
-from disnake import Embed
+from disnake import Embed, ApplicationCommandInteraction
 from disnake.ext import commands
 
 from utils.CONSTANTS import tag_help
@@ -43,6 +43,10 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     async def tag(self, inter):
         pass
+
+    @commands.slash_command(name="t", aliases=["tg"], description="Get a tag", hidden=True)
+    async def get_tag(self, inter: ApplicationCommandInteraction, *, name: str):
+        return await self.get(inter, name)
 
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()

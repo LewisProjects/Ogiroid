@@ -1,20 +1,37 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
 
 __VERSION__ = "1.6.0"
 
-
 @dataclass
 class Channels:
-    suggestion: int = 985554479405490216
-    bug_report: int = 985554459948122142
+    suggestion: int = 982353129913851924
+    bug_report: int = 982669110926250004
     errors: int = 986531210283069450
     reddit_faq: int = 985908874362093620
-    tickets: int = 1003006753564262452
-    logs: int = 988162723890217040
-    staff_vote: int = 1002132747441152071  # We will change the channel ID later to "1005741491861344286".
+    tickets: int = 1005904969737711760
+    logs: int = 977581277010100315
+    staff_vote: int = 1005741491861344286
 
+    @classmethod
+    def dev(cls):
+        cls.suggestion: int = 985554479405490216
+        cls.bug_report: int = 985554459948122142
+        cls.reddit_faq: int = 985908874362093620
+        cls.tickets: int = 1003006753564262452
+        cls.logs: int = 988162723890217040
+        cls.staff_vote: int = 1002132747441152071
+        return cls
+
+
+@dataclass
+class Roles:
+    staff: int = 985943266115584010
+
+    @classmethod
+    def dev(cls):
+        cls.staff: int = 1005904440039047208
+        return cls
 
 @dataclass
 class Colors:
@@ -33,7 +50,7 @@ def status(stat):
     return statuses[stat]
 
 
-STAFF_ROLE = 985943266115584010
+IGNORE_EXCEPTIONS = ["UserBlacklisted"]
 morse = {
     "0": "-----",
     "1": ".----",
@@ -92,7 +109,7 @@ TICKET_PERMS = {
 }
 tag_help = {
     "public": {
-        "tag get": "Gives you the tags value",
+        "tag get (or /t)": "Gives you the tags value",
         "tag create": "Creates a tag",
         "tag help": "Gives you this help",
         "tag info": "Gives you the tags info (views, owner, etc)",
@@ -426,4 +443,3 @@ VALID_CODE_LANGUAGES = [
     "yeethon",
     "zig",
 ]
-IGNORE_EXCEPTIONS = ["UserBlacklisted"]

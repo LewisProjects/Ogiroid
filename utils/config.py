@@ -3,7 +3,17 @@ from utils.CONSTANTS import *
 
 @dataclass
 class Config:
-    channels = Channels
-    colors = Colors
-    colours = colors
-    debug = False
+    Development = True  # if true will use base server ID's else will use development server ID's
+    if Development:
+        print("Using Development Config variable")
+        channels = Channels.dev()
+        roles = Roles
+        colors = Colors
+        colours = colors
+        debug = True
+    else:
+        channels = Channels
+        roles = Roles
+        colors = Colors
+        colours = colors
+        debug = False

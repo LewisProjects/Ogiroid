@@ -3,7 +3,7 @@ from datetime import datetime
 import disnake
 from disnake.ext import commands
 
-from utils.CONSTANTS import STAFF_ROLE, TICKET_PERMS
+from utils.CONSTANTS import TICKET_PERMS
 from utils.bot import OGIROID
 from utils.shortcuts import errorEmb
 
@@ -47,7 +47,7 @@ class Tickets(commands.Cog):
         if not inter.component.custom_id == "ticket_button":
             return
 
-        staff = guild.get_role(STAFF_ROLE)
+        staff = guild.get_role(self.bot.config.roles.staff)
 
         # checks if user has a ticket already open
         for channel in guild.channels:
