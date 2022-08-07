@@ -30,7 +30,8 @@ class FlagQuizHandler:
     async def get_leaderboard(self, order_by="correct"):
         leaderboard = []
         async with self.db.execute(
-                f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10") as cur:
+            f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
+        ) as cur:
             async for row in cur:
                 leaderboard.append(FlagQuizUser(*row))
             if len(leaderboard) == 0:
@@ -53,7 +54,8 @@ class FlagQuizHandler:
         correct += user.correct
 
         async with self.db.execute(
-                f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"):
+            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
+        ):
             await self.db.commit()
 
     async def add_user(self, user_id: int, tries: int, correct: int):
@@ -63,7 +65,8 @@ class FlagQuizHandler:
             completed = 0
 
         async with self.db.execute(
-                f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"):
+            f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
+        ):
             await self.db.commit()
 
 
@@ -100,8 +103,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 100
 
-        await ctx.send(
-            "I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
+        await ctx.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
 
         time.sleep(5)
         embed = disnake.Embed(title="Number Guesser", color=0x729FCF)
@@ -257,7 +259,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
-                                f"Current Score: {correct}/{tries - 1}",
+                    f"Current Score: {correct}/{tries - 1}",
                     color=0xFFFFFF,
                 )
                 await channel.send(embed=embed)
@@ -284,7 +286,11 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                     except asyncio.exceptions.TimeoutError:
                         await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                     else:
-                        if response.content.lower() == "yes" or response.content.lower() == "y" or response.content.lower() == "ye":
+                        if (
+                            response.content.lower() == "yes"
+                            or response.content.lower() == "y"
+                            or response.content.lower() == "ye"
+                        ):
                             pass
                         else:
                             continue
@@ -299,9 +305,11 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
 
     @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
-    async def flag_quiz_leaderboard(self, inter, sortby: str = commands.Param(
-        choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}
-    )):
+    async def flag_quiz_leaderboard(
+        self,
+        inter,
+        sortby: str = commands.Param(choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
+    ):
 
         leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
 
@@ -318,7 +326,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         embed = disnake.Embed(
             title="Flag Quiz All time Leaderboard",
             description=f"The top 10 Flag Quiz Users are on this Leaderboard. Sorted by: {translator[sortby]}\n",
-            color=0xFFFFFF
+            color=0xFFFFFF,
         )
         embed.add_field(name=leaderboard_header, value=leaderboard_string)
 

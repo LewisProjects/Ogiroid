@@ -33,7 +33,6 @@ class OGIROID(commands.Bot):
             raise UserBlacklisted
         return True
 
-
     async def on_command(self, ctx):
         self.total_commands_ran += 1
         try:

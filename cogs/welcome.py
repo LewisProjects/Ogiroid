@@ -6,7 +6,7 @@ import disnake
 from utils.bot import OGIROID
 
 
-#I have made the basic welcome command for the bot with the formatting & the emoji's but for some reason the "avatar" part is not working, I'd appreciate any help with this.
+# I have made the basic welcome command for the bot with the formatting & the emoji's but for some reason the "avatar" part is not working, I'd appreciate any help with this.
 
 
 class Welcome(Cog):
@@ -17,7 +17,7 @@ class Welcome(Cog):
     @Cog.listener()
     async def on_member_join(self, member):
         #   await member.add_roles(member.guild.get_role(768476148237336576), member.guild.get_role(770253516324732963)) #ROLE ON JOIN
-        greetings = ["Hello","Hi","Greetings","Hola", "Bonjour"]
+        greetings = ["Hello", "Hi", "Greetings", "Hola", "Bonjour"]
         chan = self.get_channel(905183354930995320)
         embed = disnake.Embed(
             title="Welcome to the server.",

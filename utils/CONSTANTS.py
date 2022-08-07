@@ -423,6 +423,4 @@ VALID_CODE_LANGUAGES = [
     "yeethon",
     "zig",
 ]
-IGNORE_EXCEPTIONS = [
-    'UserBlacklisted'
-]
+IGNORE_EXCEPTIONS = ["UserBlacklisted"]
