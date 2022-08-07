@@ -13,6 +13,7 @@ class Channels:
     reddit_faq: int = 985908874362093620
     tickets: int = 1003006753564262452
     logs: int = 988162723890217040
+    staff_vote: int = 1002132747441152071  # We will change the channel ID later to "1005741491861344286".
 
 
 @dataclass
