@@ -434,7 +434,7 @@ class Fun(commands.Cog):
         await inter.send(f"``{decoded_string}``")
 
     # noinspection PyUnboundLocalVariable
-    def wyr(self):  # todo delete
+    """def wyr(self):  # todo delete
         # grabs the source code of a random question
         r = session.get(f"https://www.either.io/{str(random.randint(3, 100000))}")
         # note to harry use aiohttp instead of requests
@@ -457,7 +457,7 @@ class Fun(commands.Cog):
             question = f"would you rather {blue} or {red}?"
             response = f"{blue_count} pick {blue} and {red_count} picked {red}."
 
-            return question, response
+            return question, response"""
 
 
 def setup(bot):
