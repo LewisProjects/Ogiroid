@@ -30,10 +30,10 @@ Developers:
 <li><a href="https://github.com/LevaniVashadze">Levani Vashadze</a></li>
 <li><a href="https://github.com/DWAA1660">DWAA1660</a></li>
 </ul>
-The bot is currently on release: <b>1.5.0</b>
+The bot is currently on release: <b>1.6.0</b>
 License: MIT
 <hr>
-<h3>Changelog 28-07-2022:</h3>
+<h3>Changelog 07-08-2022:</h3>
 <ol>
 <li>Made the commands case-insensitive.</li>
 <li>All commands are now slash commands.</li>
