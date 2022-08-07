@@ -2,6 +2,7 @@ import aiosqlite
 import disnake
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
+from disnake.ext.commands import when_mentioned_or
 
 from utils.DBhandelers import BlacklistHandler
 from utils.exceptions import UserBlacklisted
@@ -14,9 +15,16 @@ with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
 
 
+async def get_prefix(bot, message):
+    prefix = "!!"
+    return when_mentioned_or(prefix)(bot, message)
+
+
 class OGIROID(commands.Bot):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+        super().__init__(command_prefix=get_prefix, intents=disnake.Intents.all(), help_command=None,
+                         sync_commands_debug=True, case_insensitive=True, *args, **kwargs)
         self.session = HTTPSession(loop=self.loop)
         self.config = Config()
         self.commands_ran = {}

@@ -303,5 +303,3 @@ class Tags(commands.Cog, name="Tags"):
 def setup(bot):
     bot.add_cog(Tags(bot))
 
-
-# todo go through all self.exists() calls and see if they are called more then once

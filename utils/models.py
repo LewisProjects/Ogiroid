@@ -38,7 +38,7 @@ class Tag:
     name: str
     content: str
     owner: int
-    created_at: int = time.time()  # todo remove time.time()
+    created_at: int
     views: int = 0
 
 
