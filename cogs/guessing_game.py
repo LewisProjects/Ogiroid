@@ -7,67 +7,11 @@ import textdistance
 from disnake.ext import commands
 
 from utils.CONSTANTS import COUNTRIES
+from utils.DBhandelers import FlagQuizHandler
+from utils.assorted import getPosition
 from utils.bot import OGIROID
-from utils.exceptions import FlagQuizUserNotFound
-from utils.models import FlagQuizUser
+from utils.exceptions import FlagQuizUserNotFound, FlagQuizUsersNotFound
 from utils.shortcuts import QuickEmb, errorEmb
-
-
-class FlagQuizHandler:
-    def __init__(self, bot, db):
-        self.bot = bot
-        self.db = db
-
-    async def get_user(self, user_id: int):
-        users = []
-        async with self.db.execute(f"SELECT * FROM flag_quizz WHERE user_id = {user_id}") as cur:
-            async for row in cur:
-                users.append(FlagQuizUser(*row))
-        if len(users) == 0:
-            raise FlagQuizUserNotFound
-        return users
-
-    async def get_leaderboard(self, order_by="correct"):
-        leaderboard = []
-        async with self.db.execute(
-            f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
-        ) as cur:
-            async for row in cur:
-                leaderboard.append(FlagQuizUser(*row))
-            if len(leaderboard) == 0:
-                raise FlagQuizUserNotFound
-            return leaderboard
-
-    async def add_data(self, user_id: int, tries: int, correct: int):
-        try:
-            user = await self.get_user(user_id)
-            user = user[0]
-        except FlagQuizUserNotFound:
-            await self.add_user(user_id, tries, correct)
-            return
-
-        if correct == 199:
-            completed = user.completed + 1
-        else:
-            completed = user.completed
-        tries += user.tries
-        correct += user.correct
-
-        async with self.db.execute(
-            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
-        ):
-            await self.db.commit()
-
-    async def add_user(self, user_id: int, tries: int, correct: int):
-        if correct == 199:
-            completed = 1
-        else:
-            completed = 0
-
-        async with self.db.execute(
-            f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
-        ):
-            await self.db.commit()
 
 
 class GuessingGame(commands.Cog, name="Guessing Games"):
@@ -81,9 +25,6 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         await self.bot.wait_until_ready()
         self.flag_quiz: FlagQuizHandler = FlagQuizHandler(self.bot, self.bot.db)
 
-    #
-    # Made by github.com/FreebieII
-    #
     @commands.slash_command(name="guess", description="I will magically guess your number.")
     @commands.guild_only()
     async def guess(self, ctx, *, answer=None):
@@ -287,9 +228,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                         await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                     else:
                         if (
-                            response.content.lower() == "yes"
-                            or response.content.lower() == "y"
-                            or response.content.lower() == "ye"
+                            response.content.lower() in ["yes", 'y', "yeah", "yeah", "yep", "yup", "sure", "ok", 'ye']
                         ):
                             pass
                         else:
@@ -310,29 +249,29 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         inter,
         sortby: str = commands.Param(choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
     ):
-
-        leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
-
-        # Translate sortby parameter to grammatically correct text
+        try:
+            leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
+        except FlagQuizUsersNotFound:
+            return await QuickEmb(inter, "No users have taken the quiz yet.").error().send()
         translator = {"correct": "Correct Guesses", "tries": "Guesses", "completed": "Fully Completed"}
 
         leaderboard_string = ""
-        leaderboard_header = "Place   -   User   -   Correct Guesses/Total Guesses   -   Completed   "
+        leaderboard_header = "Place  ***-***  User  ***-***  Correct Guesses/Total Guesses  ***-***  Completed   "
         i = 0
         for user in leaderboard:
             i += 1
             username = self.bot.get_user(user.user_id)
-            leaderboard_string += f"**{i}**. {username} - {user.correct}/{user.tries} - {user.completed}\n"
+            leaderboard_string += f"{getPosition(i)} **-** {username} **-** {user.correct}/{user.tries} **-** {user.completed}\n"
         embed = disnake.Embed(
             title="Flag Quiz All time Leaderboard",
             description=f"The top 10 Flag Quiz Users are on this Leaderboard. Sorted by: {translator[sortby]}\n",
-            color=0xFFFFFF,
+            color=disnake.Color.random(seed=inter.user.id),
         )
         embed.add_field(name=leaderboard_header, value=leaderboard_string)
 
         await inter.send(embed=embed)
 
-    @commands.slash_command(name="flag-quiz-user", description="Get Flag Quiz User Stats about a particular user.")
+    @commands.slash_command(name="flagquiz-user", description="Get Flag Quiz User Stats about a particular user.")
     async def flag_quiz_user(self, inter, user: disnake.User = None):
         if user:
             id = user.id

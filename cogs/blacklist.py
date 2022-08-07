@@ -1,12 +1,10 @@
-from typing import List
-
 import disnake
 from disnake import Member, Embed, Option, OptionType
 from disnake.ext import commands, tasks
 from disnake.ext.commands import Cog
 
 from utils import timeconversions
-from utils.exceptions import BlacklistNotFound
+from utils.DBhandelers import BlacklistHandler
 from utils.models import BlacklistedUser
 from utils.pagination import CreatePaginator
 from utils.shortcuts import sucEmb, errorEmb, get_expiry
@@ -15,77 +13,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
-
-
-class BlacklistHandler:
-    def __init__(self, bot, db):
-        self.bot = bot
-        self.db = db
-        self._blacklist: List[BlacklistedUser] = []
-
-    def get_user(self, user_id: int):
-        return [user for user in self._blacklist if user.id == user_id][0]
-
-    @property
-    def blacklist(self):
-        return self._blacklist
-
-    async def startup(self):
-        await self.bot.wait_until_ready()
-        try:
-            await self.load_blacklist()
-        except BlacklistNotFound:
-            print("[TAGS] No blacklisted users found")
-
-    async def count(self):
-        return len(self._blacklist)
-
-    async def load_blacklist(self):
-        blacklist = []
-        async with self.db.execute(f"SELECT * FROM blacklist") as cur:
-            async for row in cur:
-                blacklist.append(BlacklistedUser(*row).fix_db_types())
-        if len(blacklist) == 0:
-            raise BlacklistNotFound
-        self._blacklist = blacklist
-
-    async def get(self, user_id: int):
-        return self.get_user(user_id)
-
-    async def add(self, user_id: int, reason: str, bot: bool, tickets: bool, tags: bool, expires: int):
-        await self.db.execute(
-            f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
-            [user_id, reason, bot, tickets, tags, expires],
-        )
-        await self.db.commit()
-        self._blacklist.append(BlacklistedUser(user_id, reason, bot, tickets, tags, expires))
-
-    async def remove(self, user_id: int):
-        await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
-        await self.db.commit()
-        self._blacklist.remove(self.get_user(user_id))
-
-    async def blacklisted(self, user_id: int):
-        return any(user.id == user_id for user in self._blacklist)
-
-    async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
-        await self.db.execute(
-            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
-        )
-        await self.db.commit()
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].bot = bot
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].tickets = tickets  # todo simplify this
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].tags = tags
-
-    async def edit_reason(self, user_id: int, reason: str):
-        await self.db.execute(f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id])
-        await self.db.commit()
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].reason = reason
-
-    async def edit_expiry(self, user_id: int, expires: int):
-        await self.db.execute(f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id])
-        await self.db.commit()
-        self._blacklist[self._blacklist.index(self.get_user(user_id))].expires = expires
 
 
 class Blacklist(Cog):

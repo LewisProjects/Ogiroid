@@ -3,7 +3,7 @@ import disnake
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 
-from cogs.blacklist import BlacklistHandler
+from utils.DBhandelers import BlacklistHandler
 from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
 from utils.config import Config

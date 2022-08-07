@@ -44,6 +44,8 @@ class AliasNotFound(AliasException):
 class FlagQuizUserNotFound(FlagQuizException):
     pass
 
+class FlagQuizUsersNotFound(FlagQuizException):
+    pass
 
 class BlacklistNotFound(BlacklistException):
     pass

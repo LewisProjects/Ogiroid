@@ -18,3 +18,11 @@ def renderBar(
     gapFill = " " * gap if gap else ""
 
     return gapFill.join([fill] * (fillLength - len(point)) + [point] + [empty] * emptyLength)
+
+
+def getPosition(num: int):
+    map = {1: '🥇' , 2: '🥈' , 3: '🥉', 0: '🏅'}
+    if num in map:
+        return map[num]
+    else:
+        return map[0]
