@@ -74,6 +74,7 @@ class CodeModal(disnake.ui.Modal):
     async def run_code(*, lang: str, code: str):
         code = await session.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code})
         return await code.json()
+
     @staticmethod
     async def _send_result(inter, result: dict):
         output = result["output"]

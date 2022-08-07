@@ -107,12 +107,12 @@ class FriendlyTimeResult:
 
 
 def human_timedelta(
-        dt: datetime.datetime,
-        *,
-        source: Optional[datetime.datetime] = None,
-        accuracy: Optional[int] = 3,
-        brief: bool = False,
-        suffix: bool = True,
+    dt: datetime.datetime,
+    *,
+    source: Optional[datetime.datetime] = None,
+    accuracy: Optional[int] = 3,
+    brief: bool = False,
+    suffix: bool = True,
 ) -> str:
     now = source or datetime.datetime.now(datetime.timezone.utc)
     if dt.tzinfo is None:
@@ -194,7 +194,7 @@ async def convert(argument: str) -> FriendlyTimeResult:
         match = regex.match(argument)
         if match is not None and match.group(0):
             data = {k: int(v) for k, v in match.groupdict(default=0).items()}
-            remaining = argument[match.end():].strip()
+            remaining = argument[match.end() :].strip()
             result = FriendlyTimeResult(now + relativedelta(**data))
             await result.ensure_constraints(now, remaining)
             return result
@@ -238,7 +238,7 @@ async def convert(argument: str) -> FriendlyTimeResult:
                     raise commands.BadArgument("Expected quote before time input...")
                 if not (end < len(argument) and argument[end] == '"'):
                     raise commands.BadArgument("If the time is quoted, you must unquote it.")
-                remaining = argument[end + 1:].lstrip(" ,.!")
+                remaining = argument[end + 1 :].lstrip(" ,.!")
             else:
                 remaining = argument[end:].lstrip(" ,.!")
         elif len(argument) == end:

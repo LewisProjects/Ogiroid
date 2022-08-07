@@ -119,9 +119,9 @@ class Tickets(commands.Cog):
     @staticmethod
     def check_if_ticket_channel(inter):
         if (
-                "ticket-" in inter.channel.name
-                and len(inter.channel.name) > 10
-                and any(char.isdigit() for char in inter.channel.name)
+            "ticket-" in inter.channel.name
+            and len(inter.channel.name) > 10
+            and any(char.isdigit() for char in inter.channel.name)
         ):
             return True
         else:
