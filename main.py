@@ -1,5 +1,7 @@
 import os
+
 from dotenv import load_dotenv
+
 from utils.bot import OGIROID
 
 load_dotenv("secrets.env")

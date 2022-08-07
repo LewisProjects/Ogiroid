@@ -1,8 +1,8 @@
+import expr
 from disnake.ext import commands
 
-from utils.shortcuts import QuickEmb, errorEmb
 from utils.bot import OGIROID
-import expr
+from utils.shortcuts import QuickEmb, errorEmb
 
 
 class Math(commands.Cog):

@@ -21,8 +21,8 @@ def renderBar(
 
 
 def getPosition(num: int):
-    map = {1: "🥇", 2: "🥈", 3: "🥉", 0: "🏅"}
-    if num in map:
-        return map[num]
+    pos_map = {1: "🥇", 2: "🥈", 3: "🥉", 0: "🏅"}
+    if num in pos_map:
+        return pos_map[num]
     else:
-        return map[0]
+        return pos_map[0]

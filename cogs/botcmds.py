@@ -1,12 +1,13 @@
 import datetime
-import disnake
 import time
+from collections import Counter
+
+import disnake
 from disnake.ext import commands
 
+from utils.CONSTANTS import status
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb
-from collections import Counter
-from utils.CONSTANTS import status
 
 global startTime
 startTime = time.time()
@@ -31,14 +32,14 @@ class Commands(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
-    # Can be deprecated since there is a serverinfo command now and its specific to the Lewis's Server
+    # Can be deprecated since there is a server info command now and its specific to the Lewis's Server
     @commands.slash_command(name="membercount", description="Get the member count of the server")
     async def membercount(self, inter):
         """Count the members in the server"""
         member_count = len(inter.guild.members)
         true_member_count = len([m for m in inter.guild.members if not m.bot])
         bot_member_count = len([m for m in inter.guild.members if m.bot])
-        embed = disnake.Embed(title="Nember count", description=" ", color=0xFFFFFF)
+        embed = disnake.Embed(title="Member count", description=" ", color=0xFFFFFF)
         embed.add_field(
             name="Members of Coding With Lewis",
             value=f" \🌐  All members: **{member_count}**\n \👩‍👩‍👦‍👦 All Humans: **{true_member_count}**\n \🤖  All Bots: **{bot_member_count}**",
@@ -206,10 +207,10 @@ class Commands(commands.Cog):
         await inter.send(embed=e)
 
     @commands.slash_command()
-    async def whois(self, inter, *, user: disnake.User = None):
+    async def whois(self, inter, *, user: disnake.Member = None):
         """Shows info about a user."""
         if user == None:
-            user = inter.author
+            user: disnake.Member = inter.author
         e = disnake.Embed(description="")
         roles = [
             role.name.replace("@", "@\u200b") for role in getattr(user, "roles", []) if not role.id == inter.guild.default_role.id

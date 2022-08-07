@@ -1,14 +1,7 @@
-import asyncio.exceptions
-
-import disnake
 from disnake.ext import commands
 
-import random
-import textdistance
-
-from utils.bot import OGIROID
 from utils.CONSTANTS import COUNTRIES
-from utils.shortcuts import QuickEmb
+from utils.bot import OGIROID
 
 
 class DevelopmentCommands(commands.Cog):

@@ -1,6 +1,6 @@
-from disnake.ext import commands
 import disnake
-from disnake import TextInputStyle
+from disnake.ext import commands
+
 from utils.bot import OGIROID
 
 

@@ -1,12 +1,12 @@
-from disnake import TextInputStyle, Color
 import disnake
 from disnake import Embed
+from disnake import TextInputStyle, Color
 from disnake.ext import commands
 from disnake.ext.commands import Cog
 
 from utils.CONSTANTS import VALID_CODE_LANGUAGES
-from utils.http import session
 from utils.bot import OGIROID
+from utils.http import session
 
 
 class CodeExec(Cog, name="Code"):
@@ -70,11 +70,12 @@ class CodeModal(disnake.ui.Modal):
         result = await self.run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
         await self._send_result(inter, result)
 
-    async def run_code(self, *, lang: str, code: str):
+    @staticmethod
+    async def run_code(*, lang: str, code: str):
         code = await session.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code})
         return await code.json()
-
-    async def _send_result(self, inter, result: dict):
+    @staticmethod
+    async def _send_result(inter, result: dict):
         output = result["output"]
         # if len(output) > 2000: HAVE TO FIX THIS!!!!
         # url = await create_guest_paste_bin(self.session, output)

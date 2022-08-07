@@ -1,5 +1,6 @@
 import asyncio
 import time
+from typing import TYPE_CHECKING
 
 import disnake
 from disnake import Member, Embed, Option, OptionType
@@ -11,7 +12,6 @@ from utils.DBhandelers import BlacklistHandler
 from utils.models import BlacklistedUser
 from utils.pagination import CreatePaginator
 from utils.shortcuts import sucEmb, errorEmb, get_expiry, wait_until
-from typing import TYPE_CHECKING
 
 HOUR = 3600
 
@@ -104,9 +104,9 @@ class Blacklist(Cog):
     async def expiry(self, inter, user: Member, expires: str):
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
-        time = int((await timeconversions.convert(expires)).dt.timestamp())
-        await self.blacklist.edit_expiry(user.id, time)
-        await sucEmb(inter, f"Edited the expiry of {user.mention}'s blacklist to expire {get_expiry(time)}")
+        expiry = int((await timeconversions.convert(expires)).dt.timestamp())
+        await self.blacklist.edit_expiry(user.id, expiry)
+        await sucEmb(inter, f"Edited the expiry of {user.mention}'s blacklist to expire {get_expiry(expiry)}")
         await self.check_user_removal(self.blacklist.get_user(user.id))
 
     @commands.has_permissions(manage_messages=True)

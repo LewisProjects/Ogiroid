@@ -1,16 +1,18 @@
+from datetime import datetime
+
 import disnake
 from disnake.ext import commands
-from utils.bot import OGIROID
-from utils.CONSTANTS import STAFF_ROLE, TICKET_PERMS
-from utils.shortcuts import errorEmb
 
-from datetime import datetime
+from utils.CONSTANTS import STAFF_ROLE, TICKET_PERMS
+from utils.bot import OGIROID
+from utils.shortcuts import errorEmb
 
 
 class Tickets(commands.Cog):
     """🎫 Ticketing system commands (Staff)"""
 
     def __init__(self, bot: OGIROID):
+        self.message = None
         self.bot = bot
         self.ticket_channel = self.bot.config.channels.tickets
 
@@ -117,9 +119,9 @@ class Tickets(commands.Cog):
     @staticmethod
     def check_if_ticket_channel(inter):
         if (
-            "ticket-" in inter.channel.name
-            and len(inter.channel.name) > 10
-            and any(char.isdigit() for char in inter.channel.name)
+                "ticket-" in inter.channel.name
+                and len(inter.channel.name) > 10
+                and any(char.isdigit() for char in inter.channel.name)
         ):
             return True
         else:

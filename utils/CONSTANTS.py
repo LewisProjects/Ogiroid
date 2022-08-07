@@ -22,14 +22,14 @@ class Colors:
 
 
 def status(stat):
-    statusss = {
+    statuses = {
         "dnd": "<:dnd:879146778182692934>",
         "online": "<:online:879146898219483176>",
         "offline": "<:offline:879146897951035435>",
         "idle": "<:idle:879146778388205618>",
         "streaming": "<:streaming:879146899809128478>",
     }
-    return statusss[stat]
+    return statuses[stat]
 
 
 STAFF_ROLE = 985943266115584010
@@ -107,6 +107,7 @@ tag_help = {
         "tag alias remove": "Removes an alias from a tag",
     },
 }
+# noinspection SpellCheckingInspection
 COUNTRIES = {
     "🇦🇫": "Afghanistan",
     "🇦🇱": "Albania",
@@ -309,6 +310,7 @@ COUNTRIES = {
     "🇿🇼": "Zimbabwe",
 }
 
+# noinspection SpellCheckingInspection
 VALID_CODE_LANGUAGES = [
     "abap",
     "aes",

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import re
 
+import disnake
 from disnake import Embed
 from disnake.ext import commands
-import disnake
 
 from utils.CONSTANTS import tag_help
 from utils.DBhandelers import TagManager
@@ -13,6 +13,7 @@ from utils.exceptions import *
 from utils.models import *
 from utils.pagination import CreatePaginator
 from utils.shortcuts import QuickEmb, manage_messages_perms, errorEmb
+
 
 class Tags(commands.Cog, name="Tags"):
     """Everything Tag related"""

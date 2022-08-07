@@ -1,5 +1,5 @@
-from disnake.ext import commands
 import disnake
+from disnake.ext import commands
 
 from utils.bot import OGIROID
 
@@ -26,7 +26,7 @@ class GitHub(commands.Cog):
         )
         embed.set_thumbnail(url=f"{person['avatar_url']}")
         embed.add_field(name="Username 📛: ", value=f"__[{person['name']}]({person['html_url']})__", inline=True)
-        # embed.add_field(name="Email ✉: ", value=f"{person['email']}", inline=True) Commented due to github not responding with the correct email
+        # embed.add_field(name="Email ✉: ", value=f"{person['email']}", inline=True) Commented due to GitHub not responding with the correct email
         embed.add_field(name="Repos 📁: ", value=f"{person['public_repos']}", inline=True)
         embed.add_field(name="Location 📍: ", value=f"{person['location']}", inline=True)
         embed.add_field(name="Company 🏢: ", value=f"{person['company']}", inline=True)
@@ -61,10 +61,10 @@ class GitHub(commands.Cog):
         embed.add_field(name="Forks 🍴:", value=f"{repo['forks_count']}", inline=True)
         embed.add_field(name="Language 💻:", value=f"{repo['language']}", inline=True)
         if repo["license"]:
-            id = repo["license"]["spdx_id"]
+            spdx_id = repo["license"]["spdx_id"]
             embed.add_field(
                 name="License name 📃:",
-                value=f"{id if id != 'NOASSERTION' else repo['license']['name']}",
+                value=f"{spdx_id if spdx_id != 'NOASSERTION' else repo['license']['name']}",
                 inline=True,
             )
         else:

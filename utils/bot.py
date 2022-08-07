@@ -4,11 +4,11 @@ from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 from disnake.ext.commands import when_mentioned_or
 
+from utils.CONSTANTS import __VERSION__
 from utils.DBhandelers import BlacklistHandler
+from utils.config import Config
 from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
-from utils.config import Config
-from utils.CONSTANTS import __VERSION__
 from utils.shortcuts import errorEmb
 
 with open("setup.sql", "r") as sql_file:

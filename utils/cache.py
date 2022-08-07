@@ -1,9 +1,8 @@
-from datetime import datetime
 from functools import wraps
 
 
 def cache(maxsize=128):
-    cache = {}
+    _cache = {}
 
     def decorator(func):
         @wraps(func)
@@ -15,14 +14,14 @@ def cache(maxsize=128):
             key_end = "_".join(f"{k}:{v}" for k, v in kwargs.items())
             key = f"{key_base}-{key_end}"
 
-            if key in cache:
-                return cache[key]
+            if key in _cache:
+                return _cache[key]
 
             res = func(*args, **kwargs)
 
-            if len(cache) > maxsize:
-                del cache[list(cache.keys())[0]]
-                cache[key] = res
+            if len(_cache) > maxsize:
+                del _cache[list(_cache.keys())[0]]
+                _cache[key] = res
 
             return res
 
@@ -32,7 +31,7 @@ def cache(maxsize=128):
 
 
 def async_cache(maxsize=128):
-    cache = {}
+    _cache = {}
 
     def decorator(func):
         @wraps(func)
@@ -44,41 +43,17 @@ def async_cache(maxsize=128):
             key_end = "_".join(f"{k}:{v}" for k, v in kwargs.items())
             key = f"{key_base}-{key_end}"
 
-            if key in cache:
-                return cache[key]
+            if key in _cache:
+                return _cache[key]
 
             res = await func(*args, **kwargs)
 
-            if len(cache) > maxsize:
-                del cache[list(cache.keys())[0]]
-                cache[key] = res
+            if len(_cache) > maxsize:
+                del _cache[list(_cache.keys())[0]]
+                _cache[key] = res
 
             return res
 
         return inner
 
     return decorator
-
-
-class CacheManager(dict):
-    def __init__(self):
-        pass
-
-    @property
-    def length(self):
-        return len(self)
-
-    @staticmethod
-    def do_log(message: str):
-        now = datetime.utcnow().strftime("%d-%b %H-%M-%S")
-        template = f"[{now}] {message}\n"
-        return template
-
-    def __setitem__(self, key, value):
-        return super().__setitem__(key, value)
-
-    def __getitem__(self, key):
-        return super().__getitem__(key)
-
-    def get(self, key, default=None):
-        return super().get(key, default)

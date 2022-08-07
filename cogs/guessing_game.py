@@ -44,7 +44,8 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 100
 
-        await ctx.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
+        await ctx.send(
+            "I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
 
         time.sleep(5)
         embed = disnake.Embed(title="Number Guesser", color=0x729FCF)
@@ -184,9 +185,9 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
     async def guess_the_flag(self, inter):
         await QuickEmb(inter, "Starting the quiz..").send()
         channel = inter.channel
-        l = list(self.countries.items())
-        random.shuffle(l)
-        countries = dict(l)
+        country_list = list(self.countries.items())
+        random.shuffle(country_list)
+        countries = dict(country_list)
 
         def check(m):
             return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
@@ -200,7 +201,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
-                    f"Current Score: {correct}/{tries - 1}",
+                                f"Current Score: {correct}/{tries - 1}",
                     color=0xFFFFFF,
                 )
                 await channel.send(embed=embed)
@@ -243,9 +244,10 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
 
     @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
     async def flag_quiz_leaderboard(
-        self,
-        inter,
-        sortby: str = commands.Param(choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
+            self,
+            inter,
+            sortby: str = commands.Param(
+                choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
     ):
         try:
             leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
@@ -272,11 +274,11 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
     @commands.slash_command(name="flagquiz-user", description="Get Flag Quiz User Stats about a particular user.")
     async def flag_quiz_user(self, inter, user: disnake.User = None):
         if user:
-            id = user.id
+            user_id = user.id
         else:
-            id = inter.author.id
+            user_id = inter.author.id
         try:
-            player = await self.flag_quiz.get_user(id)
+            player = await self.flag_quiz.get_user(user_id)
         except FlagQuizUserNotFound:
             await errorEmb(inter, "This user never took part in the flag quiz or doesn't exist.")
             return
@@ -286,7 +288,8 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
         embed.set_thumbnail(url=user.display_avatar.url)
         embed.add_field(name=f"Player:", value=f"{user}")
-        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}", inline=False)
+        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}",
+                        inline=False)
         embed.add_field(name="Got all 199 Flags correct in one Run", value=f"{player.completed} times")
         await inter.send(embed=embed)
 

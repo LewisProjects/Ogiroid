@@ -2,10 +2,11 @@ import os
 
 import disnake
 from disnake.ext import commands
+
 from utils.bot import OGIROID
+from utils.exceptions import CityNotFound
 from utils.shortcuts import errorEmb
 from utils.wrappers.OpenWeatherMap import OpenWeatherAPI
-from utils.exceptions import CityNotFound
 
 
 class Info(commands.Cog):

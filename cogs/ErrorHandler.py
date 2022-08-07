@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from disnake import Embed
-from disnake.ext import commands
-import disnake
 import traceback
 from datetime import datetime
+
+import disnake
+from disnake import Embed
+from disnake.ext import commands
 
 from utils.CONSTANTS import IGNORE_EXCEPTIONS
 from utils.bot import OGIROID
@@ -15,6 +16,7 @@ class ErrorHandler(commands.Cog):
         self.bot = bot
         self.debug_mode = self.bot.config.debug
 
+    # noinspection PyUnboundLocalVariable
     @commands.Cog.listener()
     async def on_slash_command_error(self, inter, error):
         try:
