@@ -10,8 +10,10 @@ class Config:
         print("Using Development Config variable")
         channels = Channels.dev()
         roles = Roles.dev()
+        emojis = Emojis.dev()
         debug = True
     else:
+        emojis = Emojis
         channels = Channels
         roles = Roles
         debug = False

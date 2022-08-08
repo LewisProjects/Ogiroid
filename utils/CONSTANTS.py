@@ -14,6 +14,7 @@ class Channels:
     logs: int = 977581277010100315
     staff_vote: int = 1005741491861344286
     welcome: int = 905183354930995320
+    goodbye: int = 905183354930995320 # same as welcome
 
     @classmethod
     def dev(cls):
@@ -23,7 +24,7 @@ class Channels:
         cls.tickets: int = 1003006753564262452
         cls.logs: int = 988162723890217040
         cls.staff_vote: int = 1002132747441152071
-        cls.welcome: int = 985961186107461673
+        cls.welcome = cls.goodbye = 985961186107461673
         return cls
 
 
@@ -36,7 +37,17 @@ class Roles:
         cls.staff: int = 1005904440039047208
         return cls
 
+@dataclass
+class Emojis:
+    rules: str = '<:rules:1006016761809866752>'
+    roles: str = '<:roles:1006016760731926641>'
 
+
+    @classmethod
+    def dev(cls):
+        cls.rules: str = '<:emoji_18:1006073757976244244>'
+        cls.roles: str = '<:role:990310706874290216>'
+        return cls
 @dataclass
 class Colors:
     invis: int = 0x2F3136
@@ -171,14 +182,14 @@ COUNTRIES = {
     "🇨🇱": "Chile",
     "🇨🇳": "China",
     "🇨🇴": "Colombia",
-    "🇨🇬": ["Republic of the Congo", "Rep of Congo", "Republic of Congo"],
-    "🇨🇩": ["DR Congo", "Democratic Republic of Congo"],
+    "🇨🇬": "Republic of the Congo",
+    "🇨🇩": "DR Congo",
     "🇨🇷": "Costa Rica",
-    "🇨🇮": ["Ivory Coast", "cote d ivorie", "Côte d'Ivoire"],
+    "🇨🇮": "Ivory Coast",
     "🇭🇷": "Croatia",
     "🇨🇺": "Cuba",
     "🇨🇾": "Cyprus",
-    "🇨🇿": ["Czechia", "Czech Republic"],
+    "🇨🇿": "Czechia",
     "🇩🇰": "Denmark",
     "🇩🇯": "Djibouti",
     "🇩🇲": "Dominica",
@@ -204,7 +215,7 @@ COUNTRIES = {
     "🇬🇺": "Guam",
     "🇬🇹": "Guatemala",
     "🇬🇳": "Guinea",
-    "🇬🇼": ["Guinea-Bissau", "guinea bissau"],
+    "🇬🇼": "Guinea-Bissau",
     "🇬🇾": "Guyana",
     "🇭🇹": "Haiti",
     "🇭🇳": "Honduras",
@@ -227,7 +238,7 @@ COUNTRIES = {
     "🇰🇷": "South Korea",
     "🇽🇰": "Kosovo",
     "🇰🇼": "Kuwait",
-    "🇰🇬": "Kyrgyzstan",
+    "kg": "Kyrgyzstan",
     "🇱🇦": "Laos",
     "🇱🇻": "Latvia",
     "🇱🇧": "Lebanon",
@@ -308,7 +319,7 @@ COUNTRIES = {
     "🇹🇯": "Tajikistan",
     "🇹🇿": "Tanzania",
     "🇹🇭": "Thailand",
-    "🇹🇱": ["Timor-Leste", "timor leste"],
+    "🇹🇱": "Timor-Leste",
     "🇹🇬": "Togo",
     "🇹🇴": "Tonga",
     "🇹🇹": "Trinidad and Tobago",
@@ -318,13 +329,13 @@ COUNTRIES = {
     "🇹🇻": "Tuvalu",
     "🇺🇬": "Uganda",
     "🇺🇦": "Ukraine",
-    "🇦🇪": ["United Arab Emirates", "UAE"],
-    "🇬🇧": ["United Kingdom", "UK"],
-    "🇺🇸": ["United States", "USA"],
+    "🇦🇪": "United Arab Emirates",
+    "🇬🇧": "United Kingdom",
+    "🇺🇸": "United States",
     "🇺🇾": "Uruguay",
     "🇺🇿": "Uzbekistan",
     "🇻🇺": "Vanuatu",
-    "🇻🇦": ["Vatican City", "Holy See"],
+    "🇻🇦": "Vatican City",
     "🇻🇪": "Venezuela",
     "🇻🇳": "Vietnam",
     "🇾🇪": "Yemen",
