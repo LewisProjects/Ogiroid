@@ -1,12 +1,14 @@
 import asyncio
 import random
 import time
+import html
 
 import disnake
+from disnake import Option, OptionType, OptionChoice
 import textdistance
 from disnake.ext import commands
 
-from utils.CONSTANTS import COUNTRIES
+from utils.CONSTANTS import COUNTRIES, TRIVIA_CATEGORIES
 from utils.DBhandelers import FlagQuizHandler
 from utils.assorted import getPosition
 from utils.bot import OGIROID
@@ -14,7 +16,7 @@ from utils.exceptions import FlagQuizUserNotFound, FlagQuizUsersNotFound
 from utils.shortcuts import QuickEmb, errorEmb
 
 
-class GuessingGame(commands.Cog, name="Guessing Games"):
+class Trivia(commands.Cog, name="Trivia"):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.countries = COUNTRIES
@@ -44,7 +46,8 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         def check(m):
             return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
 
-        await inter.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
+        await inter.send(
+            "I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
 
         time.sleep(5)
         embed = disnake.Embed(title="Number Guesser", color=0x729FCF)
@@ -200,7 +203,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
-                    f"Current Score: {correct}/{tries - 1}",
+                                f"Current Score: {correct}/{tries - 1}",
                     color=0xFFFFFF,
                 )
                 await channel.send(embed=embed)
@@ -234,11 +237,12 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                         except asyncio.exceptions.TimeoutError:
                             await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                         else:
-                            if response.content.lower() in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
+                            if response.content.lower() in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok",
+                                                            "ye"]:
                                 pass
                             else:
                                 continue
-                        await QuickEmb(channel, f"Your Score: {correct}/{tries -1}. Thanks for playing.").send()
+                        await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
                         await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
                         return
                     else:
@@ -250,9 +254,10 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
 
     @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
     async def flag_quiz_leaderboard(
-        self,
-        inter,
-        sortby: str = commands.Param(choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
+            self,
+            inter,
+            sortby: str = commands.Param(
+                choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
     ):
         try:
             leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
@@ -293,10 +298,76 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
         embed.set_thumbnail(url=user.display_avatar.url)
         embed.add_field(name=f"Player:", value=f"{user}")
-        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}", inline=False)
+        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}",
+                        inline=False)
         embed.add_field(name="Got all 199 Flags correct in one Run", value=f"{player.completed} times")
         await inter.send(embed=embed)
 
+    @commands.slash_command(name="trivia", description="A quick bit of Trivia.", options=[
+        Option(name="category", description="The category of the questions", choices=[
+            "Any", "General Knowledge", "Entertainment: Books", "Entertainment: Film", "Entertainment: Music",
+            "Entertainment: Musicals & Theatres", "Entertainment: Television", "Entertainment: Video Games",
+            "Entertainment: Board Games", "Science & Nature", "Science: Computers", "Science: Mathematics", "Mythology",
+            "Sports", "Geography", "History", "Politics", "Art", "Celebrities", "Animals", "Vehicles",
+            "Entertainment: Comics", "Science: Gadgets", "Entertainment: Japanese Anime & Manga",
+            "Entertainment: Cartoon & Animations"]),
+        Option(name="amount", description="Amount of Questions"),
+        Option(name="difficulty", description="Difficulty of the questions", choices={
+            "Easy": "easy", "Medium": "medium", "Hard": "hard"})
+    ])
+    async def trivia(self, inter, category, amount, difficulty):
+        def check(m):
+            return m.author == inter.author and m.channel == inter.channel
+
+        correct = 0
+        questions = 0
+        channel = self.bot.get_channel(inter.channel.id)
+        emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]
+        if category == "Any" or category is None:
+            pass
+        else:
+            for item in TRIVIA_CATEGORIES:
+                if item["name"] == category:
+                    category_id = item["id"]
+
+            response = await self.bot.session.get(
+                f"https://opentdb.com/api.php?amount={amount}&category={category_id}&difficulty={difficulty}&type=multiple")
+        data = await response.json()
+
+        for question in data["results"]:
+            answer = question["correct_answer"]
+            answers = question["incorrect_answers"]
+            answers.append(answer)
+            random.shuffle(answers)
+
+            componenents = []
+            answers_string = ""
+            for i in range(len(answers)):
+                answers_string += f"{emojis[i]}: {html.unescape(answers[i])}\n"
+                componenents.append(disnake.ui.Button(emoji=emojis[i], custom_id=f"{i - 1}"))
+
+            embed = disnake.Embed(title=html.unescape(question['question']), description=answers_string, color=0xFFFFFF)
+
+            row = disnake.ui.ActionRow()
+            for component in componenents:
+                row.append_item(component)
+
+            await channel.send(embed=embed, components=row)
+            try:
+                user_inter = await self.bot.wait_for("on_button_click", check=check, timeout=60.0)
+                print("cool")
+            except asyncio.exceptions.TimeoutError:
+                await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
+                return
+            print("cool")
+            user_answer = answers[user_inter.component.custom_id]
+            amount += 1
+            if user_answer == answer:
+                await QuickEmb(user_inter, f"Correct. Your score so far is {correct} / {questions}").success().send()
+                correct += 1
+            else:
+                await QuickEmb(user_inter, f"Incorrect. Your score so far is {correct} / {questions}").error().send()
+
 
 def setup(bot):
-    bot.add_cog(GuessingGame(bot))
+    bot.add_cog(Trivia(bot))
