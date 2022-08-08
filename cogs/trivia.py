@@ -27,7 +27,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
 
     @commands.slash_command(name="guess", description="I will magically guess your number.")
     @commands.guild_only()
-    async def guess(self, ctx, *, answer=None):
+    async def guess(self, inter, *, answer=None):
         card1 = "https://cdn.discordapp.com/attachments/745162323953713223/937001823590576138/unknown.png"
         card1num = 16
         card2 = "https://cdn.discordapp.com/attachments/745162323953713223/937001823821238423/unknown.png"
@@ -42,9 +42,9 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
         card6num = 32
 
         def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 100
+            return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
 
-        await ctx.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
+        await inter.send("I will magically guess your number. \n **Think of a number between 1-63**\n *We will begin shortly...*")
 
         time.sleep(5)
         embed = disnake.Embed(title="Number Guesser", color=0x729FCF)
@@ -53,7 +53,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             value='\n```yaml\n If your number is on this image, reply with "yes", else "no"  \n```',
         )
         embed.set_image(url=card1)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         ent = entry.content
@@ -66,7 +66,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             num1 = 0
             pass
         else:
-            await ctx.send("Invalid answer, please start over.")
+            await inter.send("Invalid answer, please start over.")
             return
 
         embed = disnake.Embed(title="Number Guesser", color=0x77BC65)
@@ -75,7 +75,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             value='\n```yaml\n If your number is on this image, reply with "yes", else "no"  \n```',
         )
         embed.set_image(url=card2)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         answer = entry.content
@@ -87,7 +87,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             num2 = 0
             pass
         else:
-            await ctx.send("Invalid answer, please start over.")
+            await inter.send("Invalid answer, please start over.")
             return
 
         embed = disnake.Embed(title="Number Guesser", color=0xFF972F)
@@ -96,7 +96,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             value='\n```yaml\n If your number is on this image, reply with "yes", else "no"  \n```',
         )
         embed.set_image(url=card3)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         answer = entry.content
@@ -108,7 +108,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             num3 = 0
             pass
         else:
-            await ctx.send("Invalid answer, please start over.")
+            await inter.send("Invalid answer, please start over.")
             return
 
         embed = disnake.Embed(title="Number Guesser", color=0xE16173)
@@ -117,7 +117,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             value='\n```yaml\n If your number is on this image, reply with "yes", else "no"  \n```',
         )
         embed.set_image(url=card4)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         answer = entry.content
@@ -129,7 +129,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             num4 = 0
             pass
         else:
-            await ctx.send("Invalid answer, please start over.")
+            await inter.send("Invalid answer, please start over.")
             return
 
         embed = disnake.Embed(title="Number Guesser", color=0xFFD428)
@@ -138,7 +138,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             value='\n```yaml\n If your number is on this image, reply with "yes", else "no"  \n```',
         )
         embed.set_image(url=card5)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         answer = entry.content
@@ -150,7 +150,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             num5 = 0
             pass
         else:
-            await ctx.send("Invalid answer, please start over.")
+            await inter.send("Invalid answer, please start over.")
             return
 
         embed = disnake.Embed(title="Number Guesser", color=0xBBE33D)
@@ -159,7 +159,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             value='\n```yaml\n If your number is on this image, reply with "yes", else "no"  \n```',
         )
         embed.set_image(url=card6)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
         entry = await self.bot.wait_for("message", check=check, timeout=60.0)
         answer = entry.content
@@ -170,15 +170,15 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
             num6 = 0
             pass
         else:
-            await ctx.send("Invalid answer, please start over.")
+            await inter.send("Invalid answer, please start over.")
             return
 
-        await ctx.send("Hmmm.. Is your number: *drumroll please*")
+        await inter.send("Hmmm.. Is your number: *drumroll please*")
         number = num1 + num2 + num3 + num4 + num5 + num6
         if number == 0:
             number = "You can't pick 0, I said between 1 and 63 :middle_finger:"
             time.sleep(5)
-        await ctx.send(f"`{number}`")
+        await inter.send(f"`{number}`")
 
     @commands.slash_command(name="flagquiz", description="Guess the flags.")
     async def guess_the_flag(self, inter):
