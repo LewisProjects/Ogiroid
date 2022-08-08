@@ -238,7 +238,7 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                                 pass
                             else:
                                 continue
-                        await QuickEmb(channel, f"Your Score: {correct}/{tries}. Thanks for playing.").send()
+                        await QuickEmb(channel, f"Your Score: {correct}/{tries -1}. Thanks for playing.").send()
                         await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
                         return
                     else:
