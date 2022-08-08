@@ -7,7 +7,7 @@ class Config:
     colors = Colors
     colours = colors
     if Development:
-        print("Using Development Config variable")
+        print("Using Development Config variables")
         channels = Channels.dev()
         roles = Roles.dev()
         emojis = Emojis.dev()
