@@ -213,30 +213,37 @@ class GuessingGame(commands.Cog, name="Guessing Games"):
                     return
 
                 # Checks if the guess is similar to the actual name to account typos
-                if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.7:
-                    await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
-                    correct += 1
-                    retry = False
-                elif guess.content.lower() == "skip":
-                    await QuickEmb(channel, f"The country was {country}").send()
-                    retry = False
-                elif guess.content.lower() == "give up":
-                    await guess.reply("Are you sure you want to quit? Type yes to confirm.")
-                    try:
-                        response = await self.bot.wait_for("message", check=check, timeout=60.0)
-                    except asyncio.exceptions.TimeoutError:
-                        await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
-                    else:
-                        if response.content.lower() in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
-                            pass
-                        else:
-                            continue
-                    await QuickEmb(channel, f"Your Score: {correct}/{tries}. Thanks for playing.").send()
-                    await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
-                    return
+                if type(country) == list:
+                    for name in country:
+                        if textdistance.hamming.normalized_similarity(guess.content.lower(), name.lower()) >= 0.7:
+                            await QuickEmb(channel, f"Correct. The country indeed was {country[0]}").success().send()
+                            correct += 1
+                            retry = False
                 else:
-                    embed = QuickEmb(channel, "Incorrect")
-                    await embed.error().send()
+                    if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.7:
+                        await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
+                        correct += 1
+                        retry = False
+                    elif guess.content.lower() == "skip":
+                        await QuickEmb(channel, f"The country was {country}").send()
+                        retry = False
+                    elif guess.content.lower() == "give up":
+                        await guess.reply("Are you sure you want to quit? Type yes to confirm.")
+                        try:
+                            response = await self.bot.wait_for("message", check=check, timeout=60.0)
+                        except asyncio.exceptions.TimeoutError:
+                            await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
+                        else:
+                            if response.content.lower() in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
+                                pass
+                            else:
+                                continue
+                        await QuickEmb(channel, f"Your Score: {correct}/{tries}. Thanks for playing.").send()
+                        await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
+                        return
+                    else:
+                        embed = QuickEmb(channel, "Incorrect")
+                        await embed.error().send()
 
         await self.flag_quiz.add_data(inter.author.id, tries, correct)
         await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
