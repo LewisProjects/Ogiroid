@@ -13,6 +13,7 @@ class Channels:
     tickets: int = 1005904969737711760
     logs: int = 977581277010100315
     staff_vote: int = 1005741491861344286
+    welcome: int = 905183354930995320
 
     @classmethod
     def dev(cls):
@@ -22,6 +23,7 @@ class Channels:
         cls.tickets: int = 1003006753564262452
         cls.logs: int = 988162723890217040
         cls.staff_vote: int = 1002132747441152071
+        cls.welcome: int = 985961186107461673
         return cls
 
 
