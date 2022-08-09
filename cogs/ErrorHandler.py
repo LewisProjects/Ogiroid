@@ -9,6 +9,7 @@ from disnake.ext import commands
 
 from utils.CONSTANTS import IGNORE_EXCEPTIONS
 from utils.bot import OGIROID
+from utils.shortcuts import errorEmb
 
 
 class ErrorHandler(commands.Cog):
@@ -24,6 +25,8 @@ class ErrorHandler(commands.Cog):
                 return
             elif error.__class__.__name__ in IGNORE_EXCEPTIONS:
                 return
+            elif error.__class__.__name__ == "CommandOnCooldown":
+                await errorEmb(inter, error)
             else:
                 error_channel = self.bot.get_channel(self.bot.config.channels.errors)
 

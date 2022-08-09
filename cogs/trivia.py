@@ -311,11 +311,16 @@ class Trivia(commands.Cog, name="Trivia"):
             "Sports", "Geography", "History", "Politics", "Art", "Celebrities", "Animals", "Vehicles",
             "Entertainment: Comics", "Science: Gadgets", "Entertainment: Japanese Anime & Manga",
             "Entertainment: Cartoon & Animations"]),
-        Option(name="amount", description="Amount of Questions"),
+        Option(name="amount", description="Amount of Questions", min_value=1),
         Option(name="difficulty", description="Difficulty of the questions", choices={
             "Easy": "easy", "Medium": "medium", "Hard": "hard"})
     ])
-    async def trivia(self, inter, category, amount, difficulty):
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def trivia(self, inter, category="Any", difficulty=None, amount: int = 5):
+        if int(amount) < 1:
+            await QuickEmb(inter, "The amount of questions needs to be at least 1").error().send()
+            return
+
         def check(m):
             return m.author == inter.author and m.channel == inter.channel
 
@@ -324,17 +329,27 @@ class Trivia(commands.Cog, name="Trivia"):
         channel = self.bot.get_channel(inter.channel.id)
         emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]
         if category == "Any" or category is None:
-            pass
+            response = await self.bot.session.get(
+                f"https://opentdb.com/api.php?amount={amount}{f'&difficulty={difficulty}' if difficulty else ''}&type=multiple")
         else:
             for item in TRIVIA_CATEGORIES:
                 if item["name"] == category:
                     category_id = item["id"]
 
             response = await self.bot.session.get(
-                f"https://opentdb.com/api.php?amount={amount}&category={category_id}&difficulty={difficulty}&type=multiple")
+                f"https://opentdb.com/api.php?amount={amount}&category={category_id}{f'&difficulty={difficulty}' if difficulty else ''}&type=multiple")
         data = await response.json()
+        embed = disnake.Embed(title="Created Quiz", colour=0xFFFFFF)
+        embed.set_author(name=inter.author, icon_url=inter.author.display_avatar)
+        embed.set_thumbnail(url=inter.author.display_avatar)
+        embed.add_field(name="Category:", value=category + "   ")
+        embed.add_field(name="Difficulty:", value=difficulty if difficulty else "Any Difficulty")
+        embed.add_field(name="Amount of Questions:", value=amount, inline=False)
+        await inter.send(embed=embed)
 
+        n = 0
         for question in data["results"]:
+            n += 1
             answer = question["correct_answer"]
             answers = question["incorrect_answers"]
             answers.append(answer)
@@ -344,29 +359,30 @@ class Trivia(commands.Cog, name="Trivia"):
             answers_string = ""
             for i in range(len(answers)):
                 answers_string += f"{emojis[i]}: {html.unescape(answers[i])}\n"
-                componenents.append(disnake.ui.Button(emoji=emojis[i], custom_id=f"{i - 1}"))
+                componenents.append(disnake.ui.Button(emoji=emojis[i], custom_id=f"{i}"))
 
             embed = disnake.Embed(title=html.unescape(question['question']), description=answers_string, color=0xFFFFFF)
-
-            row = disnake.ui.ActionRow()
-            for component in componenents:
-                row.append_item(component)
-
-            await channel.send(embed=embed, components=row)
+            await channel.send(embed=embed, components=componenents)
             try:
-                user_inter = await self.bot.wait_for("on_button_click", check=check, timeout=60.0)
-                print("cool")
+                user_inter = await self.bot.wait_for("button_click", check=check, timeout=60.0)
             except asyncio.exceptions.TimeoutError:
                 await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
-                return
-            print("cool")
-            user_answer = answers[user_inter.component.custom_id]
-            amount += 1
+
+            user_answer = answers[int(user_inter.component.custom_id)]
+            questions += 1
             if user_answer == answer:
-                await QuickEmb(user_inter, f"Correct. Your score so far is {correct} / {questions}").success().send()
                 correct += 1
+                if n == len(data["results"]):
+                    await QuickEmb(user_inter, f"Correct the answer indeed is {answer}.").success().send()
+                else:
+                    await QuickEmb(user_inter, f"Correct the answer indeed is {answer}. Your score so far is {correct} / {questions}").success().send()
             else:
-                await QuickEmb(user_inter, f"Incorrect. Your score so far is {correct} / {questions}").error().send()
+                if n == len(data["results"]):
+                    await QuickEmb(user_inter, f"Incorrect the correct answer is {answer}.").error().send()
+                else:
+                    await QuickEmb(user_inter, f"Incorrect the correct answer is {answer}. Your score so far is {correct} / {questions}").error().send()
+
+        await QuickEmb(channel, f"Thanks for playing. Your final Score is {correct} / {questions}.").send()
 
 
 def setup(bot):
