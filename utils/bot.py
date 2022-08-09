@@ -32,6 +32,7 @@ class OGIROID(commands.Bot):
             *args,
             **kwargs,
         )
+        self._ready_ = False
         self.session = HTTPSession(loop=self.loop)
         self.config = Config()
         self.commands_ran = {}
@@ -63,14 +64,19 @@ class OGIROID(commands.Bot):
             self.commands_ran[inter.application_command.name] = 1
 
     async def on_ready(self):
-        await self.wait_until_ready()
-        await self._setup()
-        await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
-        print("--------------------------------------------------------------------------------")
-        print("Bot is ready! Logged in as: " + self.user.name)
-        print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")
-        print(f"Bot version: {__VERSION__}")
-        print("--------------------------------------------------------------------------------")
+        if not self._ready_:
+            self._ready_ = True
+            await self.wait_until_ready()
+            await self._setup()
+            await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
+            print("--------------------------------------------------------------------------------")
+            print("Bot is ready! Logged in as: " + self.user.name)
+            print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")
+            print(f"Bot version: {__VERSION__}")
+            print("--------------------------------------------------------------------------------")
+        else:
+            print("Bot reconnected")
+
 
     async def _setup(self):
         for command in self.application_commands:
@@ -82,3 +88,7 @@ class OGIROID(commands.Bot):
         async with aiosqlite.connect("data.db") as self.db:
             await self.db.executescript(SETUP_SQL)
             await super().start(*args, **kwargs)
+
+    @property
+    def ready_(self):
+        return self._ready_

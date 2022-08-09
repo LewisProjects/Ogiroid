@@ -33,9 +33,10 @@ class Fun(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        TOKEN = os.getenv("TOKEN")
-        # noinspection PyUnresolvedReferences
-        self.togetherControl = await DiscordTogether(TOKEN)
+        if not self.bot.ready_:
+            TOKEN = os.getenv("TOKEN")
+            # noinspection PyUnresolvedReferences
+            self.togetherControl = await DiscordTogether(TOKEN)
 
     @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
     @commands.cooldown(1, 5, commands.BucketType.user)

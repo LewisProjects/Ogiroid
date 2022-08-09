@@ -40,6 +40,8 @@ class AliasAlreadyExists(AliasException):
 class AliasNotFound(AliasException):
     pass
 
+class AliasLimitReached(AliasException):
+    pass
 
 class FlagQuizUserNotFound(FlagQuizException):
     pass

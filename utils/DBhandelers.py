@@ -272,8 +272,11 @@ class TagManager:
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
         await self.exists(name, TagNotFound, should=True)
-        if alias in (await self.get_aliases(name)):
+        aliases = (await self.get_aliases(name))
+        if alias in aliases:
             raise AliasAlreadyExists
+        elif len(aliases) > 10:
+            raise AliasLimitReached
         self.names["aliases"].append(alias)
         await self.db.execute("INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias])
         await self.db.commit()

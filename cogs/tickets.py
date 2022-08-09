@@ -18,17 +18,19 @@ class Tickets(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        ticket_channel = self.bot.get_channel(self.ticket_channel)
+        if not self.bot.ready_:
+            print('test')
+            ticket_channel = self.bot.get_channel(self.ticket_channel)
 
-        exists = False
-        async for channel_message in ticket_channel.history(limit=100):
-            if channel_message.author.id == self.bot.application_id:
-                self.message = channel_message
-                exists = True
-                break
+            exists = False
+            async for channel_message in ticket_channel.history(limit=100):
+                if channel_message.author.id == self.bot.application_id:
+                    self.message = channel_message
+                    exists = True
+                    break
 
-        if not exists:
-            await self.send_message()
+            if not exists:
+                await self.send_message()
 
     async def send_message(self):
         ticket_channel = self.bot.get_channel(self.ticket_channel)

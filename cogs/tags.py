@@ -24,8 +24,9 @@ class Tags(commands.Cog, name="Tags"):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.tags: TagManager = TagManager(self.bot, self.bot.db)
-        await self.tags.startup()
+        if not self.bot.ready_:
+            self.tags: TagManager = TagManager(self.bot, self.bot.db)
+            await self.tags.startup()
 
     @staticmethod
     async def valid_name(name) -> bool:
@@ -65,6 +66,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="create", description="Creates a tag")
     @commands.guild_only()
+    @commands.cooldown(1, 60, commands.BucketType.user)
     async def create(self, inter, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
         if len(content) >= 1900:
@@ -86,6 +88,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="edit", description="Edits the tag")
     @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def edit(self, inter, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
         try:
@@ -102,6 +105,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="transfer", description="Transfers the tag's owner")
     @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def transfer(self, inter, name, new_owner: disnake.Member):
         try:
             name = name.casefold()
@@ -116,6 +120,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="claim", description="Claims ownership of the tag if the owner isn't in the guild")
     @commands.guild_only()
+    @commands.cooldown(1, 300, commands.BucketType.user)
     async def claim(self, inter, name):
         try:
             name = name.casefold()
@@ -140,6 +145,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="delete", description="Deletes the tag")
     @commands.guild_only()
+    @commands.cooldown(1, 180, commands.BucketType.user)
     async def deltag(self, inter, name):
         try:
             name = name.casefold()
@@ -152,6 +158,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="info", description="Gives you the tags info")
     @commands.guild_only()
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def info(self, inter, name):
         name = name.casefold()
         try:
@@ -171,6 +178,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="list", description="Lists tags")
     @commands.guild_only()
+    @commands.cooldown(1, 15, commands.BucketType.channel)
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_tags(self, ctx):
         try:
@@ -286,6 +294,8 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, f"tag {name} does not exist")
         except AliasAlreadyExists:
             return await errorEmb(inter, f"tag {alias} already exists")
+        except AliasLimitReached:
+            return await errorEmb(inter, "You can only have 10 aliases per tag")
 
     @alias.sub_command(name="remove", description="Removes an alias from a tag")
     @commands.guild_only()
