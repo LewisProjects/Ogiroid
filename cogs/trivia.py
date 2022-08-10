@@ -11,7 +11,7 @@ from utils.CONSTANTS import COUNTRIES, TRIVIA_CATEGORIES
 from utils.DBhandelers import FlagQuizHandler
 from utils.assorted import getPosition
 from utils.bot import OGIROID
-from utils.exceptions import  UserNotFound, UsersNotFound
+from utils.exceptions import UserNotFound, UsersNotFound
 from utils.shortcuts import QuickEmb, errorEmb
 
 
