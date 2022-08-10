@@ -310,3 +310,29 @@ class TagManager:
             if content is None:
                 return []
         return [alias for tag_id, alias in list(set(content))]
+
+
+class TriviaHandler:
+    def __init__(self, db):
+        self.db = db
+
+        self.trivia_cache = {}
+    # psuedo-code
+    """
+    SQL layout:
+    table name trivia 
+    columns:
+    id: user.id
+    correct: int
+    incorrect: int
+    
+    
+    
+    @property
+    def quizcount(self):
+        return correct + incorrect    
+    
+    
+    
+    
+    """
