@@ -2,6 +2,8 @@ import disnake
 from disnake.ext import commands
 
 from utils.bot import OGIROID
+from utils.shortcuts import sucEmb, errorEmb
+from utils.DBhandelers import RolesHandler
 
 
 class Staff(commands.Cog):
@@ -9,6 +11,12 @@ class Staff(commands.Cog):
 
     def __init__(self, bot: OGIROID):
         self.bot = bot
+        self.reaction_roles: RolesHandler = None
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.reaction_roles: RolesHandler = RolesHandler(self.bot, self.bot.db)
+        await self.reaction_roles.startup()
 
     @commands.slash_command(name="faq")
     @commands.guild_only()
@@ -50,38 +58,44 @@ class Staff(commands.Cog):
         await channel.set_permissions(ctx.guild.default_role, send_messages=True)
         await ctx.send(f"🔓 Unlocked {channel.mention} successfully!")
 
-    """#Reaction Roles with buttons:
-    @commands.slash_command(name="reactionrole")
+    #Reaction Roles with buttons:
+    @commands.slash_command(name="addreactionrole", description="Add a reaction based role to a message")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def reactionrole(self, ctx, message_id: str, button_name: str, emoji: str, role: disnake.Role):
+    async def add_reaction_role(self, inter, message_id, emoji: str, role: disnake.Role):
         # Reaction Role command for the staff team
         # Checking if the message exists:
-        message = await ctx.channel.fetch_message(message_id)
+        message_id = int(message_id)
+        message = await inter.channel.fetch_message(message_id)
         if message is None:
-            await ctx.send("Message not found!")
+            await errorEmb(inter, "Message not found!")
             return
-        # Creating a button class for the message:
-        button = disnake.Button(button_name, emoji, role)
-        # Adding the button to the message:
-        self.bot.buttons.append(button)
-        await ctx.send(f"Added!")"""
+        await message.add_reaction(emoji)
+        await self.reaction_roles.create_message(message_id, role.id, emoji)
+        await sucEmb(inter, f"Added!")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        for message in self.reaction_roles.messages:
+            if payload.message_id == message.message_id:
+                guild = self.bot.get_guild(payload.guild_id)
+                await guild.get_member(payload.user_id).add_roles(guild.get_role(self.reaction_roles.messages[payload.message_id]))
 
     @commands.slash_command(name="staffvote")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def staffvote(self, ctx, title: str, proposition: str):
+    async def staffvote(self, inter, title: str, proposition: str):
         """Staff vote command"""
         channel = self.bot.get_channel(self.bot.config.channels.staff_vote)
         # Creating an Embed!
         embed = disnake.Embed(title=f"Title: {title}", description=f"Proposition: {proposition}", color=0xFFFFFF)
-        embed.set_footer(text="Started by: {}".format(ctx.author.name))
+        embed.set_footer(text="Started by: {}".format(inter.author.name))
         # Sending the Embed to the channel.
         embed_msg = await channel.send(embed=embed)
         reactions = ["✅", "❌"]
         for reaction in reactions:  # adding reactions to embed_msg
             await embed_msg.add_reaction(reaction)
-        await ctx.send("Your vote has been started successfully!", delete_after=3)
+        await inter.send("Your vote has been started successfully!", delete_after=3)
 
 
 def setup(bot):

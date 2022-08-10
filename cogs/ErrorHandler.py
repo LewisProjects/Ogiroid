@@ -28,7 +28,7 @@ class ErrorHandler(Cog):
                 return
             # non real error handling
             if isinstance(error, CommandNotFound):
-                return errorEmb(inter, "Command not found! use /help for a list of commands")
+                return await errorEmb(inter, "Command not found! use /help for a list of commands")
             elif isinstance(error, CommandInvokeError):
                 error = traceback_maker(error.original)
                 if "2000 or fewer" in str(error) and len(error.message.clean_content) > 1900:
@@ -43,7 +43,7 @@ class ErrorHandler(Cog):
                                title=f"\N{WARNING SIGN} | MissingArguments",
                                text=f"You forgot the `{missing}` parameter when using   `{cmd}`!")
             elif isinstance(error, BadArgument):
-                return errorEmb(inter, "Bad argument! Please retry with the correct type of argument")
+                return await errorEmb(inter, "Bad argument! Please retry with the correct type of argument")
             elif isinstance(error, NotOwner):
                 await errorEmb(inter,
                                f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`")

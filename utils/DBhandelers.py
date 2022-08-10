@@ -6,7 +6,7 @@ from typing import List, Literal, Optional
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
-from utils.models import FlagQuizUser, BlacklistedUser, Tag, TriviaUser
+from utils.models import FlagQuizUser, BlacklistedUser, Tag, TriviaUser, ReactionRole
 
 
 class FlagQuizHandler:
@@ -353,19 +353,26 @@ class TriviaHandler:
         return self.trivia_users[-1]
 
 
+class RolesHandler:
+    def __init__(self, bot, db):
+        self.bot = bot
+        self.db = db
+        self.messages = []
 
+    async def startup(self):
+        self.messages = await self.get_messages()
 
+    async def get_messages(self):
+        messages = []
+        async with self.db.execute(
+                f"SELECT message_id, role_id, emoji FROM reaction_roles"
+        ) as cur:
+            async for row in cur:
+                messages.append(ReactionRole(*row))
+            return messages
 
+    async def create_message(self, message_id: int, role_id: int, emoji: str):
+        await self.db.execute("INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)", [message_id, role_id, emoji])
+        await self.db.commit()
 
-
-
-
-
-
-
-
-
-
-
-
-
+        self.messages.append(ReactionRole(message_id, role_id, emoji))

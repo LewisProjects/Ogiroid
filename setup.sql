@@ -44,3 +44,11 @@ IF NOT EXISTS trivia
     streak INTEGER,
     longest_streak INTEGER
 );
+
+CREATE TABLE
+IF NOT EXISTS reaction_roles
+(
+    message_id INTEGER,
+    role_id INTEGER,
+    emoji TEXT
+);

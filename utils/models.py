@@ -66,3 +66,10 @@ class FlagQuizUser:
     tries: int
     correct: int
     completed: int
+
+
+@dataclass
+class ReactionRole:
+    message_id: int
+    role_id: int
+    emoji_id: str
