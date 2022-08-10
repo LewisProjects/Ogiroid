@@ -19,7 +19,6 @@ class Tickets(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.bot.ready_:
-            print('test')
             ticket_channel = self.bot.get_channel(self.ticket_channel)
 
             exists = False

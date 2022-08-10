@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime
 
 import disnake
-from disnake import Embed
+from disnake import Embed, ApplicationCommandInteraction
 
 
 async def wait_until(timestamp):
@@ -17,10 +17,19 @@ def get_expiry(time: int):
     time = int(time)
     return f"<t:{time}:R>" if str(time) != str(9999999999) else "never"
 
+async def permsEmb(inter: ApplicationCommandInteraction, *, permissions: str):
+    """@summary creates a disnake embed, so I can send it with x details easier"""
+    embed = Embed(
+        title=':x: You are missing permissions',
+        description=f'You need the following permission(s) to use /{inter.application_command.qualified_name}:\n{permissions}',
+        color=disnake.Color.red()
+    )
+    await inter.send(embed=embed, ephemeral=True)
 
-async def errorEmb(inter, text):
-    emb = Embed(description=text, color=disnake.Color.red())
+async def errorEmb(inter, text, *args, **kwargs):
+    emb = Embed(description=text, color=disnake.Color.red(), *args, **kwargs)
     await inter.send(embed=emb, ephemeral=True)
+
 
 
 async def sucEmb(inter, text, ephemeral=True):

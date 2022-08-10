@@ -1,3 +1,5 @@
+import asyncio
+
 import aiosqlite
 import disnake
 from disnake import ApplicationCommandInteraction
@@ -65,18 +67,20 @@ class OGIROID(commands.Bot):
 
     async def on_ready(self):
         if not self._ready_:
-            self._ready_ = True
             await self.wait_until_ready()
             await self._setup()
-            await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
+            await self.change_presence(
+                activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
             print("--------------------------------------------------------------------------------")
             print("Bot is ready! Logged in as: " + self.user.name)
             print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")
             print(f"Bot version: {__VERSION__}")
             print("--------------------------------------------------------------------------------")
+            await asyncio.sleep(5)  # Wait 5 seconds for the bot to load the database and setup
+            self._ready_ = True
+
         else:
             print("Bot reconnected")
-
 
     async def _setup(self):
         for command in self.application_commands:
