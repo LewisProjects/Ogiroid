@@ -90,6 +90,7 @@ class BlacklistHandler:
                 blacklist.append(BlacklistedUser(*row).fix_db_types())
         if len(blacklist) == 0:
             raise BlacklistNotFound
+        print(f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded")
         self.blacklist = blacklist
 
     async def get(self, user_id: int):
@@ -157,7 +158,7 @@ class TagManager:
                 self.names["tags"].append(tag.name)
             for alias in aliases:
                 self.names["aliases"].append(alias)
-            print(f"Loaded {len(tags)} tags and {len(aliases)} aliases")
+            print(f"[TAGS] Loaded {len(tags)} tags and {len(aliases)} aliases")
         except TagsNotFound:
             print("[TAGS] No tags found")
 
