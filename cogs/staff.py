@@ -3,7 +3,7 @@ from disnake.ext import commands
 
 from utils.bot import OGIROID
 from utils.shortcuts import sucEmb, errorEmb
-from utils.DBhandelers import RolesHandler
+from utils.DBhandlers import RolesHandler
 
 
 class Staff(commands.Cog):
@@ -58,8 +58,10 @@ class Staff(commands.Cog):
         await channel.set_permissions(ctx.guild.default_role, send_messages=True)
         await ctx.send(f"🔓 Unlocked {channel.mention} successfully!")
 
-    #Reaction Roles with buttons:
-    @commands.slash_command(name="addreactionrole", description="Add a reaction based role to a message")
+    # Reaction Roles with buttons:
+    @commands.slash_command(
+        name="addreactionrole", description="Add a reaction based role to a message"
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
     async def add_reaction_role(self, inter, message_id, emoji: str, role: disnake.Role):
@@ -79,7 +81,9 @@ class Staff(commands.Cog):
         for message in self.reaction_roles.messages:
             if payload.message_id == message.message_id:
                 guild = self.bot.get_guild(payload.guild_id)
-                await guild.get_member(payload.user_id).add_roles(guild.get_role(self.reaction_roles.messages[payload.message_id]))
+                await guild.get_member(payload.user_id).add_roles(
+                    guild.get_role(self.reaction_roles.messages[payload.message_id])
+                )
 
     @commands.slash_command(name="staffvote")
     @commands.guild_only()
@@ -88,7 +92,9 @@ class Staff(commands.Cog):
         """Staff vote command"""
         channel = self.bot.get_channel(self.bot.config.channels.staff_vote)
         # Creating an Embed!
-        embed = disnake.Embed(title=f"Title: {title}", description=f"Proposition: {proposition}", color=0xFFFFFF)
+        embed = disnake.Embed(
+            title=f"Title: {title}", description=f"Proposition: {proposition}", color=0xFFFFFF
+        )
         embed.set_footer(text="Started by: {}".format(inter.author.name))
         # Sending the Embed to the channel.
         embed_msg = await channel.send(embed=embed)

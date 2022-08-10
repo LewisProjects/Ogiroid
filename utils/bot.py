@@ -7,7 +7,7 @@ from disnake.ext import commands
 from disnake.ext.commands import when_mentioned_or
 
 from utils.CONSTANTS import __VERSION__
-from utils.DBhandelers import BlacklistHandler
+from utils.DBhandlers import BlacklistHandler
 from utils.config import Config
 from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
@@ -70,7 +70,8 @@ class OGIROID(commands.Bot):
             await self.wait_until_ready()
             await self._setup()
             await self.change_presence(
-                activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
+                activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!")
+            )
             print("--------------------------------------------------------------------------------")
             print("Bot is ready! Logged in as: " + self.user.name)
             print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")

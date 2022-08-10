@@ -7,7 +7,7 @@ from disnake import Embed, ApplicationCommandInteraction
 from disnake.ext import commands
 
 from utils.CONSTANTS import tag_help
-from utils.DBhandelers import TagManager
+from utils.DBhandlers import TagManager
 from utils.bot import OGIROID
 from utils.exceptions import *
 from utils.models import *
@@ -58,7 +58,9 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.increment_views(name, tag)
             owner = self.bot.get_user(tag.owner)
             emb = Embed(color=disnake.Color.random(seed=hash(tag.name)), title=f"{tag.name}")
-            emb.set_footer(text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}')
+            emb.set_footer(
+                text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}'
+            )
             emb.description = tag.content
             await inter.send(embed=emb)
         except TagNotFound:
@@ -82,7 +84,13 @@ class Tags(commands.Cog, name="Tags"):
             )
         try:
             await self.tags.create(name, content, inter.author.id)
-            return await QuickEmb(inter, f"I have successfully made **{name}**. To view it do /tag get {name}").success().send()
+            return (
+                await QuickEmb(
+                    inter, f"I have successfully made **{name}**. To view it do /tag get {name}"
+                )
+                .success()
+                .send()
+            )
         except TagAlreadyExists:
             return await errorEmb(inter, f"tag {name} already exists")
 
@@ -92,13 +100,16 @@ class Tags(commands.Cog, name="Tags"):
     async def edit(self, inter, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
         try:
-            if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
+            if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(
+                inter
+            ):
                 return await errorEmb(inter, "You do not have permission to edit this tag")
             if len(content) > 900:
                 return await errorEmb(inter, "Reason must be under 900 chars")
             await self.tags.update(name, "content", content)
             await QuickEmb(
-                inter, f"I have successfully updated **{name}**.\n\nuse /tag get {name} to access it."
+                inter,
+                f"I have successfully updated **{name}**.\n\nuse /tag get {name} to access it.",
             ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag {name} does not exist")
@@ -111,14 +122,20 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             if new_owner.bot:
                 return await errorEmb(inter, "You can't transfer a tag to a bot!")
-            elif (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
+            elif (
+                inter.author.id != (await self.tags.get(name)).owner
+            ) and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to transfer it!")
             await self.tags.transfer(name, new_owner.id)
-            await QuickEmb(inter, f"I have successfully transferred **{name}** to {new_owner.display_name}").success().send()
+            await QuickEmb(
+                inter, f"I have successfully transferred **{name}** to {new_owner.display_name}"
+            ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag {name} does not exist")
 
-    @tag.sub_command(name="claim", description="Claims ownership of the tag if the owner isn't in the guild")
+    @tag.sub_command(
+        name="claim", description="Claims ownership of the tag if the owner isn't in the guild"
+    )
     @commands.guild_only()
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def claim(self, inter, name):
@@ -126,9 +143,14 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             if (await self.tags.get(name)).owner == inter.author.id:
                 return await errorEmb(inter, "You already own this tag!")
-            elif inter.author.guild_permissions.manage_messages or inter.author.guild_permissions.administrator:
+            elif (
+                inter.author.guild_permissions.manage_messages
+                or inter.author.guild_permissions.administrator
+            ):
                 await self.tags.transfer(name, inter.author.id)
-                return await QuickEmb(inter, f"I have transferred **{name}** to you").success().send()
+                return (
+                    await QuickEmb(inter, f"I have transferred **{name}** to you").success().send()
+                )
             elif (await self.tags.get(name)).owner in [member.id for member in inter.guild.members]:
                 return await errorEmb(inter, "The owner of this tag is still in this guild!")
             await self.tags.transfer(name, inter.author.id)
@@ -149,7 +171,9 @@ class Tags(commands.Cog, name="Tags"):
     async def deltag(self, inter, name):
         try:
             name = name.casefold()
-            if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
+            if not inter.author.id == (
+                await self.tags.get(name)
+            ).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             await self.tags.delete(name)
             await QuickEmb(inter, f"I have successfully deleted **{name}**.").success().send()
@@ -165,11 +189,16 @@ class Tags(commands.Cog, name="Tags"):
             tag = await self.tags.get(name)
             await self.tags.increment_views(name, tag)
             owner = self.bot.get_user(tag.owner)
-            emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
+            emb = Embed(
+                color=disnake.Color.random(seed=hash(tag.name))
+            )  # hash -> seed makes the color the same for the tag
             emb.add_field(name="Name", value=tag.name)
             emb.add_field(name="Owner", value=owner.mention)
             if await self.tags.get_aliases(name):
-                emb.add_field(name="Aliases", value=", ".join(tag for tag in (await self.tags.get_aliases(name))))
+                emb.add_field(
+                    name="Aliases",
+                    value=", ".join(tag for tag in (await self.tags.get_aliases(name))),
+                )
             emb.add_field(name="Created At", value=f"<t:{tag.created_at}:R>")
             emb.add_field(name="Times Called", value=abs(tag.views))
             await inter.send(embed=emb)
@@ -223,9 +252,7 @@ class Tags(commands.Cog, name="Tags"):
 
         tag_embs.append(Embed(color=self.bot.config.colors.invis, description="The end ;D"))
         start_emb = Embed(title="Tags", color=self.bot.config.colors.invis)
-        start_emb.description = (
-            f"There are currently {tag_count:,d} tag{'s' if tag_count > 1 else ''}, use the arrows below to navigate through them"
-        )
+        start_emb.description = f"There are currently {tag_count:,d} tag{'s' if tag_count > 1 else ''}, use the arrows below to navigate through them"
         tag_embs.insert(0, start_emb)
         await ctx.send(embed=tag_embs[0], view=CreatePaginator(tag_embs, ctx.author.id))
 
@@ -235,18 +262,23 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             new_name = new_name.casefold()
-            if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
+            if not inter.author.id == (
+                await self.tags.get(name)
+            ).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to rename it!")
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter,
+                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes",
                     )
                     .error()
                     .send()
                 )
             await self.tags.rename(name, new_name)
-            await QuickEmb(inter, f"I have successfully renamed **{name}** to **{new_name}**.").success().send()
+            await QuickEmb(
+                inter, f"I have successfully renamed **{name}** to **{new_name}**."
+            ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag {name} does not exist")
 
@@ -264,7 +296,10 @@ class Tags(commands.Cog, name="Tags"):
 
         emb.add_field(name=f"General commands", value=general_cmds + "\n\n", inline=False)
         emb.add_field(name=f"Owner only commands", value=owner_cmds, inline=False)
-        emb.set_footer(text="Tag system made by @JasonLovesDoggo & @FreebieII", icon_url=self.bot.user.display_avatar.url)
+        emb.set_footer(
+            text="Tag system made by @JasonLovesDoggo & @FreebieII",
+            icon_url=self.bot.user.display_avatar.url,
+        )
         await ctx.send(embed=emb)
 
     @tag.sub_command_group(name="alias", description="Aliases a tag", hidden=True)
@@ -278,18 +313,23 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             alias = alias.casefold()
-            if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
+            if not inter.author.id == (
+                await self.tags.get(name)
+            ).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter,
+                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes",
                     )
                     .error()
                     .send()
                 )
             await self.tags.add_alias(name, alias)
-            await QuickEmb(inter, f"I have successfully added **{alias}** as an alias for **{name}**").success().send()
+            await QuickEmb(
+                inter, f"I have successfully added **{alias}** as an alias for **{name}**"
+            ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag {name} does not exist")
         except AliasAlreadyExists:
@@ -305,10 +345,14 @@ class Tags(commands.Cog, name="Tags"):
             alias = alias.casefold()
             if name == alias:
                 return await errorEmb(inter, "You can't remove the tag's name from itself")
-            elif not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
+            elif not inter.author.id == (
+                await self.tags.get(name)
+            ).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             await self.tags.remove_alias(name, alias)
-            await QuickEmb(inter, f"I have successfully removed **{alias}** from **{name}**").success().send()
+            await QuickEmb(
+                inter, f"I have successfully removed **{alias}** from **{name}**"
+            ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag {name} does not exist")
         except AliasNotFound:
