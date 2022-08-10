@@ -34,3 +34,11 @@ IF NOT EXISTS flag_quizz
     correct INTEGER,
     completed INTEGER
 );
+
+CREATE TABLE
+IF NOT EXISTS trivia
+(
+    id INTEGER,
+    correct INTEGER,
+    incorrect INTEGER
+);

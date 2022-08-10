@@ -7,6 +7,15 @@ from utils.shortcuts import get_expiry
 
 """careful moving the order of the below dataclasses as it will break the corresponding calls to them"""
 
+@dataclass
+class TriviaUser:
+    id: int  # user id
+    correct: int = 0
+    incorrect: int = 0
+
+    def total(self):
+        """total amount of quizzes answered"""
+        return self.correct + self.incorrect
 
 @dataclass
 class BlacklistedUser:
