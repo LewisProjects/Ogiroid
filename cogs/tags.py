@@ -40,7 +40,7 @@ class Tags(commands.Cog, name="Tags"):
     def db(self):
         return self.bot.db
 
-    @commands.slash_command(hidden=True)
+    @commands.slash_command()
     @commands.guild_only()
     async def tag(self, inter):
         pass
