@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 __VERSION__ = "1.6.0"
@@ -53,6 +54,14 @@ class Colors:
     invis: int = 0x2F3136
     white: int = 0xFFFFFF
 
+@dataclass
+class timings:
+    SECOND = 1
+    MINUTE = 60
+    HOUR = MINUTE * 60
+    DAY = HOUR * 24
+    WEEK = DAY * 7
+    MONTH = 2592000
 
 def status(stat):
     statuses = {

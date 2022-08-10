@@ -40,5 +40,7 @@ IF NOT EXISTS trivia
 (
     id INTEGER,
     correct INTEGER,
-    incorrect INTEGER
+    incorrect INTEGER,
+    streak INTEGER,
+    longest_streak INTEGER
 );

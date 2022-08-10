@@ -3,8 +3,10 @@ from __future__ import annotations
 import time
 from typing import List, Literal, Optional
 
+from utils.CONSTANTS import timings
+from utils.cache import AsyncTTL
 from utils.exceptions import *
-from utils.models import FlagQuizUser, BlacklistedUser, Tag
+from utils.models import FlagQuizUser, BlacklistedUser, Tag, TriviaUser
 
 
 class FlagQuizHandler:
@@ -18,7 +20,7 @@ class FlagQuizHandler:
             async for row in cur:
                 users.append(FlagQuizUser(*row))
         if len(users) == 0:
-            raise FlagQuizUserNotFound
+            raise UserNotFound
         return users
 
     async def get_leaderboard(self, order_by="correct"):
@@ -29,14 +31,14 @@ class FlagQuizHandler:
             async for row in cur:
                 leaderboard.append(FlagQuizUser(*row))
             if len(leaderboard) == 0:
-                raise FlagQuizUsersNotFound
+                raise UsersNotFound
             return leaderboard
 
     async def add_data(self, user_id: int, tries: int, correct: int):
         try:
             user = await self.get_user(user_id)
             user = user[0]
-        except FlagQuizUserNotFound:
+        except UserNotFound:
             await self.add_user(user_id, tries, correct)
             return
 
@@ -289,7 +291,6 @@ class TagManager:
             raise AliasNotFound
         await self.db.execute("DELETE FROM tag_relations WHERE tag_id = ? AND alias = ?", [name, alias])
         await self.db.commit()
-
     async def remove_aliases(self, name):
         await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
@@ -315,24 +316,56 @@ class TagManager:
 class TriviaHandler:
     def __init__(self, db):
         self.db = db
+        self.trivia_users: List[TriviaUser] = []
+        self.cache = AsyncTTL(namespace="trivia", ttl=timings.HOUR)
 
-        self.trivia_cache = {}
-    # psuedo-code
-    """
-    SQL layout:
-    table name trivia 
-    columns:
-    id: user.id
-    correct: int
-    incorrect: int
-    
-    
-    
-    @property
-    def quizcount(self):
-        return correct + incorrect    
-    
-    
-    
-    
-    """
+    def __new__(cls, *args, **kwargs):
+        return NotImplementedError("This class is not done yet")
+
+    async def startup(self):
+        await self.load_users()
+
+    async def load_users(self) -> List[TriviaUser] | List:
+        async with self.db.execute("SELECT * FROM trivia") as cur:
+            content = await cur.fetchall()
+            if content is None:
+                return []
+            self.trivia_users = [TriviaUser(*row) for row in content]
+            return self.trivia_users
+
+    async def get_user(self, user_id: int) -> TriviaUser | UserNotFound:
+        if await self.cache.exists(user_id):
+            return await self.cache.get(user_id)
+        user = [user for user in self.trivia_users if user.id == user_id]
+        if len(user) == 0:
+            raise UserNotFound
+        await self.cache.add(user_id, user[0])
+        return user[0]  # there should be only one user with this id
+
+    async def exists(self, user_id: int) -> bool:
+        return len([user for user in self.trivia_users if user.id == user_id]) > 0
+
+    async def add_user(self, user_id: int, correct: int, incorrect: int, streak: int, longest_streak: int):
+        #await self.exists(user_id, UserNotFound, should=False)
+        await self.db.execute("INSERT INTO trivia (id, correct, incorrect, streak, longest_streak) VALUES (?, ?, ?, ?, ?)", [user_id, correct, incorrect, streak, longest_streak])
+        await self.db.commit()
+        self.trivia_users.append(TriviaUser(user_id, correct, incorrect, streak, longest_streak))
+        return self.trivia_users[-1]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

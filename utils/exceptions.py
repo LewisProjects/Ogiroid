@@ -8,6 +8,11 @@ class BotException(BaseException):
 class BlacklistException(BotException):
     pass
 
+class UserNotFound(BotException):
+    pass
+
+class UsersNotFound(BotException):
+    pass
 
 class TagException(BotException):
     pass
@@ -42,10 +47,6 @@ class AliasNotFound(AliasException):
 
 class AliasLimitReached(AliasException):
     pass
-
-class FlagQuizUserNotFound(FlagQuizException):
-    pass
-
 
 class FlagQuizUsersNotFound(FlagQuizException):
     pass

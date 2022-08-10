@@ -12,8 +12,7 @@ from utils.DBhandelers import BlacklistHandler
 from utils.models import BlacklistedUser
 from utils.pagination import CreatePaginator
 from utils.shortcuts import sucEmb, errorEmb, get_expiry, wait_until
-
-HOUR = 3600
+from utils.CONSTANTS import timings
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
@@ -49,7 +48,7 @@ class Blacklist(Cog):
             return  # already being removed
         elif user.is_expired():
             return True
-        elif int(time.time()) <= user.expires <= (int(time.time()) + HOUR):
+        elif int(time.time()) <= user.expires <= (int(time.time()) + timings.HOUR):
             self.del_que.append(user.id)
             await self.run_at(user.expires, self.blacklist.remove, user.id)
 

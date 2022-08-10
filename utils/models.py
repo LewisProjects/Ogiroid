@@ -12,6 +12,8 @@ class TriviaUser:
     id: int  # user id
     correct: int = 0
     incorrect: int = 0
+    streak: int = 0
+    longest_streak = 0
 
     def total(self):
         """total amount of quizzes answered"""
