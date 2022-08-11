@@ -95,7 +95,8 @@ class Commands(commands.Cog):
             url="https://cdn.discordapp.com/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
         )
 
-        await inter.response.send_message(embed=embed)
+        button = disnake.ui.Button(label="Source", style=disnake.ButtonStyle.url, url="https://github.com/LewisProjects/Ogiroid")
+        await inter.send(embed=embed, components=button)
 
     @commands.slash_command()
     @commands.guild_only()
