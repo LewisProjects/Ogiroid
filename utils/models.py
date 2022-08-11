@@ -15,6 +15,10 @@ class TriviaUser:
     streak: int = 0
     longest_streak: int = 0
 
+    @property
+    def current_streak_is_longest(self) -> bool:
+        return self.streak >= self.longest_streak
+
     def total(self):
         """total amount of quizzes answered"""
         return self.correct + self.incorrect
