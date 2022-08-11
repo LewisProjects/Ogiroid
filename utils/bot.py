@@ -46,11 +46,14 @@ class OGIROID(commands.Bot):
         self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
 
     async def blacklist_check(self, ctx):
-        await self.wait_until_ready()
-        if await self.blacklist.blacklisted(ctx.author.id):
-            await errorEmb(ctx, "You are blacklisted from using this bot!")
-            raise UserBlacklisted
-        return True
+        try:
+            await self.wait_until_ready()
+            if await self.blacklist.blacklisted(ctx.author.id):
+                await errorEmb(ctx, "You are blacklisted from using this bot!")
+                raise UserBlacklisted
+            return True
+        except AttributeError:
+            pass  # DB hasn't loaded yet
 
     async def on_command(self, ctx):
         self.total_commands_ran += 1
