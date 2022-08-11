@@ -98,16 +98,6 @@ class Staff(commands.Cog):
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
 
-
-    # Creating /staffvote slash command which sends the user the modal for staffvote()
-    @commands.slash_command(name="staffvote")
-    @commands.guild_only()
-    @commands.has_role("Staff")
-    async def staffvote(self, ctx):
-        """Propose a Staff Vote."""
-        await ctx.response.send_modal(modal=StaffVote())
-
-
 class StaffVote(disnake.ui.Modal):
     def __init__(self):
         # The details of the modal, and its components
