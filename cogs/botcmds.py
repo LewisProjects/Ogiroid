@@ -5,7 +5,7 @@ from collections import Counter
 import disnake
 from disnake.ext import commands
 
-from utils.CONSTANTS import status
+from utils.CONSTANTS import status, __VERSION__
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb
 
@@ -80,7 +80,7 @@ class Commands(commands.Cog):
         """Shows the info of the bot"""
         embed = disnake.Embed(title="Ogiroid Information: ", description=" ", color=0xFFFFFF)
         embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
-        embed.add_field(name="**Bot Version: **", value=f"```>> 1.6.0```", inline=False)
+        embed.add_field(name="**Bot Version: **", value=f"```>> {__VERSION__}```", inline=False)
         embed.add_field(
             name="**Disnake Version: **",
             value=f"```>> {disnake.__version__}```",
