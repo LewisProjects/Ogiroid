@@ -113,12 +113,12 @@ class Staff(commands.Cog):
         if message is None:
             return await errorEmb(inter, "Message not found!")
 
+        await message.add_reaction(emoji)
+
         try:
             await self.reaction_roles.create_message(message_id, role.id, emoji)
         except ReactionAlreadyExists:
             return await errorEmb(inter, "Reaction already exists!")
-
-        await message.add_reaction(emoji)
 
         await sucEmb(inter, f"Added!")
 
