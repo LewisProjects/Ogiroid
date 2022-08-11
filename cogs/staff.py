@@ -11,8 +11,9 @@ from utils.exceptions import ReactionAlreadyExists
 
 
 class StaffVote(disnake.ui.Modal):
-    def __init__(self):
+    def __init__(self, bot: OGIROID):
         # The details of the modal, and its components
+        self.bot = bot
         components = [
             disnake.ui.TextInput(
                 label="Title of the vote:",
@@ -40,12 +41,12 @@ class StaffVote(disnake.ui.Modal):
         embed = disnake.Embed(title=(inter.text_values["staff_vote_title"]), description=(inter.text_values["staff_vote_proposition"]), color=0xFFFFFF)
         embed.set_footer(text="Started by: {}".format(inter.author.name))
         # Sending the Embed to the channel.
-        staff_vote = self.bot.get_channel(1002132747441152071) #Hard Coding channel id for testing purposes, replace id with "self.bot.config.channels.staff_vote"
+        staff_vote = self.bot.get_channel(self.bot.config.channels.staff_vote)
         embed_msg = await staff_vote.send(embed=embed)
         reactions = ["✅", "❌"]
         for reaction in reactions:  # adding reactions to embed_msg
             await embed_msg.add_reaction(reaction)
-        await inter.send("Your vote has been started successfully!", delete_after=3)
+        await sucEmb(inter, "Your vote has been started successfully!")
 
 
 class Staff(commands.Cog):
@@ -141,7 +142,7 @@ class Staff(commands.Cog):
     @commands.has_role("Staff")
     async def staffvote(self, ctx):
         """Propose a Staff Vote."""
-        await ctx.response.send_modal(modal=StaffVote())
+        await ctx.response.send_modal(modal=StaffVote(self.bot))
 
 
 def setup(bot):
