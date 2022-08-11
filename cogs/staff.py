@@ -10,6 +10,44 @@ from utils.DBhandelers import RolesHandler
 from utils.exceptions import ReactionAlreadyExists
 
 
+class StaffVote(disnake.ui.Modal):
+    def __init__(self):
+        # The details of the modal, and its components
+        components = [
+            disnake.ui.TextInput(
+                label="Title of the vote:",
+                placeholder="This vote is about...",
+                custom_id="staff_vote_title",
+                style=TextInputStyle.short,
+                max_length=16,
+            ),
+            disnake.ui.TextInput(
+                label="Proposition of the vote:",
+                placeholder="I propose to...",
+                custom_id="staff_vote_proposition",
+                style=TextInputStyle.paragraph,
+                max_length=512,
+            ),
+        ]
+        super().__init__(
+            title="Staff Vote",
+            custom_id="staff_vote",
+            components=components,
+        )
+
+    #callback recieved when the user input is completed
+    async def callback(self, inter: disnake.ModalInteraction):
+        embed = disnake.Embed(title=(inter.text_values["staff_vote_title"]), description=(inter.text_values["staff_vote_proposition"]), color=0xFFFFFF)
+        embed.set_footer(text="Started by: {}".format(inter.author.name))
+        # Sending the Embed to the channel.
+        staff_vote = self.bot.get_channel(1002132747441152071) #Hard Coding channel id for testing purposes, replace id with "self.bot.config.channels.staff_vote"
+        embed_msg = await staff_vote.send(embed=embed)
+        reactions = ["✅", "❌"]
+        for reaction in reactions:  # adding reactions to embed_msg
+            await embed_msg.add_reaction(reaction)
+        await inter.send("Your vote has been started successfully!", delete_after=3)
+
+
 class Staff(commands.Cog):
     """Commands for the staff team!\n\n"""
 
@@ -98,51 +136,12 @@ class Staff(commands.Cog):
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
 
-class StaffVote(disnake.ui.Modal):
-    def __init__(self):
-        # The details of the modal, and its components
-        components = [
-            disnake.ui.TextInput(
-                label="Title of the vote:",
-                placeholder="This vote is about...",
-                custom_id="staff_vote_title",
-                style=TextInputStyle.short,
-                max_length=16,
-            ),
-            disnake.ui.TextInput(
-                label="Proposition of the vote:",
-                placeholder="I propose to...",
-                custom_id="staff_vote_proposition",
-                style=TextInputStyle.paragraph,
-                max_length=512,
-            ),
-        ]
-        super().__init__(
-            title="Staff Vote",
-            custom_id="staff_vote",
-            components=components,
-        )
-
-    #callback recieved when the user input is completed
-    async def callback(self, inter: disnake.ModalInteraction):
-        embed = disnake.Embed(title=(inter.text_values["staff_vote_title"]), description=(inter.text_values["staff_vote_proposition"]), color=0xFFFFFF)
-        embed.set_footer(text="Started by: {}".format(inter.author.name))
-        # Sending the Embed to the channel.
-        staff_vote = self.bot.get_channel(1002132747441152071) #Hard Coding channel id for testing purposes, replace id with "self.bot.config.channels.staff_vote"
-        embed_msg = await staff_vote.send(embed=embed)
-        reactions = ["✅", "❌"]
-        for reaction in reactions:  # adding reactions to embed_msg
-            await embed_msg.add_reaction(reaction)
-        await inter.send("Your vote has been started successfully!", delete_after=3)
-
-
     @commands.slash_command(name="staffvote", description="Propose a Staff Vote.")
     @commands.guild_only()
     @commands.has_role("Staff")
     async def staffvote(self, ctx):
         """Propose a Staff Vote."""
         await ctx.response.send_modal(modal=StaffVote())
-
 
 
 def setup(bot):
