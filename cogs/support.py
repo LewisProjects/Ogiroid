@@ -10,6 +10,11 @@ class BugModal(disnake.ui.Modal):
         # The details of the modal, and its components
         self.bot = bot
         components = [
+            disnake.ui.Select(
+                placeholder="Bug Report for:",
+                options=["Reddit-Bot", "Ogiroid"],
+                custom_id="type",
+            ),
             disnake.ui.TextInput(
                 label="Bug Title",
                 placeholder="Title",
@@ -47,8 +52,11 @@ class BugModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
+        bug_report_type = inter.data["components"][0]["components"][0]["values"][0]
         embed = disnake.Embed(title="Bug Report")
         embed.add_field(name="From:", value=inter.author)
+
+        embed.add_field(name="Type:", value=bug_report_type)
 
         embed.add_field(name="Bug Title:", value=inter.text_values["title"], inline=False)
 
@@ -56,9 +64,16 @@ class BugModal(disnake.ui.Modal):
 
         embed.add_field(name="Actual Result:", value=inter.text_values["actual"], inline=False)
 
-        embed.add_field(name="Further Explanation", value=inter.text_values["description"], inline=False)
+        embed.add_field(
+            name="Further Explanation:",
+            value=inter.text_values["description"] if inter.text_values["description"] else "No explanation provided",
+            inline=False)
 
-        channel = self.bot.get_channel(self.bot.config.channels.bug_report)
+        if bug_report_type == "Reddit-Bot":
+            channel = self.bot.get_channel(self.bot.config.channels.bug_report_reddit_bot)
+        else:
+            channel = self.bot.get_channel(self.bot.config.channels.bug_report_ogiroid)
+
         await channel.send(embed=embed)
         await inter.send("Sent bug report.\nThank you for pointing it out.", ephemeral=True)
 
@@ -68,6 +83,11 @@ class SuggestionModal(disnake.ui.Modal):
         # The details of the modal, and its components
         self.bot = bot
         components = [
+            disnake.ui.Select(
+                placeholder="Suggestion for:",
+                options=["Reddit-Bot", "Ogiroid"],
+                custom_id="type",
+            ),
             disnake.ui.TextInput(
                 label="Suggestion Title",
                 placeholder="Title",
@@ -90,14 +110,20 @@ class SuggestionModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
+        suggestion_type = inter.data["components"][0]["components"][0]["values"][0]
         embed = disnake.Embed(title="Suggestion")
         embed.add_field(name="From:", value=inter.author)
 
+        embed.add_field(name="Type:", value=suggestion_type)
+
         embed.add_field(name="Title:", value=inter.text_values["title"], inline=False)
 
-        embed.add_field(name="Description", value=inter.text_values["description"], inline=False)
+        embed.add_field(name="Description:", value=inter.text_values["description"], inline=False)
 
-        channel = self.bot.get_channel(self.bot.config.channels.suggestion)
+        if suggestion_type == "Reddit-Bot":
+            channel = self.bot.get_channel(self.bot.config.channels.suggestion_reddit_bot)
+        else:
+            channel = self.bot.get_channel(self.bot.config.channels.suggestion_ogiroid)
         await channel.send(embed=embed)
         await inter.response.send_message("Sent suggestion.\nThank you for your suggestion.", ephemeral=True)
 
