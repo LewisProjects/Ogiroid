@@ -68,7 +68,7 @@ class Blacklist(Cog):
     async def blacklist_info(self, inter, user: Member):
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
-        bl_user = self.blacklist.get_user(user.id)
+        bl_user = await self.blacklist.get_user(user.id)
         embed = Embed(title=f"Blacklisted user: {user.name}", color=disnake.Color.random(seed=user.name))
         embed.add_field(name="Reason", value=bl_user.reason, inline=False)
         embed.add_field(name="Expires", value=bl_user.get_expiry, inline=False)
@@ -107,7 +107,7 @@ class Blacklist(Cog):
         expiry = int((await timeconversions.convert(expires)).dt.timestamp())
         await self.blacklist.edit_expiry(user.id, expiry)
         await sucEmb(inter, f"Edited the expiry of {user.mention}'s blacklist to expire {get_expiry(expiry)}")
-        await self.check_user_removal(self.blacklist.get_user(user.id))
+        await self.check_user_removal(await self.blacklist.get_user(user.id))
 
     @commands.has_permissions(manage_messages=True)
     @blacklist.sub_command(name="remove", description="Remove a user from the blacklist")
@@ -158,7 +158,7 @@ class Blacklist(Cog):
             f"{user.mention} added to blacklist\nthe user's blacklist will {f'expire on <t:{int(expires)}:R>' if str(expires) != str(9999999999) else 'never expire'}",
             ephemeral=False,
         )
-        await self.check_user_removal(self.blacklist.get_user(user.id))
+        await self.check_user_removal(await self.blacklist.get_user(user.id))
 
     @commands.cooldown(1, 30, commands.BucketType.user)
     @blacklist.sub_command(name="list", description="List all blacklisted users")

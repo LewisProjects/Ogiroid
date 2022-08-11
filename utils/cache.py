@@ -1,9 +1,13 @@
 from functools import wraps
 
-from aiocache import Cache, SimpleMemoryCache
+from aiocache import SimpleMemoryCache
 
 
 def async_cache(maxsize=128):
+    """
+    args:
+        maxsize: int - the maximum size of the cache (default: 128) set to 0 for unlimited
+    """
     _cache = {}
 
     def decorator(func):
@@ -21,9 +25,10 @@ def async_cache(maxsize=128):
 
             res = await func(*args, **kwargs)
 
-            if len(_cache) > maxsize:
-                del _cache[list(_cache.keys())[0]]
-                _cache[key] = res
+            if maxsize != 0:
+                if len(_cache) > maxsize:
+                    del _cache[list(_cache.keys())[0]]
+                    _cache[key] = res
 
             return res
 
@@ -31,11 +36,18 @@ def async_cache(maxsize=128):
 
     return decorator
 
-
 class AsyncTTL(SimpleMemoryCache):
     def __init__(self, ttl: int = 3600, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ttl = ttl
+
+    async def try_get(self, key):
+        """
+        Try to get a value from cache. If it's not there then it returns False.
+        """
+        value = await super().get(key, default=False)
+        return value
+
 
     async def get(self, key, *args, **kwargs):
         await super().expire(key, self.ttl)
@@ -47,4 +59,5 @@ class AsyncTTL(SimpleMemoryCache):
     async def add(self, key, value, *args, **kwargs):
         await super().add(key, value, ttl=self.ttl, *args, **kwargs)
 
-
+    async def remove(self, key, *args, **kwargs):
+        await super().delete(key, *args, **kwargs)
