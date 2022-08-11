@@ -26,6 +26,10 @@ class FlagQuizException(BotException):
     pass
 
 
+class RoleReactionException(BotException):
+    pass
+
+
 class TagNotFound(TagException, KeyError):
     pass
 
@@ -45,10 +49,16 @@ class AliasAlreadyExists(AliasException):
 class AliasNotFound(AliasException):
     pass
 
+
 class AliasLimitReached(AliasException):
     pass
 
+
 class FlagQuizUsersNotFound(FlagQuizException):
+    pass
+
+
+class ReactionAlreadyExists(RoleReactionException):
     pass
 
 

@@ -362,17 +362,31 @@ class RolesHandler:
     async def startup(self):
         self.messages = await self.get_messages()
 
+    async def exists(self, message_id: int, emoji: str) -> bool:
+        return len([message for message in self.messages
+                    if message.message_id == message_id and message.emoji == emoji]) > 0
+
     async def get_messages(self):
         messages = []
         async with self.db.execute(
-                f"SELECT message_id, role_id, emoji FROM reaction_roles"
+                f"SELECT message_id, role_id, emoji, roles_given FROM reaction_roles"
         ) as cur:
             async for row in cur:
                 messages.append(ReactionRole(*row))
             return messages
 
     async def create_message(self, message_id: int, role_id: int, emoji: str):
+        if await self.exists(message_id, emoji):
+            raise ReactionAlreadyExists
         await self.db.execute("INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)", [message_id, role_id, emoji])
         await self.db.commit()
 
-        self.messages.append(ReactionRole(message_id, role_id, emoji))
+        self.messages.append(ReactionRole(message_id, role_id, emoji, 0))
+
+    async def increment_roles_given(self, message_id: str, emoji: str):
+        await self.db.execute("UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?", [message_id, emoji])
+        await self.db.commit()
+        for message in self.messages:
+            if message.message_id == message_id and message.emoji == emoji:
+                message.roles_given += 1
+                return

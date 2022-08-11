@@ -4,6 +4,7 @@ from disnake.ext import commands
 from utils.bot import OGIROID
 from utils.shortcuts import sucEmb, errorEmb
 from utils.DBhandelers import RolesHandler
+from utils.exceptions import ReactionAlreadyExists
 
 
 class Staff(commands.Cog):
@@ -68,18 +69,31 @@ class Staff(commands.Cog):
         message_id = int(message_id)
         message = await inter.channel.fetch_message(message_id)
         if message is None:
-            await errorEmb(inter, "Message not found!")
-            return
+            return await errorEmb(inter, "Message not found!")
+
+        try:
+            await self.reaction_roles.create_message(message_id, role.id, emoji)
+        except ReactionAlreadyExists:
+            return await errorEmb(inter, "Reaction already exists!")
+
         await message.add_reaction(emoji)
-        await self.reaction_roles.create_message(message_id, role.id, emoji)
+
         await sucEmb(inter, f"Added!")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id:
+            if payload.message_id == message.message_id and payload.emoji.name == message.emoji:
+                await self.reaction_roles.increment_roles_given(payload.message_id, message.emoji)
                 guild = self.bot.get_guild(payload.guild_id)
-                await guild.get_member(payload.user_id).add_roles(guild.get_role(self.reaction_roles.messages[payload.message_id]))
+                await guild.get_member(payload.user_id).add_roles(guild.get_role(message.role_id))
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        for message in self.reaction_roles.messages:
+            if payload.message_id == message.message_id and payload.emoji.name == message.emoji:
+                guild = self.bot.get_guild(payload.guild_id)
+                await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
 
     @commands.slash_command(name="staffvote")
     @commands.guild_only()

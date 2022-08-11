@@ -72,4 +72,5 @@ class FlagQuizUser:
 class ReactionRole:
     message_id: int
     role_id: int
-    emoji_id: str
+    emoji: str
+    roles_given: int

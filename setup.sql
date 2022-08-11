@@ -50,5 +50,6 @@ IF NOT EXISTS reaction_roles
 (
     message_id INTEGER,
     role_id INTEGER,
-    emoji TEXT
+    emoji TEXT,
+    roles_given INTEGER DEFAULT 0
 );
