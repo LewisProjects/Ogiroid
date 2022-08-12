@@ -5,6 +5,7 @@ import random
 import time
 from datetime import datetime, timezone
 
+import translators as ts
 import akinator as ak
 import disnake
 from discord_together import DiscordTogether
@@ -504,6 +505,27 @@ class Fun(commands.Cog):
                     await inter.send(embed=embed)
                 else:
                     await inter.send("Sorry, an unexpected problem occured.")
+
+    @commands.slash_command(name="translate", description="Translates text from a language into another language.")
+    async def translate(self, inter, *, text: str, language: str = commands.Param(choices={
+        "Arabic": "ar",
+        "Chinese": "zh",
+        "Russian": "ru",
+        "French": "fr",
+        "German": "de",
+        "Italian": "it",
+        "Japanese": "ja",
+        "Korean": "ko",
+        "Portuguese": "pt",
+        "Spanish": "es",
+        "Turkish": "tr",
+        "Hindi": "hi",
+        "Swedish": "sv"
+    })): #Expressing Language as Options
+        """Translates text from a language into another language."""
+        translated_text = await ts.google(query_text=text, from_language='auto', to_language=language)
+        await inter.send(translated_text)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
