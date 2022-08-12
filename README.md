@@ -22,6 +22,7 @@ This bot offers:
 <hr>
 <h3>Bot Development Information:</h3>
 <p>Written in: <b>Python</b><br>Made using <a href="https://disnake.dev/">Disnake</a>, a Discord.py fork!</p>
+<p>NOTE: you need to use python 3.8+ for this bot</p>
 Developers:
 <ul>
 <li><a href="https://github.com/ImmaHarry">HarryDaDev</a></li>
