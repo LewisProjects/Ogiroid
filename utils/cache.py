@@ -45,7 +45,7 @@ class AsyncTTL(SimpleMemoryCache):
         """
         Try to get a value from cache. If it's not there then it returns False.
         """
-        value = await super().get(key, default=False)
+        value = await self.get(key, default=False)
         return value
 
 

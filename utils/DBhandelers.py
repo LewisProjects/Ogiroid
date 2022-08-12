@@ -1,33 +1,44 @@
-from __future__ import annotations
+from __future__ import annotations, generator_stop
 
 import time
 from typing import List, Literal, Optional
 
+from aiocache import Cache
+
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
-from utils.models import FlagQuizUser, BlacklistedUser, Tag, TriviaUser, ReactionRole
+from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole
 
 
 class FlagQuizHandler:
     def __init__(self, bot, db):
         self.bot = bot
         self.db = db
+        self.cache = AsyncTTL(timings.MINUTE * 4)
 
     async def get_user(self, user_id: int):
-        users = []
-        async with self.db.execute(f"SELECT * FROM flag_quizz WHERE user_id = {user_id}") as cur:
-            async for row in cur:
-                users.append(FlagQuizUser(*row))
-        if len(users) == 0:
+        user = await self.cache.get(str(user_id))
+        if user is not None:
+            return user
+        elif await self.exists(user_id):
+            async with self.db.execute(f"SELECT * FROM flag_quizz WHERE user_id = {user_id}") as cur:
+                rawUserData = await cur.fetchone()
+                user = FlagQuizUser(*rawUserData)
+                await self.cache.set(str(user_id), user)
+                return user
+
+        else:
             raise UserNotFound
-        return users
+
+    async def exists(self, user_id: int):
+        async with self.db.execute(f"SELECT EXISTS(SELECT 1 FROM flag_quizz WHERE user_id=?)", [user_id]) as cur:
+            return bool((await cur.fetchone())[0])
 
     async def get_leaderboard(self, order_by="correct"):
         leaderboard = []
         async with self.db.execute(
-            f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
-        ) as cur:
+                f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10") as cur:
             async for row in cur:
                 leaderboard.append(FlagQuizUser(*row))
             if len(leaderboard) == 0:
@@ -50,8 +61,7 @@ class FlagQuizHandler:
         correct += user.correct
 
         async with self.db.execute(
-            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
-        ):
+                f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"):
             await self.db.commit()
 
     async def add_user(self, user_id: int, tries: int, correct: int):
@@ -61,9 +71,15 @@ class FlagQuizHandler:
             completed = 0
 
         async with self.db.execute(
-            f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
-        ):
+                f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"):
             await self.db.commit()
+
+
+"""
+note to any future contributors:
+the self.exists() calls are very carefully used.
+if you add a call to ANY of the functions in TagManager MAKE SURE it's called once
+"""
 
 
 class BlacklistHandler:
@@ -71,21 +87,36 @@ class BlacklistHandler:
         self.bot = bot
         self.db = db
         self.blacklist: List[BlacklistedUser] = []
+        self.cache = AsyncTTL(timings.HOUR * 2)
 
-    def get_user(self, user_id: int) -> BlacklistedUser:
-        return [user for user in self.blacklist if user.id == user_id][0]
+    async def get_user(self, user_id: int) -> BlacklistedUser:
+        """
+        explanation: if user is in the cache return user; else: fetch it and add it to the cache then return user
+        """
+        user = await self.cache.get(user_id)
+        if user is not None:
+            return user
+        elif user_id in [user.id for user in self.blacklist]:
+            user: BlacklistedUser = [user for user in self.blacklist if user.id == user_id][0]
+            await self.cache.add(user_id, user)
+            return user
+        else:
+            raise UserNotFound
 
     async def startup(self):
+        """waits for the bot to be ready and then loads the blacklist"""
         await self.bot.wait_until_ready()
         try:
             await self.load_blacklist()
         except BlacklistNotFound:
             print("[BLACKLIST] No blacklisted users found")
 
-    async def count(self):
+    async def count(self) -> int:
+        """Returns the amount of blacklisted users"""
         return len(self.blacklist)
 
     async def load_blacklist(self):
+        """Loads the blacklist into memory"""
         blacklist = []
         async with self.db.execute(f"SELECT * FROM blacklist") as cur:
             async for row in cur:
@@ -95,52 +126,74 @@ class BlacklistHandler:
         print(f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded")
         self.blacklist = blacklist
 
-    async def get(self, user_id: int):
+    async def get(self, user_id: int) -> BlacklistedUser:
+        """Returns the BlacklistedUser object of the user"""
         return self.get_user(user_id)
 
     async def add(self, user_id: int, reason: str, bot: bool, tickets: bool, tags: bool, expires: int):
+        """Adds a user to the blacklist"""
         await self.db.execute(
             f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
-            [user_id, reason, bot, tickets, tags, expires],
-        )
+            [user_id, reason, bot, tickets, tags, expires], )
         await self.db.commit()
-        self.blacklist.append(BlacklistedUser(user_id, reason, bot, tickets, tags, expires))
+        user = BlacklistedUser(user_id, reason, bot, tickets, tags, expires)
+        self.blacklist.append(user)
+        await self.cache.add(user_id, user)
 
     async def remove(self, user_id: int):
+        """Removes a user from the blacklist"""
         await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
         await self.db.commit()
         self.blacklist.remove(self.get_user(user_id))
+        await self.cache.remove(user_id)
 
-    async def blacklisted(self, user_id: int):
-        return any(user.id == user_id for user in self.blacklist)
+    async def blacklisted(self, user_id: int) -> bool:
+        """Returns True if the user is blacklisted"""
+        if await self.cache.exists(user_id):
+            return True
+        elif any(user.id == user_id for user in self.blacklist):
+            await self.cache.add(user_id, self.get_user(user_id),
+                                 expires=timings.MINUTE * 30)  # only cache for 30 minutes because this is called on every cmd
+            return True
+        else:
+            return False
 
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
-        await self.db.execute(
-            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
-        )
+        """Edits the flags (blacklist perms) of a user"""
+        await self.db.execute(f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?",
+            [bot, tickets, tags, user_id])
         await self.db.commit()
-        self.blacklist[self.get_user_index(user_id)].bot = bot
-        self.blacklist[self.get_user_index(user_id)].tickets = tickets
-        self.blacklist[self.get_user_index(user_id)].tags = tags
+        indx = self.get_user_index(user_id)
+        user = self.blacklist[indx]
+        user.bot = bot
+        user.tickets = tickets
+        user.tags = tags
+        user = self.blacklist[indx] = user
+        await self.cache.set(user_id, user)
 
     async def edit_reason(self, user_id: int, reason: str):
+        """Edits the blacklist reason of a user"""
         await self.db.execute(f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id])
         await self.db.commit()
-        self.blacklist[self.blacklist.index(self.get_user(user_id))].reason = reason
+        indx = self.get_user_index(user_id)
+        user = self.blacklist[indx]
+        user.reason = reason
+        self.blacklist[indx] = user
+        await self.cache.set(user_id, user)
 
     async def edit_expiry(self, user_id: int, expires: int):
+        """Edits when the blacklist expires of a user"""
         await self.db.execute(f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id])
         await self.db.commit()
-        self.blacklist[self.blacklist.index(self.get_user(user_id))].expires = expires
+        indx = self.get_user_index(user_id)
+        user = self.blacklist[indx]
+        user.expires = expires
+        self.blacklist[indx] = user
+        await self.cache.set(user_id, user)
 
-    def get_user_index(self, user_id):
+    def get_user_index(self, user_id) -> int:
+        """Returns the index of the user in the blacklist"""
         return self.blacklist.index(self.get_user(user_id))
-
-
-""" note to any future contributors:
-the self.exists() calls are very carefully used.
-if you add a call to ANY of the functions in TagManager MAKE SURE it's called once
-"""
 
 
 class TagManager:
@@ -149,6 +202,7 @@ class TagManager:
         self.db = db
         self.session = self.bot.session
         self.names = {"tags": [], "aliases": []}
+        self.cache = AsyncTTL(timings.DAY / 2)  # cache tags for 12 hrs
 
     async def startup(self):
         await self.bot.wait_until_ready()
@@ -164,37 +218,59 @@ class TagManager:
         except TagsNotFound:
             print("[TAGS] No tags found")
 
-    async def exists(self, name, exception: TagException, should: bool) -> bool | TagException:
-        full_list = self.names["tags"] + (self.names["aliases"])
+    async def get_tag_from_cache(self, name):
+        name = await self.get_name(name)
+        return await self.cache.get(name)
+
+    async def exists(self, name, exception: TagException, should: bool) -> bool:
+        """Returns True if the tag exists"""
         name = name.casefold()
-        if should:
-            if name in full_list:
+        if await self.cache.exists(name):
+            if should:
                 return True
             raise exception
+
         else:
-            if name not in full_list:
-                return True
-            raise exception
+            full_list = self.names["tags"] + self.names["aliases"]
+            if should:
+                if name in full_list:
+                    return True
+                raise exception
+            else:
+                if name not in full_list:
+                    return True
+                raise exception
 
     async def create(self, name, content, owner):
-        await self.exists(name, TagAlreadyExists, should=False)
-        self.names["tags"].append(name)
-        await self.db.execute(
-            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
-            [name, content, owner, int(time.time())],
-        )
+        await self.db.execute("INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            [name, content, owner, int(time.time())], )
         await self.db.commit()
+        self.names["tags"].append(name)
+        await self.cache.add(name, Tag(name, content, owner, 0, int(time.time())))
 
-    async def get(self, name) -> Tag | TagNotFound:
-        await self.exists(name, TagNotFound, should=True)
+    async def get(self, name, /, force: bool = False) -> Tag:
+        """
+        Returns the tag object of the tag with the given name or alias
+        args:
+            name: the name of the tag
+            force: if True, will ignore the cache and get the tag from the database
+        """
         name = await self.get_name(name)
+        if not force:
+            item = await self.cache.get(name)
+            if item is not None:
+                return item
+            else:
+                await self.cache.add(name, await self.get(name, force=True))
+
         async with self.db.execute("SELECT * FROM tags WHERE tag_id= ?", [name]) as cur:
-            async for row in cur:
-                return Tag(*row)
+            raw = await cur.fetchone()
+            return Tag(*raw)
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
-        async with self.db.execute(f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
+        async with self.db.execute(
+                f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -202,43 +278,45 @@ class TagManager:
         return tags
 
     async def delete(self, name):
-        await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
-        for tag in await self.get_aliases(name):
-            self.names["aliases"].remove(tag)
-        await self.remove_aliases(name)
-        self.names["tags"].remove(name)
         await self.db.execute("DELETE FROM tags WHERE tag_id = ?", [name])
         await self.db.commit()
+        # internals below
+        for tag in await self.get_aliases(name):
+            self.names["aliases"].remove(tag)
+            await self.cache.delete(tag)
+        await self.remove_aliases(name)
 
     async def update(self, name, param, new_value):
         async with self.db.execute(f"UPDATE tags SET {param} = ? WHERE tag_id = ?", [new_value, name]):
             await self.db.commit()
+        if param == 'tag_id':
+            await self.cache.add(new_value, await self.get(name))
+            await self.cache.remove(name)
+        else:
+            await self.cache.set(name, await self.get(name, force=True))  # force to fetch directly from the database
 
     async def rename(self, name, new_name):
-        await self.exists(name, TagNotFound, should=True)  # if the tag doesn't exist, it will raise TagNotFound
-        await self.exists(
-            new_name, TagAlreadyExists, should=False
-        )  # if new tag's name already exists, it will raise TagAlreadyExists
         name = await self.get_name(name)
         await self.update(name, "tag_id", new_name)
         async with self.db.execute(f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?", [new_name, name]):
             await self.db.commit()
+
         self.names["tags"].append(new_name)
         self.names["tags"].remove(name)
 
     async def transfer(self, name, new_owner: int):
-        await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
         await self.update(name, "owner", new_owner)
 
-    async def increment_views(self, name, tag: Tag = None):
+    async def increment_views(self, name):
         name = await self.get_name(name)
+        tag = await self.cache.get(name, default=False)
         if tag:
-            current_views = tag.views
-        else:
-            current_views = (await self.get(name)).views
-        await self.update(name, "views", (current_views + 1))
+            tag.views += 1
+            await self.cache.set(name, tag)
+        await self.db.execute("UPDATE tags SET views = views + 1 WHERE tag_id = ?", [name])
+        await self.db.commit()
 
     async def get_top(self, limit=10):
         tags = []
@@ -252,8 +330,7 @@ class TagManager:
     async def get_tags_by_owner(self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"):
         tags = []
         async with self.db.execute(
-            f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
-        ) as cur:
+                f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}") as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -265,7 +342,9 @@ class TagManager:
             return int(tuple(await cur.fetchone())[0])
 
     async def get_name(self, name_or_alias):
-        # await self.exists(name_or_alias, TagNotFound, should=True)
+        """gets the true name of a tag (not the alias)"""
+
+        name_or_alias = name_or_alias.casefold()
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
         async with self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]) as cur:
@@ -274,26 +353,31 @@ class TagManager:
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
-        await self.exists(name, TagNotFound, should=True)
         aliases = (await self.get_aliases(name))
         if alias in aliases:
             raise AliasAlreadyExists
         elif len(aliases) > 10:
             raise AliasLimitReached
-        self.names["aliases"].append(alias)
         await self.db.execute("INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias])
         await self.db.commit()
+        self.names["aliases"].append(alias)
+        await self.cache.add(alias, await self.get(name))
 
     async def remove_alias(self, name, alias):
-        await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
         if alias not in (await self.get_aliases(name)):
             raise AliasNotFound
         await self.db.execute("DELETE FROM tag_relations WHERE tag_id = ? AND alias = ?", [name, alias])
         await self.db.commit()
+        self.names["aliases"].remove(alias)
+        await self.cache.delete(alias)
+
     async def remove_aliases(self, name):
-        await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
+        aliases = await self.get_aliases(name)
+        for alias in aliases:
+            self.names["aliases"].remove(alias)
+            await self.cache.delete(alias)
         await self.db.execute("DELETE FROM tag_relations WHERE tag_id = ?", [name])
         await self.db.commit()
 
@@ -304,53 +388,12 @@ class TagManager:
                 if content is None:
                     return []
                 return [row[1] for row in content]
-        await self.exists(name, TagNotFound, should=True)
         name = await self.get_name(name)
         async with self.db.execute("SELECT * FROM tag_relations WHERE tag_id = ?", [name]) as cur:
             content = await cur.fetchall()
             if content is None:
                 return []
         return [alias for tag_id, alias in list(set(content))]
-
-
-class TriviaHandler:
-    def __init__(self, db):
-        self.db = db
-        self.trivia_users: List[TriviaUser] = []
-        self.cache = AsyncTTL(namespace="trivia", ttl=timings.HOUR)
-
-    def __new__(cls, *args, **kwargs):
-        return NotImplementedError("This class is not done yet")
-
-    async def startup(self):
-        await self.load_users()
-
-    async def load_users(self) -> List[TriviaUser] | List:
-        async with self.db.execute("SELECT * FROM trivia") as cur:
-            content = await cur.fetchall()
-            if content is None:
-                return []
-            self.trivia_users = [TriviaUser(*row) for row in content]
-            return self.trivia_users
-
-    async def get_user(self, user_id: int) -> TriviaUser | UserNotFound:
-        if await self.cache.exists(user_id):
-            return await self.cache.get(user_id)
-        user = [user for user in self.trivia_users if user.id == user_id]
-        if len(user) == 0:
-            raise UserNotFound
-        await self.cache.add(user_id, user[0])
-        return user[0]  # there should be only one user with this id
-
-    async def exists(self, user_id: int) -> bool:
-        return len([user for user in self.trivia_users if user.id == user_id]) > 0
-
-    async def add_user(self, user_id: int, correct: int, incorrect: int, streak: int, longest_streak: int):
-        #await self.exists(user_id, UserNotFound, should=False)
-        await self.db.execute("INSERT INTO trivia (id, correct, incorrect, streak, longest_streak) VALUES (?, ?, ?, ?, ?)", [user_id, correct, incorrect, streak, longest_streak])
-        await self.db.commit()
-        self.trivia_users.append(TriviaUser(user_id, correct, incorrect, streak, longest_streak))
-        return self.trivia_users[-1]
 
 
 class RolesHandler:
@@ -363,14 +406,12 @@ class RolesHandler:
         self.messages = await self.get_messages()
 
     async def exists(self, message_id: int, emoji: str) -> bool:
-        return len([message for message in self.messages
-                    if message.message_id == message_id and message.emoji == emoji]) > 0
+        return len(
+            [message for message in self.messages if message.message_id == message_id and message.emoji == emoji]) > 0
 
     async def get_messages(self):
         messages = []
-        async with self.db.execute(
-                f"SELECT message_id, role_id, emoji, roles_given FROM reaction_roles"
-        ) as cur:
+        async with self.db.execute(f"SELECT message_id, role_id, emoji, roles_given FROM reaction_roles") as cur:
             async for row in cur:
                 messages.append(ReactionRole(*row))
             return messages
@@ -378,14 +419,18 @@ class RolesHandler:
     async def create_message(self, message_id: int, role_id: int, emoji: str):
         if await self.exists(message_id, emoji):
             raise ReactionAlreadyExists
-        await self.db.execute("INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)", [message_id, role_id, emoji])
+        await self.db.execute("INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)",
+                              [message_id, role_id, emoji])
         await self.db.commit()
 
         self.messages.append(ReactionRole(message_id, role_id, emoji, 0))
 
     async def increment_roles_given(self, message_id: str, emoji: str):
-        await self.db.execute("UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?", [message_id, emoji])
+        await self.db.execute(
+            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?",
+            [message_id, emoji])
         await self.db.commit()
+        # todo: cache remove below
         for message in self.messages:
             if message.message_id == message_id and message.emoji == emoji:
                 message.roles_given += 1

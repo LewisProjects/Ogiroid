@@ -46,25 +46,24 @@ class Tags(commands.Cog, name="Tags"):
         pass
 
     @commands.slash_command(name="t", aliases=["tg"], description="Get a tag", hidden=True)
-    async def get_tag(self, inter: ApplicationCommandInteraction, *, name: str, embeded=False):
+    async def get_tag(self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool =False):
         return await self.get(inter, name, embeded)
 
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
-    async def get(self, inter, name: str, embeded=False):
+    async def get(self, inter, name: str, embeded: bool = False):
         name = name.casefold()
         try:
             tag = await self.tags.get(name)
             await self.tags.increment_views(name)
             if embeded:
-
                 owner = self.bot.get_user(tag.owner)
                 emb = Embed(color=disnake.Color.random(seed=hash(tag.name)), title=f"{tag.name}")
                 emb.set_footer(text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}')
                 emb.description = tag.content
                 await inter.send(embed=emb)
             else:
-                content = f"**{tag.name}**\n{tag.content}"
+                content = str(tag.content)
                 await inter.send(content, allowed_mentions=disnake.AllowedMentions.none())
         except TagNotFound:
             await errorEmb(inter, f"tag {name} does not exist")
