@@ -38,7 +38,8 @@ class FlagQuizHandler:
     async def get_leaderboard(self, order_by="correct"):
         leaderboard = []
         async with self.db.execute(
-                f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10") as cur:
+            f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
+        ) as cur:
             async for row in cur:
                 leaderboard.append(FlagQuizUser(*row))
             if len(leaderboard) == 0:
@@ -61,7 +62,8 @@ class FlagQuizHandler:
         correct += user.correct
 
         async with self.db.execute(
-                f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"):
+            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
+        ):
             await self.db.commit()
 
     async def add_user(self, user_id: int, tries: int, correct: int):
@@ -71,7 +73,8 @@ class FlagQuizHandler:
             completed = 0
 
         async with self.db.execute(
-                f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"):
+            f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
+        ):
             await self.db.commit()
 
 
@@ -134,7 +137,8 @@ class BlacklistHandler:
         """Adds a user to the blacklist"""
         await self.db.execute(
             f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
-            [user_id, reason, bot, tickets, tags, expires], )
+            [user_id, reason, bot, tickets, tags, expires],
+        )
         await self.db.commit()
         user = BlacklistedUser(user_id, reason, bot, tickets, tags, expires)
         self.blacklist.append(user)
@@ -152,16 +156,18 @@ class BlacklistHandler:
         if await self.cache.exists(user_id):
             return True
         elif any(user.id == user_id for user in self.blacklist):
-            await self.cache.add(user_id, self.get_user(user_id),
-                                 expires=timings.MINUTE * 30)  # only cache for 30 minutes because this is called on every cmd
+            await self.cache.add(
+                user_id, self.get_user(user_id), expires=timings.MINUTE * 30
+            )  # only cache for 30 minutes because this is called on every cmd
             return True
         else:
             return False
 
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
         """Edits the flags (blacklist perms) of a user"""
-        await self.db.execute(f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?",
-            [bot, tickets, tags, user_id])
+        await self.db.execute(
+            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
+        )
         await self.db.commit()
         indx = self.get_user_index(user_id)
         user = self.blacklist[indx]
@@ -242,8 +248,10 @@ class TagManager:
                 raise exception
 
     async def create(self, name, content, owner):
-        await self.db.execute("INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
-            [name, content, owner, int(time.time())], )
+        await self.db.execute(
+            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            [name, content, owner, int(time.time())],
+        )
         await self.db.commit()
         self.names["tags"].append(name)
         await self.cache.add(name, Tag(name, content, owner, 0, int(time.time())))
@@ -269,8 +277,7 @@ class TagManager:
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
-        async with self.db.execute(
-                f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
+        async with self.db.execute(f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -290,7 +297,7 @@ class TagManager:
     async def update(self, name, param, new_value):
         async with self.db.execute(f"UPDATE tags SET {param} = ? WHERE tag_id = ?", [new_value, name]):
             await self.db.commit()
-        if param == 'tag_id':
+        if param == "tag_id":
             await self.cache.add(new_value, await self.get(name))
             await self.cache.remove(name)
         else:
@@ -330,7 +337,8 @@ class TagManager:
     async def get_tags_by_owner(self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"):
         tags = []
         async with self.db.execute(
-                f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}") as cur:
+            f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
+        ) as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -353,7 +361,7 @@ class TagManager:
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
-        aliases = (await self.get_aliases(name))
+        aliases = await self.get_aliases(name)
         if alias in aliases:
             raise AliasAlreadyExists
         elif len(aliases) > 10:
@@ -406,8 +414,7 @@ class RolesHandler:
         self.messages = await self.get_messages()
 
     async def exists(self, message_id: int, emoji: str) -> bool:
-        return len(
-            [message for message in self.messages if message.message_id == message_id and message.emoji == emoji]) > 0
+        return len([message for message in self.messages if message.message_id == message_id and message.emoji == emoji]) > 0
 
     async def get_messages(self):
         messages = []
@@ -419,16 +426,17 @@ class RolesHandler:
     async def create_message(self, message_id: int, role_id: int, emoji: str):
         if await self.exists(message_id, emoji):
             raise ReactionAlreadyExists
-        await self.db.execute("INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)",
-                              [message_id, role_id, emoji])
+        await self.db.execute(
+            "INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)", [message_id, role_id, emoji]
+        )
         await self.db.commit()
 
         self.messages.append(ReactionRole(message_id, role_id, emoji, 0))
 
     async def increment_roles_given(self, message_id: str, emoji: str):
         await self.db.execute(
-            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?",
-            [message_id, emoji])
+            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?", [message_id, emoji]
+        )
         await self.db.commit()
         # todo: cache remove below
         for message in self.messages:

@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv('secrets.env')  # keep above OGIROID import
+load_dotenv("secrets.env")  # keep above OGIROID import
 from utils.bot import OGIROID
 
 bot = OGIROID()

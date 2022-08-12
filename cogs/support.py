@@ -53,7 +53,7 @@ class BugModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
-        bug_report_type = self.bug_report_type # inter.data["components"][0]["components"][0]["values"][0]
+        bug_report_type = self.bug_report_type  # inter.data["components"][0]["components"][0]["values"][0]
         embed = disnake.Embed(title="Bug Report")
         embed.add_field(name="From:", value=inter.author)
 
@@ -68,7 +68,8 @@ class BugModal(disnake.ui.Modal):
         embed.add_field(
             name="Further Explanation:",
             value=inter.text_values["description"] if inter.text_values["description"] else "No explanation provided",
-            inline=False)
+            inline=False,
+        )
 
         if bug_report_type == "Reddit-Bot":
             channel = self.bot.get_channel(self.bot.config.channels.bug_report_reddit_bot)
@@ -112,7 +113,7 @@ class SuggestionModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
-        suggestion_type = self.suggestion_type# inter.data["components"][0]["components"][0]["values"][0]
+        suggestion_type = self.suggestion_type  # inter.data["components"][0]["components"][0]["values"][0]
         embed = disnake.Embed(title="Suggestion")
         embed.add_field(name="From:", value=inter.author)
 
@@ -136,16 +137,29 @@ class BotSupport(commands.Cog, name="Bot Support"):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
-    @commands.slash_command(name="reportbug", description="Report a bug", options=[
-        Option(name="for", required=True, description="Select for what this bug report is.",
-               choices=["Reddit-Bot", "Ogiroid"])], connectors={"for": "bug_report_for"})
+    @commands.slash_command(
+        name="reportbug",
+        description="Report a bug",
+        options=[
+            Option(
+                name="for", required=True, description="Select for what this bug report is.", choices=["Reddit-Bot", "Ogiroid"]
+            )
+        ],
+        connectors={"for": "bug_report_for"},
+    )
     async def bug(self, inter, bug_report_for: str):
         await inter.response.send_modal(modal=BugModal(self.bot, bug_report_for))
 
-    @commands.slash_command(name="suggest", description="Suggest something for the bot", options=[
-                            Option(name="for", required=True,
-                                   description="Select for what this suggestion is.",
-                                   choices=["Reddit-Bot", "Ogiroid"])], connectors={"for": "suggestion_for"})
+    @commands.slash_command(
+        name="suggest",
+        description="Suggest something for the bot",
+        options=[
+            Option(
+                name="for", required=True, description="Select for what this suggestion is.", choices=["Reddit-Bot", "Ogiroid"]
+            )
+        ],
+        connectors={"for": "suggestion_for"},
+    )
     async def suggestion(self, inter, suggestion_for: str):
         await inter.response.send_modal(modal=SuggestionModal(self.bot, suggestion_for))
 

@@ -19,6 +19,7 @@ from utils.bot import OGIROID
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
 
+
 class Fun(commands.Cog):
     """Fun Commands!"""
 
@@ -322,16 +323,15 @@ class Fun(commands.Cog):
             await inter.send(embed=intro)
 
             def check(msg):
-                return (
-                    msg.author == inter.author
-                    and msg.channel == inter.channel
-                )
+                return msg.author == inter.author and msg.channel == inter.channel
 
-            components = [disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
-                          disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
-                          disnake.ui.Button(label="Probably", custom_id="p"),
-                          disnake.ui.Button(label='Idk', custom_id="idk"),
-                          disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple)]
+            components = [
+                disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
+                disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
+                disnake.ui.Button(label="Probably", custom_id="p"),
+                disnake.ui.Button(label="Idk", custom_id="idk"),
+                disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple),
+            ]
 
             try:
                 aki = ak.Akinator()
@@ -476,7 +476,9 @@ class Fun(commands.Cog):
                         color=0xFFFFFF,
                     )
                     embed.add_field(name="📎 Example: ", value=definition["example"].replace("[", "").replace("]", ""))
-                    embed.set_footer(text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}")
+                    embed.set_footer(
+                        text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}"
+                    )
                     await inter.send(embed=embed)
                 else:
                     await inter.send("Sorry, that word is not found.")
@@ -495,29 +497,39 @@ class Fun(commands.Cog):
                         color=0xFFFFFF,
                     )
                     embed.add_field(name="📎 Example: ", value=definition["example"].replace("[", "").replace("]", ""))
-                    embed.set_footer(text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}")
+                    embed.set_footer(
+                        text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}"
+                    )
                     await inter.send(embed=embed)
                 else:
                     await inter.send("Sorry, an unexpected problem occured.")
 
     @commands.slash_command(name="translate", description="Translates text from a language into another language.")
-    async def translate(self, inter, *, text: str, language: str = commands.Param(choices={
-        "Arabic": "ar",
-        "Chinese": "zh",
-        "Russian": "ru",
-        "French": "fr",
-        "German": "de",
-        "Italian": "it",
-        "Japanese": "ja",
-        "Korean": "ko",
-        "Portuguese": "pt",
-        "Spanish": "es",
-        "Turkish": "tr",
-        "Hindi": "hi",
-        "Swedish": "sv"
-    })): #Expressing Language as Options
+    async def translate(
+        self,
+        inter,
+        *,
+        text: str,
+        language: str = commands.Param(
+            choices={
+                "Arabic": "ar",
+                "Chinese": "zh",
+                "Russian": "ru",
+                "French": "fr",
+                "German": "de",
+                "Italian": "it",
+                "Japanese": "ja",
+                "Korean": "ko",
+                "Portuguese": "pt",
+                "Spanish": "es",
+                "Turkish": "tr",
+                "Hindi": "hi",
+                "Swedish": "sv",
+            }
+        ),
+    ):  # Expressing Language as Options
         """Translates text from a language into another language."""
-        translated_text = await ts.google(query_text=text, from_language='auto', to_language=language)
+        translated_text = await ts.google(query_text=text, from_language="auto", to_language=language)
         await inter.send(translated_text)
 
 

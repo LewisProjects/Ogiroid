@@ -46,7 +46,7 @@ class Tags(commands.Cog, name="Tags"):
         pass
 
     @commands.slash_command(name="t", aliases=["tg"], description="Get a tag", hidden=True)
-    async def get_tag(self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool =False):
+    async def get_tag(self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool = False):
         return await self.get(inter, name, embeded)
 
     @tag.sub_command(name="get", description="Gets you the tags value")
@@ -246,9 +246,7 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             new_name = new_name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)  # if the tag doesn't exist, it will raise TagNotFound
-            await self.tags.exists(
-                new_name, TagAlreadyExists, should=False
-            )
+            await self.tags.exists(new_name, TagAlreadyExists, should=False)
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to rename it!")
             elif not await self.valid_name(name):

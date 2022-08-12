@@ -36,6 +36,7 @@ def async_cache(maxsize=128):
 
     return decorator
 
+
 class AsyncTTL(SimpleMemoryCache):
     def __init__(self, ttl: int = 3600, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,7 +48,6 @@ class AsyncTTL(SimpleMemoryCache):
         """
         value = await self.get(key, default=False)
         return value
-
 
     async def get(self, key, *args, **kwargs):
         await super().expire(key, self.ttl)

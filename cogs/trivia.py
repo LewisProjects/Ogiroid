@@ -46,7 +46,7 @@ class Trivia(commands.Cog, name="Trivia"):
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
-                                f"Current Score: {correct}/{tries - 1}",
+                    f"Current Score: {correct}/{tries - 1}",
                     color=0xFFFFFF,
                 )
                 await channel.send(embed=embed)
@@ -80,8 +80,7 @@ class Trivia(commands.Cog, name="Trivia"):
                         except asyncio.exceptions.TimeoutError:
                             await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                         else:
-                            if response.content.lower() not in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok",
-                                                                "ye"]:
+                            if response.content.lower() not in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
                                 continue
                         await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
                         await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
@@ -94,10 +93,9 @@ class Trivia(commands.Cog, name="Trivia"):
 
     @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
     async def flag_quiz_leaderboard(
-            self,
-            inter,
-            sortby: str = commands.Param(
-                choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
+        self,
+        inter,
+        sortby: str = commands.Param(choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
     ):
         try:
             leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
@@ -138,25 +136,58 @@ class Trivia(commands.Cog, name="Trivia"):
         embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
         embed.set_thumbnail(url=user.display_avatar.url)
         embed.add_field(name=f"Player:", value=f"{user}")
-        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}",
-                        inline=False)
+        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}", inline=False)
         embed.add_field(name="Got all 199 Flags correct in one Run", value=f"{player.completed} times")
         await inter.send(embed=embed)
 
-    @commands.slash_command(name="trivia", description="A quick bit of Trivia.", options=[
-        Option(name="category", description="The category of the questions", choices=[
-            "Any", "General Knowledge", "Entertainment: Books", "Entertainment: Film", "Entertainment: Music",
-            "Entertainment: Musicals & Theatres", "Entertainment: Television", "Entertainment: Video Games",
-            "Entertainment: Board Games", "Science & Nature", "Science: Computers", "Science: Mathematics", "Mythology",
-            "Sports", "Geography", "History", "Politics", "Art", "Celebrities", "Animals", "Vehicles",
-            "Entertainment: Comics", "Science: Gadgets", "Entertainment: Japanese Anime & Manga",
-            "Entertainment: Cartoon & Animations"]),
-        Option(name="amount", description="Amount of Questions", min_value=1),
-        Option(name="difficulty", description="Difficulty of the questions", choices={
-            "Easy": "easy", "Medium": "medium", "Hard": "hard"}),
-        Option(name="kind", description="Type of the questions",
-               choices={"Multiple Choice": "multiple", "True/False": "boolean", "Any": 'any'})
-    ])
+    @commands.slash_command(
+        name="trivia",
+        description="A quick bit of Trivia.",
+        options=[
+            Option(
+                name="category",
+                description="The category of the questions",
+                choices=[
+                    "Any",
+                    "General Knowledge",
+                    "Entertainment: Books",
+                    "Entertainment: Film",
+                    "Entertainment: Music",
+                    "Entertainment: Musicals & Theatres",
+                    "Entertainment: Television",
+                    "Entertainment: Video Games",
+                    "Entertainment: Board Games",
+                    "Science & Nature",
+                    "Science: Computers",
+                    "Science: Mathematics",
+                    "Mythology",
+                    "Sports",
+                    "Geography",
+                    "History",
+                    "Politics",
+                    "Art",
+                    "Celebrities",
+                    "Animals",
+                    "Vehicles",
+                    "Entertainment: Comics",
+                    "Science: Gadgets",
+                    "Entertainment: Japanese Anime & Manga",
+                    "Entertainment: Cartoon & Animations",
+                ],
+            ),
+            Option(name="amount", description="Amount of Questions", min_value=1),
+            Option(
+                name="difficulty",
+                description="Difficulty of the questions",
+                choices={"Easy": "easy", "Medium": "medium", "Hard": "hard"},
+            ),
+            Option(
+                name="kind",
+                description="Type of the questions",
+                choices={"Multiple Choice": "multiple", "True/False": "boolean", "Any": "any"},
+            ),
+        ],
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def trivia(self, inter, category="Any", difficulty=None, amount: int = 5, kind="multiple"):
         if int(amount) <= 1:
@@ -170,7 +201,8 @@ class Trivia(commands.Cog, name="Trivia"):
         emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]
         if category == "Any" or category is None:
             response = await self.bot.session.get(
-                f"https://opentdb.com/api.php?amount={amount}{f'&difficulty={difficulty}' if difficulty else ''}{f'&type={kind}' if kind != 'any' else ''}")
+                f"https://opentdb.com/api.php?amount={amount}{f'&difficulty={difficulty}' if difficulty else ''}{f'&type={kind}' if kind != 'any' else ''}"
+            )
         else:
             category_id = None
             for item in TRIVIA_CATEGORIES:
@@ -181,7 +213,8 @@ class Trivia(commands.Cog, name="Trivia"):
                 return await QuickEmb(inter, "Invalid Category").error().send()
 
             response = await self.bot.session.get(
-                f"https://opentdb.com/api.php?amount={amount}&category={category_id}{f'&difficulty={difficulty}' if difficulty else ''}{f'&type={kind}' if kind != 'any' else ''}")
+                f"https://opentdb.com/api.php?amount={amount}&category={category_id}{f'&difficulty={difficulty}' if difficulty else ''}{f'&type={kind}' if kind != 'any' else ''}"
+            )
         data = await response.json()
         embed = disnake.Embed(title="Created Quiz", colour=0xFFFFFF)
         embed.set_author(name=inter.author, icon_url=inter.author.display_avatar)
@@ -207,7 +240,7 @@ class Trivia(commands.Cog, name="Trivia"):
                 answers_string += f"{emojis[i]}: {html.unescape(answers[i])}\n"
                 components.append(disnake.ui.Button(emoji=emojis[i], custom_id=f"{i}"))
 
-            embed = disnake.Embed(title=html.unescape(question['question']), description=answers_string, color=0xFFFFFF)
+            embed = disnake.Embed(title=html.unescape(question["question"]), description=answers_string, color=0xFFFFFF)
             await channel.send(embed=embed, components=components)
             try:
                 user_inter = await self.bot.wait_for("button_click", check=check, timeout=60.0)
@@ -221,14 +254,16 @@ class Trivia(commands.Cog, name="Trivia"):
                 if n == len(data["results"]):
                     await QuickEmb(user_inter, f"Correct the answer indeed is {answer}.").success().send()
                 else:
-                    await QuickEmb(user_inter,
-                                   f"Correct the answer indeed is {answer}. Your score so far is {correct} / {questions}").success().send()
+                    await QuickEmb(
+                        user_inter, f"Correct the answer indeed is {answer}. Your score so far is {correct} / {questions}"
+                    ).success().send()
             else:
                 if n == len(data["results"]):
                     await QuickEmb(user_inter, f"Incorrect the correct answer is {answer}.").error().send()
                 else:
-                    await QuickEmb(user_inter,
-                                   f"Incorrect the correct answer is {answer}. Your score so far is {correct} / {questions}").error().send()
+                    await QuickEmb(
+                        user_inter, f"Incorrect the correct answer is {answer}. Your score so far is {correct} / {questions}"
+                    ).error().send()
 
         await QuickEmb(channel, f"Thanks for playing. Your final Score is {correct} / {questions}.").send()
 

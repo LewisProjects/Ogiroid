@@ -86,7 +86,7 @@ class OGIROID(commands.Bot):
             if do_break:
                 break
 
-        COMMAND_NAME = ' '.join([command.name for command in COMMAND_STRUCT])
+        COMMAND_NAME = " ".join([command.name for command in COMMAND_STRUCT])
         self.total_commands_ran += 1
         try:
             self.commands_ran[COMMAND_NAME] += 1
@@ -97,8 +97,7 @@ class OGIROID(commands.Bot):
         if not self._ready_:
             await self.wait_until_ready()
             await self._setup()
-            await self.change_presence(
-                activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
+            await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
             print("--------------------------------------------------------------------------------")
             print("Bot is ready! Logged in as: " + self.user.name)
             print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")

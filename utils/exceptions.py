@@ -8,11 +8,14 @@ class BotException(BaseException):
 class BlacklistException(BotException):
     pass
 
+
 class UserNotFound(BotException):
     pass
 
+
 class UsersNotFound(BotException):
     pass
+
 
 class TagException(BotException):
     pass

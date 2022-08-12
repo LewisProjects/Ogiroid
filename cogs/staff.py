@@ -34,9 +34,13 @@ class StaffVote(disnake.ui.Modal):
             components=components,
         )
 
-    #callback recieved when the user input is completed
+    # callback recieved when the user input is completed
     async def callback(self, inter: disnake.ModalInteraction):
-        embed = disnake.Embed(title=(inter.text_values["staff_vote_title"]), description=(inter.text_values["staff_vote_proposition"]), color=0xFFFFFF)
+        embed = disnake.Embed(
+            title=(inter.text_values["staff_vote_title"]),
+            description=(inter.text_values["staff_vote_proposition"]),
+            color=0xFFFFFF,
+        )
         embed.set_footer(text="Started by: {}".format(inter.author.name))
         # Sending the Embed to the channel.
         staff_vote = self.bot.get_channel(self.bot.config.channels.staff_vote)
@@ -99,7 +103,7 @@ class Staff(commands.Cog):
         await channel.set_permissions(ctx.guild.default_role, send_messages=True)
         await ctx.send(f"🔓 Unlocked {channel.mention} successfully!")
 
-    #Reaction Roles with buttons:
+    # Reaction Roles with buttons:
     @commands.slash_command(name="addreactionrole", description="Add a reaction based role to a message")
     @commands.guild_only()
     @commands.has_role("Staff")
