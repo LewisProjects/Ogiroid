@@ -12,17 +12,12 @@ from discord_together import DiscordTogether
 from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
-from dotenv import load_dotenv
-from requests import session
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
 from utils.bot import OGIROID
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
-
-load_dotenv("../secrets.env")
-
 
 class Fun(commands.Cog):
     """Fun Commands!"""
@@ -35,9 +30,8 @@ class Fun(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.bot.ready_:
-            TOKEN = os.getenv("TOKEN")
             # noinspection PyUnresolvedReferences
-            self.togetherControl = await DiscordTogether(TOKEN)
+            self.togetherControl = await DiscordTogether(self.bot.http.token)
 
     @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -183,7 +177,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
         impostor = random.choice(["true", "false"])
-        apikey = os.getenv("SRA_API_KEY")
+        apikey = self.bot.config.tokens.SRA
         uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
         resp = await self.bot.session.get(uri)
         if 300 > resp.status >= 200:

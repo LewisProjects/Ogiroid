@@ -2,12 +2,11 @@ import os
 
 from dotenv import load_dotenv
 
+load_dotenv('secrets.env')  # keep above OGIROID import
 from utils.bot import OGIROID
 
-load_dotenv("secrets.env")
-TOKEN = os.getenv("TOKEN")
-
 bot = OGIROID()
+TOKEN = bot.config.tokens.bot
 
 
 def main():
