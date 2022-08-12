@@ -1,10 +1,10 @@
 import asyncio
-import random
 import html
+import random
 
 import disnake
-from disnake import Option
 import textdistance
+from disnake import Option
 from disnake.ext import commands
 
 from utils.CONSTANTS import COUNTRIES, TRIVIA_CATEGORIES
@@ -33,12 +33,12 @@ class Trivia(commands.Cog, name="Trivia"):
         country_list = list(self.countries.items())
         random.shuffle(country_list)
         countries = dict(country_list)
+        correct = 0
+        tries = 0
 
         def check(m):
             return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
 
-        correct = 0
-        tries = 0
         for emoji, country in countries.items():
             tries += 1
             retry = True
@@ -159,7 +159,6 @@ class Trivia(commands.Cog, name="Trivia"):
     ])
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def trivia(self, inter, category="Any", difficulty=None, amount: int = 5, kind="multiple"):
-        print(type(kind))
         if int(amount) <= 1:
             return await QuickEmb(inter, "The amount of questions needs to be at least 1").error().send()
 

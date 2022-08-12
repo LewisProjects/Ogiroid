@@ -8,11 +8,11 @@ from disnake.ext import commands, tasks
 from disnake.ext.commands import Cog
 
 from utils import timeconversions
+from utils.CONSTANTS import timings
 from utils.DBhandelers import BlacklistHandler
 from utils.models import BlacklistedUser
 from utils.pagination import CreatePaginator
 from utils.shortcuts import sucEmb, errorEmb, get_expiry, wait_until
-from utils.CONSTANTS import timings
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
