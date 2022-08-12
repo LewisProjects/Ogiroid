@@ -7,8 +7,10 @@ __VERSION__ = "1.6.0"
 
 @dataclass
 class Channels:
-    suggestion: int = 982353129913851924
-    bug_report: int = 982669110926250004
+    suggestion_reddit_bot: int = 982353129913851924
+    bug_report_reddit_bot: int = 982669110926250004
+    suggestion_ogiroid: int = 985554479405490216
+    bug_report_ogiroid: int = 985554459948122142
     errors: int = 986531210283069450
     reddit_faq: int = 985908874362093620
     tickets: int = 1005904969737711760
@@ -19,8 +21,10 @@ class Channels:
 
     @classmethod
     def dev(cls):
-        cls.suggestion: int = 985554479405490216
-        cls.bug_report: int = 985554459948122142
+        cls.suggestion_reddit_bot: int = 1007334702442619010
+        cls.bug_report_reddit_bot: int = 1007334758214279198
+        cls.suggestion_ogiroid: int = 985554479405490216
+        cls.bug_report_ogiroid: int = 985554459948122142
         cls.reddit_faq: int = 985908874362093620
         cls.tickets: int = 1003006753564262452
         cls.logs: int = 988162723890217040
