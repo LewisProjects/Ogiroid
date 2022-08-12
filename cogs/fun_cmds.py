@@ -462,6 +462,48 @@ class Fun(commands.Cog):
 
             return question, response"""
 
+    @commands.slash_command(description="Gets an urban dictionary definition.")
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def urbandictionary(self, inter):
+        pass
+
+    @urbandictionary.sub_command(name="define", description="Find the defintion for a word!")
+    async def define(self, inter, *, word: str):
+        urban_dictionary = "http://api.urbandictionary.com/v0/define?term={}"
+        async with HTTPSession() as session:
+            async with session.get(urban_dictionary.format(word)) as data:
+                data = await data.json()
+                if data["list"]:
+                    definition = data["list"][0]
+                    embed = disnake.Embed(
+                        title="Your Word 🏷: {}".format(definition["word"]),
+                        description="**🗞 Definition:** {}".format(definition["definition"].replace("[", "").replace("]", "")),
+                        color=0xFFFFFF,
+                    )
+                    embed.add_field(name="📎 Example: ", value=definition["example"].replace("[", "").replace("]", ""))
+                    embed.set_footer(text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}")
+                    await inter.send(embed=embed)
+                else:
+                    await inter.send("Sorry, that word is not found.")
+
+    @urbandictionary.sub_command(name="random", description="Gets a random urban dictionary definition.")
+    async def random(self, inter):
+        urban_dictionary = "http://api.urbandictionary.com/v0/random"
+        async with HTTPSession() as session:
+            async with session.get(urban_dictionary) as data:
+                data = await data.json()
+                if data["list"]:
+                    definition = data["list"][0]
+                    embed = disnake.Embed(
+                        title="Your Word 🏷: {}".format(definition["word"]),
+                        description="**🗞 Definition:** {}".format(definition["definition"].replace("[", "").replace("]", "")),
+                        color=0xFFFFFF,
+                    )
+                    embed.add_field(name="📎 Example: ", value=definition["example"].replace("[", "").replace("]", ""))
+                    embed.set_footer(text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}")
+                    await inter.send(embed=embed)
+                else:
+                    await inter.send("Sorry, an unexpected problem occured.")
 
 def setup(bot):
     bot.add_cog(Fun(bot))
