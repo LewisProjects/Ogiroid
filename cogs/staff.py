@@ -7,6 +7,7 @@ from utils.bot import OGIROID
 from utils.exceptions import ReactionAlreadyExists
 from utils.shortcuts import sucEmb, errorEmb
 
+
 class StaffVote(disnake.ui.Modal):
     def __init__(self, bot: OGIROID):
         # The details of the modal, and its components
