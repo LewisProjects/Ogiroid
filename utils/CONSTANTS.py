@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-__VERSION__ = "1.6.0"
+__VERSION__ = "1.6.6"
 
 
 @dataclass
