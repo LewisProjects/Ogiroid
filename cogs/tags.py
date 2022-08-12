@@ -7,7 +7,7 @@ from disnake import Embed, ApplicationCommandInteraction
 from disnake.ext import commands
 
 from utils.CONSTANTS import tag_help
-from utils.DBhandelers import TagManager
+from utils.DBhandlers import TagManager
 from utils.bot import OGIROID
 from utils.exceptions import *
 from utils.models import *

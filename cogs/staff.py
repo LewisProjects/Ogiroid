@@ -2,11 +2,10 @@ import disnake
 from disnake import TextInputStyle
 from disnake.ext import commands
 
-from utils.DBhandelers import RolesHandler
+from utils.DBhandlers import RolesHandler
 from utils.bot import OGIROID
 from utils.exceptions import ReactionAlreadyExists
 from utils.shortcuts import sucEmb, errorEmb
-
 
 class StaffVote(disnake.ui.Modal):
     def __init__(self, bot: OGIROID):

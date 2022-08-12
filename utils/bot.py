@@ -7,7 +7,7 @@ from disnake.ext import commands
 from disnake.ext.commands import when_mentioned_or
 
 from utils.CONSTANTS import __VERSION__
-from utils.DBhandelers import BlacklistHandler
+from utils.DBhandlers import BlacklistHandler
 from utils.cache import async_cache
 from utils.config import Config
 from utils.exceptions import UserBlacklisted
