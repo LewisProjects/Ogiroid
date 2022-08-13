@@ -488,9 +488,6 @@ class Fun(commands.Cog):
                 await errorEmb(response, "Sorry you took too long to respond.")
                 return
             search = results[int(response.content) - 1]
-            
-
-
 
 
 def setup(bot):
