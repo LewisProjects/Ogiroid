@@ -40,8 +40,11 @@ class StaffVote(disnake.ui.Modal):
 
     # callback recieved when the user input is completed
     async def callback(self, inter: disnake.ModalInteraction):
-        embed = disnake.Embed(title=(inter.text_values["staff_vote_title"]),
-                              description=(inter.text_values["staff_vote_proposition"]), color=0xFFFFFF)
+        embed = disnake.Embed(
+            title=(inter.text_values["staff_vote_title"]),
+            description=(inter.text_values["staff_vote_proposition"]),
+            color=0xFFFFFF,
+        )
         embed.set_footer(text="Started by: {}".format(inter.author.name))
         # Sending the Embed to the channel.
         staff_vote = self.bot.get_channel(self.bot.config.channels.staff_vote)
@@ -142,17 +145,20 @@ class Staff(commands.Cog):
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
 
-    @commands.slash_command(name="initialise-message",
-                            description="Create a Message with Buttons where users click them and get roles.")
+    @commands.slash_command(
+        name="initialise-message", description="Create a Message with Buttons where users click them and get roles."
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
     async def initialise_message(
-            self, inter: disnake.ApplicationCommandInteraction,
-            text: str = ParamInfo(description="The text for the Message."),
-            emoji: str = ParamInfo(description="The emoji to be on the button. You can add more later."),
-            role: disnake.Role = ParamInfo(description="The role to be given when clicked."),
-            channel: disnake.TextChannel = ParamInfo(channel_types=[disnake.ChannelType.text],
-                                                     description="The channel where the message is sent."),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        text: str = ParamInfo(description="The text for the Message."),
+        emoji: str = ParamInfo(description="The emoji to be on the button. You can add more later."),
+        role: disnake.Role = ParamInfo(description="The role to be given when clicked."),
+        channel: disnake.TextChannel = ParamInfo(
+            channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
+        ),
     ):
 
         emoji = PartialEmoji.from_str(emoji.strip())
@@ -160,8 +166,7 @@ class Staff(commands.Cog):
         if emoji is None:
             return await errorEmb(inter, "The emoji is invalid")
 
-        button = disnake.ui.Button(emoji=emoji,
-                                   custom_id=f'{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}')
+        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}")
         view = disnake.ui.View()
         view.add_item(button)
         msg = await channel.send(text, view=view)
@@ -170,15 +175,21 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "Successfully created message. To add more buttons use `/add_button`")
 
-    @commands.slash_command(name="add-button",
-                            description="Add a button to a previously created message."
-                                        " Use ``/initialise-message`` for that.")
+    @commands.slash_command(
+        name="add-button", description="Add a button to a previously created message." " Use ``/initialise-message`` for that."
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def add_button(self, inter, message_id, new_emoji: str, role: disnake.Role,
-                         channel: disnake.TextChannel = ParamInfo(
-                             channel_types=[disnake.ChannelType.text],
-                             description="The channel where the message is sent.")):
+    async def add_button(
+        self,
+        inter,
+        message_id,
+        new_emoji: str,
+        role: disnake.Role,
+        channel: disnake.TextChannel = ParamInfo(
+            channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
+        ),
+    ):
 
         emoji = PartialEmoji.from_str(new_emoji.strip())
         message_id = int(message_id)
@@ -200,7 +211,7 @@ class Staff(commands.Cog):
 
         components = disnake.ui.View.from_message(message)
 
-        custom_id = f'{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}'
+        custom_id = f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}"
 
         new_button = disnake.ui.Button(emoji=emoji, custom_id=custom_id)
 
