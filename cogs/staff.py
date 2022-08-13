@@ -239,6 +239,8 @@ class Staff(commands.Cog):
             return await errorEmb(inter, "The message does not exist.")
 
         message = await channel.fetch_message(message_id)
+        if message is None:
+            return await errorEmb(inter, "The message does not exist.")
 
         components = disnake.ui.View.from_message(message)
 
@@ -295,6 +297,33 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "Edited!")
 
+    @commands.slash_command(name="delete-message", description="Delete a message the bot sent(Role messages with buttons only).")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def delete_message(self, inter, message_id, channel: disnake.TextChannel):
+        exists = False
+        message_id = int(message_id)
+        for message in self.reaction_roles.messages:
+            if message_id == message.message_id:
+                exists = True
+
+        if not exists:
+            return await errorEmb(inter, "The message does not exist in the Database to initialise a message use"
+                                         " ``/initialise-message``.")
+
+        await self.reaction_roles.remove_messages(message_id)
+
+        message = await channel.fetch_message(message_id)
+        if message is None:
+            return await errorEmb(inter, "Message not found!")
+
+        try:
+            await message.delete()
+        except disnake.errors.Forbidden or disnake.errors.HTTPException:
+            return await errorEmb(inter, "I do not have permission to delete this message.")
+
+        await sucEmb(inter, "Deleted!")
+
     @commands.slash_command(name="remove-button", description="Remove a button from a message.")
     @commands.guild_only()
     @commands.has_role("Staff")
@@ -309,6 +338,9 @@ class Staff(commands.Cog):
         await self.reaction_roles.remove_message(message_id, str(emoji), role.id)
 
         message = await channel.fetch_message(message_id)
+
+        if message is None:
+            return await errorEmb(inter, "Message not found!")
 
         message_components = disnake.ui.View.from_message(message)
 
@@ -341,6 +373,7 @@ class Staff(commands.Cog):
 
         if member.get_role(role_id) is None:
             await member.add_roles(role, reason=f"Clicked button to get role. gave {role.name}")
+            await self.reaction_roles.increment_roles_given(message.id, str(emoji))
             return await sucEmb(inter, "Added Role")
         else:
             await member.remove_roles(role, reason=f"Clicked button while already having the role. removed {role.name}")

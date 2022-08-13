@@ -409,6 +409,8 @@ class TagManager:
 
 
 class RolesHandler:
+    """Stores message_id, role_id, emoji(example: <:starr:990647250847940668> or ⭐ depending on type of emoji
+     and roles given out"""
     def __init__(self, bot, db):
         self.bot = bot
         self.db = db
@@ -417,13 +419,15 @@ class RolesHandler:
     async def startup(self):
         self.messages = await self.get_messages()
 
-    async def exists(self, message_id: int, emoji: str, role_id: int) -> bool:
+    async def exists(self, message_id: int, emoji: str, role_id: int) -> bool | ReactionRole:
+        """Check if msg exists in the database if it does, it returns the message else it returns False"""
         for msg in self.messages:
             if msg.role_id == role_id and message_id == msg.message_id and str(emoji) == msg.emoji:
                 return msg
         return False
 
     async def get_messages(self):
+        """get all messages from the database"""
         messages = []
         async with self.db.execute(f"SELECT message_id, role_id, emoji, roles_given FROM reaction_roles") as cur:
             async for row in cur:
@@ -431,6 +435,7 @@ class RolesHandler:
             return messages
 
     async def create_message(self, message_id: int, role_id: int, emoji: str):
+        """creates a message for a reaction role"""
         if await self.exists(message_id, emoji, role_id):
             raise ReactionAlreadyExists
         await self.db.execute(
@@ -441,6 +446,7 @@ class RolesHandler:
         self.messages.append(ReactionRole(message_id, role_id, emoji, 0))
 
     async def increment_roles_given(self, message_id: str, emoji: str):
+        """increments the roles given out for a message"""
         await self.db.execute(
             "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?", [message_id, emoji]
         )
@@ -452,6 +458,7 @@ class RolesHandler:
                 return
 
     async def remove_message(self, message_id: int, emoji: str, role_id: int):
+        """removes a message from the database"""
         msg = await self.exists(message_id, emoji, role_id)
         if not msg:
             raise ReactionNotFound
@@ -460,3 +467,11 @@ class RolesHandler:
         )
         await self.db.commit()
         self.messages.remove(msg)
+
+    async def remove_messages(self, message_id: int):
+        """Removes all messages matching the id"""
+        await self.db.execute(
+            "DELETE FROM reaction_roles WHERE message_id = ?", [message_id]
+        )
+        await self.db.commit()
+        self.messages = [msg for msg in self.messages if msg.message_id != message_id]
