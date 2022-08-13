@@ -26,7 +26,7 @@ Cannot emphasize enough how much bug reporting/bug fixing helps us! It saves us 
 
 **Case 1: While using the Discord Bot:**
 
-You need to headover to a channel in [Lewis' Menelaws discord server](https://discord.com/5uw4eCQf6Z) and then type: ``/bugreport``, you will then be greeted by a modal looking something like this:
+You need to headover to a channel in [Lewis' Menelaws discord server](https://discord.com/5uw4eCQf6Z) and then type: ``/reportbugt``, you will then be greeted by a modal looking something like this:
 
 ![MODAL](https://cdn.discordapp.com/attachments/1005117336761675847/1007706426896040077/unknown.png)
 
