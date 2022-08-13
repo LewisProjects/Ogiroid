@@ -68,6 +68,12 @@ class Tags(commands.Cog, name="Tags"):
         except TagNotFound:
             await errorEmb(inter, f"tag {name} does not exist")
 
+    @tag.sub_command(name="random", description="Gets a random tag")
+    async def random(self, inter):
+        tag = await self.tags.random()
+        return await self.get(inter, tag)
+
+
     @tag.sub_command(name="create", description="Creates a tag")
     @commands.guild_only()
     @commands.cooldown(1, 60, commands.BucketType.user)

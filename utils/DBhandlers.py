@@ -1,5 +1,6 @@
 from __future__ import annotations, generator_stop
 
+import random
 import time
 from typing import List, Literal, Optional
 
@@ -379,6 +380,9 @@ class TagManager:
         await self.db.commit()
         self.names["aliases"].remove(alias)
         await self.cache.delete(alias)
+
+    async def random(self):
+        return random.choice(self.names["tags"])
 
     async def remove_aliases(self, name):
         name = await self.get_name(name)
