@@ -417,8 +417,11 @@ class RolesHandler:
     async def startup(self):
         self.messages = await self.get_messages()
 
-    async def exists(self, message_id: int, emoji: str) -> bool:
-        return len([message for message in self.messages if message.message_id == message_id and message.emoji == emoji]) > 0
+    async def exists(self, message_id: int, emoji: str, role_id: int) -> bool:
+        for msg in self.messages:
+            if msg.role_id == role_id and message_id == msg.message_id and str(emoji) == msg.emoji:
+                return True
+        return False
 
     async def get_messages(self):
         messages = []
@@ -428,7 +431,7 @@ class RolesHandler:
             return messages
 
     async def create_message(self, message_id: int, role_id: int, emoji: str):
-        if await self.exists(message_id, emoji):
+        if await self.exists(message_id, emoji, role_id):
             raise ReactionAlreadyExists
         await self.db.execute(
             "INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)", [message_id, role_id, emoji]

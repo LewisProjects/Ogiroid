@@ -13,3 +13,4 @@ typing_extensions==4.3.0
 ujson==5.4.0
 msgpack==1.0.4
 aiocache==0.11.1
+translators==5.4.2
