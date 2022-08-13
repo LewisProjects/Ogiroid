@@ -12,12 +12,16 @@ from discord_together import DiscordTogether
 from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
+from dotenv import load_dotenv
+from requests import session
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
 from utils.bot import OGIROID
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
+
+load_dotenv("../secrets.env")
 
 
 class Fun(commands.Cog):
@@ -31,8 +35,9 @@ class Fun(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.bot.ready_:
+            TOKEN = os.getenv("TOKEN")
             # noinspection PyUnresolvedReferences
-            self.togetherControl = await DiscordTogether(self.bot.http.token)
+            self.togetherControl = await DiscordTogether(TOKEN)
 
     @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -178,7 +183,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
         impostor = random.choice(["true", "false"])
-        apikey = self.bot.config.tokens.SRA
+        apikey = os.getenv("SRA_API_KEY")
         uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
         resp = await self.bot.session.get(uri)
         if 300 > resp.status >= 200:
@@ -323,15 +328,16 @@ class Fun(commands.Cog):
             await inter.send(embed=intro)
 
             def check(msg):
-                return msg.author == inter.author and msg.channel == inter.channel
+                return (
+                    msg.author == inter.author
+                    and msg.channel == inter.channel
+                )
 
-            components = [
-                disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
-                disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
-                disnake.ui.Button(label="Probably", custom_id="p"),
-                disnake.ui.Button(label="Idk", custom_id="idk"),
-                disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple),
-            ]
+            components = [disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
+                          disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
+                          disnake.ui.Button(label="Probably", custom_id="p"),
+                          disnake.ui.Button(label='Idk', custom_id="idk"),
+                          disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple)]
 
             try:
                 aki = ak.Akinator()
@@ -457,80 +463,32 @@ class Fun(commands.Cog):
 
             return question, response"""
 
-    @commands.slash_command(description="Gets an urban dictionary definition.")
+    @commands.slash_command(description="Get Pokémon related information!")
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def urbandictionary(self, inter):
+    async def pokemon(self, inter):
         pass
 
-    @urbandictionary.sub_command(name="define", description="Find the defintion for a word!")
-    async def define(self, inter, *, word: str):
-        urban_dictionary = "http://api.urbandictionary.com/v0/define?term={}"
-        async with HTTPSession() as session:
-            async with session.get(urban_dictionary.format(word)) as data:
-                data = await data.json()
-                if data["list"]:
-                    definition = data["list"][0]
-                    embed = disnake.Embed(
-                        title="Your Word 🏷: {}".format(definition["word"]),
-                        description="**🗞 Definition:** {}".format(definition["definition"].replace("[", "").replace("]", "")),
-                        color=0xFFFFFF,
-                    )
-                    embed.add_field(name="📎 Example: ", value=definition["example"].replace("[", "").replace("]", ""))
-                    embed.set_footer(
-                        text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}"
-                    )
-                    await inter.send(embed=embed)
-                else:
-                    await inter.send("Sorry, that word is not found.")
+    @pokemon.sub_command(name="info", description="Get information about a Pokémon.")
+    async def info(self, inter, *, pokemon: str):
+        pokeurl = f"https://pokeapi.co/api/v2/pokemon/{pokemon}"
+        async with HTTPSession() as pokeSession:
+            async with pokeSession.get(pokeurl) as pokeData:
+                poke = await pokeData.json()
+                embed = disnake.Embed(title=poke["name"], color=0xFFFFFF)
+                embed.set_thumbnail(url=poke["sprites"]["front_default"])
+                embed.add_field(name="Type", value=poke["types"][0]["type"]["name"])
+                embed.add_field(name="Height", value=f"{poke['height']}m")
+                embed.add_field(name="Weight", value=f"{poke['weight']}kg")
+                embed.add_field(name="Abilities", value=poke["abilities"][0]["ability"]["name"])
+                embed.add_field(name="Base Experience", value=poke["base_experience"])
+                embed.add_field(name="Species", value=poke["species"]["name"])
+                embed.set_footer(text=f"ID: {poke['id']} | Generation: {poke['game_indices'][0]['generation']['name']} • Requested by: {inter.author.name}")
+                await inter.send(embed=embed)
+                # If pokemon does not exist, send error message.
+                if pokeData.status_code == 404:
+                    await errorEmb(inter, "Pokemon not found.")
+                
 
-    @urbandictionary.sub_command(name="random", description="Gets a random urban dictionary definition.")
-    async def random(self, inter):
-        urban_dictionary = "http://api.urbandictionary.com/v0/random"
-        async with HTTPSession() as session:
-            async with session.get(urban_dictionary) as data:
-                data = await data.json()
-                if data["list"]:
-                    definition = data["list"][0]
-                    embed = disnake.Embed(
-                        title="Your Word 🏷: {}".format(definition["word"]),
-                        description="**🗞 Definition:** {}".format(definition["definition"].replace("[", "").replace("]", "")),
-                        color=0xFFFFFF,
-                    )
-                    embed.add_field(name="📎 Example: ", value=definition["example"].replace("[", "").replace("]", ""))
-                    embed.set_footer(
-                        text=f"👍 {definition['thumbs_up']} | 👎 {definition['thumbs_down']} | ✒ Author: {definition['author']}"
-                    )
-                    await inter.send(embed=embed)
-                else:
-                    await inter.send("Sorry, an unexpected problem occured.")
-
-    @commands.slash_command(name="translate", description="Translates text from a language into another language.")
-    async def translate(
-        self,
-        inter,
-        *,
-        text: str,
-        language: str = commands.Param(
-            choices={
-                "Arabic": "ar",
-                "Chinese": "zh",
-                "Russian": "ru",
-                "French": "fr",
-                "German": "de",
-                "Italian": "it",
-                "Japanese": "ja",
-                "Korean": "ko",
-                "Portuguese": "pt",
-                "Spanish": "es",
-                "Turkish": "tr",
-                "Hindi": "hi",
-                "Swedish": "sv",
-            }
-        ),
-    ):  # Expressing Language as Options
-        """Translates text from a language into another language."""
-        translated_text = await ts.google(query_text=text, from_language="auto", to_language=language)
-        await inter.send(translated_text)
 
 
 def setup(bot):
