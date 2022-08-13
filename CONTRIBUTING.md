@@ -14,7 +14,7 @@ The following is a set of guidelines for contributing to Ogiroid, which is a par
 ## [Code of Conduct](#code-of-conduct)
 > This project and everyone participating in it is governed by the Ogiroid code of conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to the developers.
 
-## [What do I require before getting started?](#prerequisites)
+## [What do I require before getting started?]
 We expect you to be experienced with [Python](https://www.python.org/) and [Disnake](https://disnake.dev/) (a fork of [Discord.py](https://github.com/Rapptz/discord.py)). Having experience with Discord.py should also get you sailing, disnake and discord.py are almost the same. 
 
 ## [What can I do to contribute?](#contribution) 
