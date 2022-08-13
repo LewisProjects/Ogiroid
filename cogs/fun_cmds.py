@@ -437,32 +437,6 @@ class Fun(commands.Cog):
         decoded_string = "".join(decoded_list)
         await inter.send(f"``{decoded_string}``")
 
-    # noinspection PyUnboundLocalVariable
-    """def wyr(self):  # todo delete
-        # grabs the source code of a random question
-        r = session.get(f"https://www.either.io/{str(random.randint(3, 100000))}")
-        # note to harry use aiohttp instead of requests
-        # Check if there was no errors getting it.
-        if r.status_code == 200:
-            # Saves the two question. NOTE: Blue is option 1 and red is option 2.It was easier for me to call it blue and red cause that's how the website is formated.
-            for count, option in enumerate(r.html.find(".option-text")):
-                if count == 0:
-                    blue = option.text
-                elif count == 1:
-                    red = option.text
-            # Saves how many people pick each option.
-            for count, option in enumerate(r.html.find(".count")):
-                if count == 0:
-                    blue_count = option.text
-                elif count == 1:
-                    red_count = option.text
-
-            # format the question and responce
-            question = f"would you rather {blue} or {red}?"
-            response = f"{blue_count} pick {blue} and {red_count} picked {red}."
-
-            return question, response"""
-
     @commands.slash_command(description="Get Pokémon related information!")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def pokemon(self, inter):
@@ -487,7 +461,7 @@ class Fun(commands.Cog):
             return await errorEmb(inter, f"{key}")
         return await inter.send(embed=embed)
 
-                
+
 
 
 
