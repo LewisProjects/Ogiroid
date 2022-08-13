@@ -132,7 +132,7 @@ class Staff(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         emoji = PartialEmoji(name=payload.emoji.name, id=payload.emoji.id)
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id and str(emoji.id) == message.emoji or emoji.name == message.emoji:
+            if payload.message_id == message.message_id and str(emoji) == message.emoji:
                 await self.reaction_roles.increment_roles_given(payload.message_id, message.emoji)
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).add_roles(guild.get_role(message.role_id))
@@ -141,7 +141,7 @@ class Staff(commands.Cog):
     async def on_raw_reaction_remove(self, payload):
         emoji = PartialEmoji(name=payload.emoji.name, id=payload.emoji.id)
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id and str(emoji.id) == message.emoji or emoji.name == message.emoji:
+            if payload.message_id == message.message_id and str(emoji) == message.emoji:
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
 
