@@ -5,6 +5,7 @@ from disnake.ext import commands
 from disnake.ext.commands import Cog
 
 from utils.CONSTANTS import VALID_CODE_LANGUAGES
+from utils.shortcuts import errorEmb
 from utils.bot import OGIROID
 from utils.http import session
 
@@ -77,7 +78,10 @@ class CodeModal(disnake.ui.Modal):
 
     @staticmethod
     async def _send_result(inter, result: dict):
-        output = result["output"]
+        try:
+            output = result["output"]
+        except KeyError:
+            return await errorEmb(inter, result["message"])
         # if len(output) > 2000: HAVE TO FIX THIS!!!!
         # url = await create_guest_paste_bin(self.session, output)
         # return await ctx.reply("Your output was too long, so here's the pastebin link " + url)
