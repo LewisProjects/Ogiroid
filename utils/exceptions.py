@@ -65,6 +65,10 @@ class ReactionAlreadyExists(RoleReactionException):
     pass
 
 
+class ReactionNotFound(RoleReactionException):
+    pass
+
+
 class BlacklistNotFound(BlacklistException):
     pass
 

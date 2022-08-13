@@ -1,15 +1,14 @@
-from turtle import title
 import disnake
 from disnake.ext import commands
 from disnake import TextInputStyle, PartialEmoji, Emoji
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
-import re
+import asyncio
 
 from utils.bot import OGIROID
 from utils.shortcuts import sucEmb, errorEmb
 from utils.DBhandlers import RolesHandler
-from utils.exceptions import ReactionAlreadyExists
+from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
 
 
 class StaffVote(disnake.ui.Modal):
@@ -119,20 +118,40 @@ class Staff(commands.Cog):
             return await errorEmb(inter, "Message not found!")
         emoji = PartialEmoji.from_str(emoji)
 
-        await message.add_reaction(emoji)
-
         try:
             await self.reaction_roles.create_message(message_id, role.id, str(emoji))
         except ReactionAlreadyExists:
             return await errorEmb(inter, "Reaction already exists!")
 
+        await message.add_reaction(emoji)
+
         await sucEmb(inter, f"Added!")
+
+    @commands.slash_command(name="removereactionrole", description="Remove a reaction based role from a message")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def remove_reaction_role(self, inter, message_id, emoji: str, role: disnake.Role):
+        # Checking if the message exists:
+        message_id = int(message_id)
+        message = await inter.channel.fetch_message(message_id)
+        if message is None:
+            return await errorEmb(inter, "Message not found!")
+        emoji = PartialEmoji.from_str(emoji)
+
+        await message.remove_reaction(emoji, inter.author)
+
+        try:
+            await self.reaction_roles.remove_message(message_id, str(emoji), role.id)
+        except ReactionNotFound:
+            return await errorEmb(inter, "Reaction does not exist!")
+
+        await sucEmb(inter, f"Removed!")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         emoji = PartialEmoji(name=payload.emoji.name, id=payload.emoji.id)
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id and str(emoji) == message.emoji:
+            if payload.message_id == message.message_id and emoji == PartialEmoji.from_str(message.emoji):
                 await self.reaction_roles.increment_roles_given(payload.message_id, message.emoji)
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).add_roles(guild.get_role(message.role_id))
@@ -141,7 +160,7 @@ class Staff(commands.Cog):
     async def on_raw_reaction_remove(self, payload):
         emoji = PartialEmoji(name=payload.emoji.name, id=payload.emoji.id)
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id and str(emoji) == message.emoji:
+            if payload.message_id == message.message_id and emoji == PartialEmoji.from_str(message.emoji):
                 guild = self.bot.get_guild(payload.guild_id)
                 await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
 
@@ -153,13 +172,25 @@ class Staff(commands.Cog):
     async def initialise_message(
         self,
         inter: disnake.ApplicationCommandInteraction,
-        text: str = ParamInfo(description="The text for the Message."),
         emoji: str = ParamInfo(description="The emoji to be on the button. You can add more later."),
         role: disnake.Role = ParamInfo(description="The role to be given when clicked."),
         channel: disnake.TextChannel = ParamInfo(
             channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
         ),
     ):
+        def check(m):
+            return m.author == inter.author and m.channel == inter.channel
+
+        await inter.send("Please send the message", ephemeral=True)
+
+        try:
+            msg = await self.bot.wait_for("message", check=check, timeout=300.0)
+        except asyncio.exceptions.TimeoutError:
+            return await errorEmb(inter, "Due to no response the operation was canceled")
+
+        await msg.delete()
+
+        text = msg.content
 
         emoji = PartialEmoji.from_str(emoji.strip())
 
@@ -176,7 +207,7 @@ class Staff(commands.Cog):
         await sucEmb(inter, "Successfully created message. To add more buttons use `/add_button`")
 
     @commands.slash_command(
-        name="add-button", description="Add a button to a previously created message." " Use ``/initialise-message`` for that."
+        name="add-button", description="Add a button to a previously created message." " Use /initialise-message for that."
     )
     @commands.guild_only()
     @commands.has_role("Staff")
@@ -224,6 +255,70 @@ class Staff(commands.Cog):
         await message.edit(view=components)
 
         await sucEmb(inter, "Added Button")
+
+    @commands.slash_command(name="edit-message", description="Edit a message the bot sent(Role messages with buttons only).")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def edit_message(self, inter, message_id, channel: disnake.TextChannel):
+        exists = False
+        message_id = int(message_id)
+        for message in self.reaction_roles.messages:
+            if message_id == message.message_id:
+                exists = True
+
+        if not exists:
+            return await errorEmb(inter, "The message does not exist in the Database to initialise a message use"
+                                         " ``/initialise-message``.")
+
+        message = await channel.fetch_message(message_id)
+        if message is None:
+            return await errorEmb(inter, "Message not found!")
+
+        def check(m):
+            return m.author == inter.author and m.channel == inter.channel
+
+        await inter.send("Please send the new message", ephemeral=True)
+
+        try:
+            msg = await self.bot.wait_for("message", check=check, timeout=300.0)
+        except asyncio.exceptions.TimeoutError:
+            return await errorEmb(inter, "Due to no response the operation was canceled")
+
+        await msg.delete()
+
+        text = msg.content
+
+        try:
+            await message.edit(content=text)
+        except disnake.errors.Forbidden or disnake.errors.HTTPException:
+            return await errorEmb(inter, "I do not have permission to edit this message.")
+
+        await sucEmb(inter, "Edited!")
+
+    @commands.slash_command(name="remove-button", description="Remove a button from a message.")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def remove_button(self, inter, message_id, emoji: str, channel: disnake.TextChannel, role: disnake.Role):
+        message_id = int(message_id.strip())
+        emoji = PartialEmoji.from_str(emoji.strip())
+
+        button = await self.reaction_roles.exists(message_id, str(emoji), role.id)
+        if not button:
+            return await errorEmb(inter, "The button does not exist.")
+
+        await self.reaction_roles.remove_message(message_id, str(emoji), role.id)
+
+        message = await channel.fetch_message(message_id)
+
+        message_components = disnake.ui.View.from_message(message)
+
+        for button in message_components.children:
+            if button.custom_id == f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}":
+                message_components.remove_item(button)
+                break
+
+        await message.edit(view=message_components)
+        await sucEmb(inter, "Removed Button")
 
     @commands.Cog.listener("on_button_click")
     async def button_click(self, inter):

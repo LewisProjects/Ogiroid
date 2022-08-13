@@ -420,7 +420,7 @@ class RolesHandler:
     async def exists(self, message_id: int, emoji: str, role_id: int) -> bool:
         for msg in self.messages:
             if msg.role_id == role_id and message_id == msg.message_id and str(emoji) == msg.emoji:
-                return True
+                return msg
         return False
 
     async def get_messages(self):
@@ -450,3 +450,13 @@ class RolesHandler:
             if message.message_id == message_id and message.emoji == emoji:
                 message.roles_given += 1
                 return
+
+    async def remove_message(self, message_id: int, emoji: str, role_id: int):
+        msg = await self.exists(message_id, emoji, role_id)
+        if not msg:
+            raise ReactionNotFound
+        await self.db.execute(
+            "DELETE FROM reaction_roles WHERE message_id = ? AND emoji = ? AND role_id = ?", [message_id, emoji, role_id]
+        )
+        await self.db.commit()
+        self.messages.remove(msg)

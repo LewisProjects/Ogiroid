@@ -1,7 +1,9 @@
 from disnake.ext import commands
+import asyncio
 
 from utils.CONSTANTS import COUNTRIES
 from utils.bot import OGIROID
+from utils.shortcuts import *
 
 
 class DevelopmentCommands(commands.Cog):
@@ -15,50 +17,8 @@ class DevelopmentCommands(commands.Cog):
     # async def nohi(self, ctx): also do dontasktoask
     #    await ctx.try_reply('https://nohello.net/')
 
-    # @commands.slash_command(name="flagquizz", description="Guess the flags.")
-    # async def guess_the_flag(self, inter):
-    #     await QuickEmb(inter, "Starting the quiz..").send()
-    #     channel = inter.channel
-    #     l = list(self.countries.items())
-    #     random.shuffle(l)
-    #     countries = dict(l)
-    #
-    #     def check(m):
-    #         return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
-    #
-    #     correct = 0
-    #     tries = 0
-    #     for emoji, country in countries.items():
-    #         tries += 1
-    #         retry = True
-    #         while retry:
-    #             embed = disnake.Embed(title="Guess the Flag.",
-    #                                   description="To skip onto the next write ``skip``. To give up write ``give up``\n"
-    #                                               f"Current Score: {correct}/{tries - 1}", color=0xFFFFFF)
-    #             await channel.send(embed=embed)
-    #             await channel.send(emoji)
-    #             try:
-    #                 guess = await self.bot.wait_for("message", check=check, timeout=60.0)
-    #             except asyncio.exceptions.TimeoutError:
-    #                 await QuickEmb(channel, "Due to no response the quiz ended early.").send()
-    #                 return
-    #
-    #             if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.8:
-    #                 embed = QuickEmb(channel, f"Correct. The country indeed was {country}")
-    #                 await embed.success().send()
-    #                 correct += 1
-    #                 retry = False
-    #             elif guess.content.lower() == "skip":
-    #                 await QuickEmb(channel, f'The country was {country}').send()
-    #                 retry = False
-    #             elif guess.content.lower() == "give up":
-    #                 await QuickEmb(channel, f"Your Score: {correct}/{tries}. Thanks for playing.").send()
-    #                 return
-    #             else:
-    #                 embed = QuickEmb(channel, "Incorrect")
-    #                 await embed.error().send()
-    #
-    #     await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
+    #Create a command wich will wait for user text inpu
+
 
     # @commands.command(aliases=['ss'])
     # @commands.is_nsfw() ref https://github.com/JasonLovesDoggo/edoC/blob/55d3a36166eccdc1fe0b56bf9498d30fbb93f995/cogs/Info.py#L149
