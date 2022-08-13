@@ -4,6 +4,8 @@ import os
 import random
 import time
 from datetime import datetime, timezone
+import textwrap
+import wikipedia
 
 import translators as ts
 import akinator as ak
@@ -461,6 +463,32 @@ class Fun(commands.Cog):
             return await errorEmb(inter, f"{key}")
         return await inter.send(embed=embed)
 
+    @commands.slash_command(
+        name="wikipedia",
+        description="Search Wikipedia for a topic."
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def wikipedia(self, inter, *, search: str):
+        """Search Wikipedia for a topic."""
+        results = wikipedia.search(search)
+        if not results:
+            return await errorEmb(inter, "No results found.")
+
+        message = None
+        if len(results) > 1:
+            if len(results) > 5:
+                results = results[:5]
+            message = await inter.send(
+                "Multiple results found. Please select one of the following:\n"
+                + "\n".join(f"{i + 1}. {result}" for i, result in enumerate(results))
+            )
+            try:
+                response = await self.bot.wait_for("message", check=lambda m: m.author == inter.author, timeout=30)
+            except asyncio.TimeoutError:
+                await errorEmb(response, "Sorry you took too long to respond.")
+                return
+            search = results[int(response.content) - 1]
+            
 
 
 
