@@ -469,24 +469,24 @@ class Fun(commands.Cog):
         pass
 
     @pokemon.sub_command(name="info", description="Get information about a Pokémon.")
-    async def info(self, inter, *, pokemon: str):
-        pokeurl = f"https://pokeapi.co/api/v2/pokemon/{pokemon}"
-        async with HTTPSession() as pokeSession:
-            async with pokeSession.get(pokeurl) as pokeData:
-                poke = await pokeData.json()
-                embed = disnake.Embed(title=poke["name"], color=0xFFFFFF)
-                embed.set_thumbnail(url=poke["sprites"]["front_default"])
-                embed.add_field(name="Type", value=poke["types"][0]["type"]["name"])
-                embed.add_field(name="Height", value=f"{poke['height']}m")
-                embed.add_field(name="Weight", value=f"{poke['weight']}kg")
-                embed.add_field(name="Abilities", value=poke["abilities"][0]["ability"]["name"])
-                embed.add_field(name="Base Experience", value=poke["base_experience"])
-                embed.add_field(name="Species", value=poke["species"]["name"])
-                embed.set_footer(text=f"ID: {poke['id']} | Generation: {poke['game_indices'][0]['generation']['name']} • Requested by: {inter.author.name}")
-                await inter.send(embed=embed)
-                # If pokemon does not exist, send error message.
-                if pokeData.status_code == 404:
-                    await errorEmb(inter, "Pokemon not found.")
+    async def info(self, inter, pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon")):
+        response = await self.bot.session.get(f"https://pokeapi.co/api/v2/pokemon/{pokem}")
+        poke_data = await response.json()
+
+        try:
+            embed = disnake.Embed(title=poke_data["name"], color=0xFFFFFF)
+            embed.set_thumbnail(url=poke_data["sprites"]["front_default"])
+            embed.add_field(name="Type", value=poke_data["types"][0]["type"]["name"])
+            embed.add_field(name="Height", value=f"{poke_data['height']}m")
+            embed.add_field(name="Weight", value=f"{poke_data['weight']}kg")
+            embed.add_field(name="Abilities", value=poke_data["abilities"][0]["ability"]["name"])
+            embed.add_field(name="Base Experience", value=poke_data["base_experience"])
+            embed.add_field(name="Species", value=poke_data["species"]["name"])
+            embed.set_footer(text=f"ID: {poke_data['id']} | Generation: {poke_data['game_indices'][0]['version']['name']} • Requested by: {inter.author.name}")
+        except KeyError as key:
+            return await errorEmb(inter, f"{key}")
+        return await inter.send(embed=embed)
+
                 
 
 
