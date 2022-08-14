@@ -260,6 +260,17 @@ class Commands(commands.Cog):
 
         await inter.send(embed=e)
 
+    @commands.slash_command(name="avatar", description="Shows the avatar of a user.")
+    async def avatar(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None):
+        """Shows the avatar of a user."""
+        if user == None:
+            user = inter.author
+
+        embed = disnake.Embed(title=f"{user}'s avatar")
+        embed.set_image(url=user.avatar.url)
+        embed.set_author(name=f'{user}', icon_url=user.avatar.url)
+        await inter.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Commands(bot))
