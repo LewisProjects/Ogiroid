@@ -29,50 +29,50 @@ class ErrorHandler(Cog):
             # non real error handling
             if isinstance(error, CommandNotFound):
                 return await errorEmb(inter, "Command not found! use /help for a list of commands")
-            elif isinstance(error, CommandInvokeError):
-                error = traceback_maker(error.original)
-                if "2000 or fewer" in str(error) and len(error.message.clean_content) > 1900:
-                    return await errorEmb(
-                        inter,
-                        "You attempted to make the command display more than 2,000 characters...\nBoth error and command will be ignored.",
-                    )
-            elif isinstance(error, MissingRequiredArgument):
-                missing = f"{str(error.param).split(':')[0]}"
-                cmd = f"/{inter.application_command.name}"
-
-                await errorEmb(
-                    inter,
-                    title=f"\N{WARNING SIGN} | MissingArguments",
-                    text=f"You forgot the `{missing}` parameter when using   `{cmd}`!",
-                )
-            elif isinstance(error, BadArgument):
-                return await errorEmb(inter, "Bad argument! Please retry with the correct type of argument")
-            elif isinstance(error, NotOwner):
-                await errorEmb(
-                    inter, f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`"
-                )
-            elif isinstance(error, TooManyArguments):
-                return await errorEmb(inter, f"You called the {inter.application_command.name} command with too many arguments.")
-            elif isinstance(error, MissingPermissions):
-                return await permsEmb(inter, permissions=f"{', '.join(error.missing_permissions)}")
-            elif isinstance(error, CheckFailure):
-                return await errorEmb(
-                    inter,
-                    f"One or more permission checks have failed\nif you think this is a bug please report it to the developers via /reportbug",
-                )
-            elif isinstance(error, MaxConcurrencyReached):
-                return await errorEmb(
-                    inter, "You've reached max capacity of command usage at once, please finish the previous one..."
-                )
-            elif isinstance(error, CommandOnCooldown):
-                return await errorEmb(inter, f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
-            elif isinstance(error, HTTPException):
-                return await errorEmb(inter, f"The returned message was too long")
-            elif isinstance(error, GuildNotFound):
-                return await errorEmb(error, f"You can only use this command in a server")
-            elif self.debug_mode:
-                traceback.print_exc()
-                return await errorEmb(inter, "check console for error")
+            # elif isinstance(error, CommandInvokeError):
+            #     error = traceback_maker(error.original)
+            #     if "2000 or fewer" in str(error) and len(error.message.clean_content) > 1900:
+            #         return await errorEmb(
+            #             inter,
+            #             "You attempted to make the command display more than 2,000 characters...\nBoth error and command will be ignored.",
+            #         )
+            # elif isinstance(error, MissingRequiredArgument):
+            #     missing = f"{str(error.param).split(':')[0]}"
+            #     cmd = f"/{inter.application_command.name}"
+            #
+            #     await errorEmb(
+            #         inter,
+            #         title=f"\N{WARNING SIGN} | MissingArguments",
+            #         text=f"You forgot the `{missing}` parameter when using   `{cmd}`!",
+            #     )
+            # elif isinstance(error, BadArgument):
+            #     return await errorEmb(inter, "Bad argument! Please retry with the correct type of argument")
+            # elif isinstance(error, NotOwner):
+            #     await errorEmb(
+            #         inter, f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`"
+            #     )
+            # elif isinstance(error, TooManyArguments):
+            #     return await errorEmb(inter, f"You called the {inter.application_command.name} command with too many arguments.")
+            # elif isinstance(error, MissingPermissions):
+            #     return await permsEmb(inter, permissions=f"{', '.join(error.missing_permissions)}")
+            # elif isinstance(error, CheckFailure):
+            #     return await errorEmb(
+            #         inter,
+            #         f"One or more permission checks have failed\nif you think this is a bug please report it to the developers via /reportbug",
+            #     )
+            # elif isinstance(error, MaxConcurrencyReached):
+            #     return await errorEmb(
+            #         inter, "You've reached max capacity of command usage at once, please finish the previous one..."
+            #     )
+            # elif isinstance(error, CommandOnCooldown):
+            #     return await errorEmb(inter, f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
+            # elif isinstance(error, HTTPException):
+            #     return await errorEmb(inter, f"The returned message was too long")
+            # elif isinstance(error, GuildNotFound):
+            #     return await errorEmb(error, f"You can only use this command in a server")
+            # elif self.debug_mode:
+            #     traceback.print_exc()
+            #     return await errorEmb(inter, "check console for error")
 
             else:  # actual error not just a check failure
                 error_channel = self.bot.get_channel(self.bot.config.channels.errors)
