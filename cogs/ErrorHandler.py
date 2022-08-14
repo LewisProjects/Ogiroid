@@ -29,12 +29,19 @@ class ErrorHandler(Cog):
             # non real error handling
             if isinstance(error, CommandNotFound):
                 return await errorEmb(inter, "Command not found! use /help for a list of commands")
-
             elif isinstance(error, NotOwner):
                 await errorEmb(
                     inter, f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`"
                 )
-
+            elif isinstance(error, HTTPException):
+                await self.send_traceback(inter, error)
+                await errorEmb(inter, error.text)
+            elif isinstance(error, CheckFailure):
+                await self.send_traceback(inter, error)
+                return await errorEmb(
+                    inter,
+                    f"One or more permission checks have failed\nif you think this is a bug please report it to the developers via /reportbug",
+                )
             elif isinstance(error, MissingPermissions):
                 return await permsEmb(inter, permissions=f"{', '.join(error.missing_permissions)}")
             elif isinstance(error, MaxConcurrencyReached):
@@ -50,32 +57,13 @@ class ErrorHandler(Cog):
                 print(traceback_nice)
                 traceback.print_exc()
                 return await errorEmb(inter, "check console for error")
-
             else:  # actual error not just a check failure
-                error_channel = self.bot.get_channel(self.bot.config.channels.errors)
                 embed = await self.create_error_message(inter, error)
                 await inter.send(embed=embed, ephemeral=True)
-                bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
-
-                error_embed = disnake.Embed(
-                    title="Error Traceback",
-                    description=f"See below!\n\n{bot_errors}",
-                    timestamp=datetime.utcnow(),
-                )
-                await error_channel.send(embed=error_embed)
-                traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace(
-                    "```", "```"
-                )
-
-                debug_info = (
-                    f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
-                    + "```"
-                    + f"```py\n{traceback_nice}"[: 2000 - 206]
-                    + "```"
-                )
-                await error_channel.send(debug_info)
+                await self.send_traceback(inter, error)
 
         except Exception as e:
+            error_channel = self.bot.get_channel(self.bot.config.channels.errors)
             embed = await self.create_error_message(inter, e)
             await inter.send(embed=embed, ephemeral=True)
             e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
@@ -99,6 +87,28 @@ class ErrorHandler(Cog):
                 + "```"
             )
             await error_channel.send(debug_info_e)
+
+    async def send_traceback(self, inter, error):
+        error_channel = self.bot.get_channel(self.bot.config.channels.errors)
+        bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
+
+        error_embed = disnake.Embed(
+            title="Error Traceback",
+            description=f"See below!\n\n{bot_errors}",
+            timestamp=datetime.utcnow(),
+        )
+        await error_channel.send(embed=error_embed)
+        traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace(
+            "```", "```"
+        )
+
+        debug_info = (
+                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
+                + "```"
+                + f"```py\n{traceback_nice}"[: 2000 - 206]
+                + "```"
+        )
+        await error_channel.send(debug_info)
 
     @staticmethod
     async def create_error_message(inter, error) -> Embed:
