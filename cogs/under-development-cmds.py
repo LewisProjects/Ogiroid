@@ -1,9 +1,7 @@
 from disnake.ext import commands
-import asyncio
 
 from utils.CONSTANTS import COUNTRIES
 from utils.bot import OGIROID
-from utils.shortcuts import *
 
 
 class DevelopmentCommands(commands.Cog):
@@ -17,8 +15,7 @@ class DevelopmentCommands(commands.Cog):
     # async def nohi(self, ctx): also do dontasktoask
     #    await ctx.try_reply('https://nohello.net/')
 
-    #Create a command wich will wait for user text inpu
-
+    # Create a command wich will wait for user text inpu
 
     # @commands.command(aliases=['ss'])
     # @commands.is_nsfw() ref https://github.com/JasonLovesDoggo/edoC/blob/55d3a36166eccdc1fe0b56bf9498d30fbb93f995/cogs/Info.py#L149

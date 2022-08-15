@@ -4,8 +4,6 @@ import random
 import time
 from typing import List, Literal, Optional
 
-from aiocache import Cache
-
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
@@ -410,7 +408,8 @@ class TagManager:
 
 class RolesHandler:
     """Stores message_id, role_id, emoji(example: <:starr:990647250847940668> or ⭐ depending on type of emoji
-     and roles given out"""
+    and roles given out"""
+
     def __init__(self, bot, db):
         self.bot = bot
         self.db = db
@@ -470,8 +469,6 @@ class RolesHandler:
 
     async def remove_messages(self, message_id: int):
         """Removes all messages matching the id"""
-        await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = ?", [message_id]
-        )
+        await self.db.execute("DELETE FROM reaction_roles WHERE message_id = ?", [message_id])
         await self.db.commit()
         self.messages = [msg for msg in self.messages if msg.message_id != message_id]

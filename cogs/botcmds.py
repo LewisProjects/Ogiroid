@@ -268,7 +268,7 @@ class Commands(commands.Cog):
 
         embed = disnake.Embed(title=f"{user}'s avatar")
         embed.set_image(url=user.avatar.url)
-        embed.set_author(name=f'{user}', icon_url=user.avatar.url)
+        embed.set_author(name=f"{user}", icon_url=user.avatar.url)
         await inter.send(embed=embed)
 
 

@@ -11,6 +11,7 @@ from utils.CONSTANTS import IGNORE_EXCEPTIONS
 from utils.bot import OGIROID
 from utils.shortcuts import errorEmb, permsEmb
 
+
 class ErrorHandler(Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
@@ -29,7 +30,9 @@ class ErrorHandler(Cog):
             elif error.__class__.__name__ in IGNORE_EXCEPTIONS:
                 return
             if self.TimeSinceStart() < self.waitTime:  # Databases and internal caches might not be fully loaded yet
-                return await errorEmb(inter, f"The bot just started, please wait {round(self.waitTime - self.TimeSinceStart(), ndigits=2)}s.")
+                return await errorEmb(
+                    inter, f"The bot just started, please wait {round(self.waitTime - self.TimeSinceStart(), ndigits=2)}s."
+                )
             # non real error handling
             if isinstance(error, CommandNotFound):
                 return await errorEmb(inter, "Command not found! use /help for a list of commands")
@@ -47,8 +50,7 @@ class ErrorHandler(Cog):
                     inter, "You've reached max capacity of command usage at once, please finish the previous one..."
                 )
             elif isinstance(error, CommandOnCooldown):
-                return await errorEmb(inter,
-                                      f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
+                return await errorEmb(inter, f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
             elif isinstance(error, GuildNotFound):
                 return await errorEmb(error, f"You can only use this command in a server")
             elif self.debug_mode:
@@ -80,10 +82,10 @@ class ErrorHandler(Cog):
             traceback_nice_e = "".join(traceback.format_exception(type(e), e, e.__traceback__, 4)).replace("```", "")
 
             debug_info_e = (
-                    f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
-                    + "```"
-                    + f"```py\n{traceback_nice_e}"[: 2000 - 206]
-                    + "```"
+                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
+                + "```"
+                + f"```py\n{traceback_nice_e}"[: 2000 - 206]
+                + "```"
             )
             await error_channel.send(debug_info_e)
 
@@ -97,15 +99,13 @@ class ErrorHandler(Cog):
             timestamp=datetime.utcnow(),
         )
         await error_channel.send(embed=error_embed)
-        traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace(
-            "```", "```"
-        )
+        traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace("```", "```")
 
         debug_info = (
-                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
-                + "```"
-                + f"```py\n{traceback_nice}"[: 2000 - 206]
-                + "```"
+            f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
+            + "```"
+            + f"```py\n{traceback_nice}"[: 2000 - 206]
+            + "```"
         )
         await error_channel.send(debug_info)
 

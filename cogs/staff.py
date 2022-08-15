@@ -1,14 +1,14 @@
-import disnake
-from disnake.ext import commands
-from disnake import TextInputStyle, PartialEmoji, Emoji
-from disnake.ext import commands
-from disnake.ext.commands import ParamInfo
 import asyncio
 
-from utils.bot import OGIROID
-from utils.shortcuts import sucEmb, errorEmb
+import disnake
+from disnake import TextInputStyle, PartialEmoji
+from disnake.ext import commands
+from disnake.ext.commands import ParamInfo
+
 from utils.DBhandlers import RolesHandler
+from utils.bot import OGIROID
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
+from utils.shortcuts import sucEmb, errorEmb
 
 
 class StaffVote(disnake.ui.Modal):
@@ -269,8 +269,9 @@ class Staff(commands.Cog):
                 exists = True
 
         if not exists:
-            return await errorEmb(inter, "The message does not exist in the Database to initialise a message use"
-                                         " ``/initialise-message``.")
+            return await errorEmb(
+                inter, "The message does not exist in the Database to initialise a message use" " ``/initialise-message``."
+            )
 
         message = await channel.fetch_message(message_id)
         if message is None:
@@ -308,8 +309,9 @@ class Staff(commands.Cog):
                 exists = True
 
         if not exists:
-            return await errorEmb(inter, "The message does not exist in the Database to initialise a message use"
-                                         " ``/initialise-message``.")
+            return await errorEmb(
+                inter, "The message does not exist in the Database to initialise a message use" " ``/initialise-message``."
+            )
 
         await self.reaction_roles.remove_messages(message_id)
 

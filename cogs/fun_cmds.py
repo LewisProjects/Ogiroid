@@ -4,10 +4,7 @@ import os
 import random
 import time
 from datetime import datetime, timezone
-import textwrap
-import wikipedia
 
-import translators as ts
 import akinator as ak
 import disnake
 from discord_together import DiscordTogether
@@ -15,7 +12,6 @@ from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
 from dotenv import load_dotenv
-from requests import session
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
@@ -330,16 +326,15 @@ class Fun(commands.Cog):
             await inter.send(embed=intro)
 
             def check(msg):
-                return (
-                    msg.author == inter.author
-                    and msg.channel == inter.channel
-                )
+                return msg.author == inter.author and msg.channel == inter.channel
 
-            components = [disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
-                          disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
-                          disnake.ui.Button(label="Probably", custom_id="p"),
-                          disnake.ui.Button(label='Idk', custom_id="idk"),
-                          disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple)]
+            components = [
+                disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
+                disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
+                disnake.ui.Button(label="Probably", custom_id="p"),
+                disnake.ui.Button(label="Idk", custom_id="idk"),
+                disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple),
+            ]
 
             try:
                 aki = ak.Akinator()
@@ -458,10 +453,13 @@ class Fun(commands.Cog):
             embed.add_field(name="Abilities", value=poke_data["abilities"][0]["ability"]["name"])
             embed.add_field(name="Base Experience", value=poke_data["base_experience"])
             embed.add_field(name="Species", value=poke_data["species"]["name"])
-            embed.set_footer(text=f"ID: {poke_data['id']} | Generation: {poke_data['game_indices'][0]['version']['name']} • Requested by: {inter.author.name}")
+            embed.set_footer(
+                text=f"ID: {poke_data['id']} | Generation: {poke_data['game_indices'][0]['version']['name']} • Requested by: {inter.author.name}"
+            )
         except KeyError as key:
             return await errorEmb(inter, f"{key}")
         return await inter.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))

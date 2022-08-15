@@ -5,9 +5,9 @@ from disnake.ext import commands
 from disnake.ext.commands import Cog
 
 from utils.CONSTANTS import VALID_CODE_LANGUAGES
-from utils.shortcuts import errorEmb
 from utils.bot import OGIROID
 from utils.http import session
+from utils.shortcuts import errorEmb
 
 
 class CodeExec(Cog, name="Code"):
