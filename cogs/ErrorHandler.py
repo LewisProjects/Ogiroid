@@ -8,15 +8,17 @@ from disnake import Embed, ApplicationCommandInteraction, HTTPException
 from disnake.ext.commands import *
 
 from utils.CONSTANTS import IGNORE_EXCEPTIONS
-from utils.assorted import traceback_maker
 from utils.bot import OGIROID
 from utils.shortcuts import errorEmb, permsEmb
-
 
 class ErrorHandler(Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.debug_mode = self.bot.config.debug
+        self.waitTime = 25
+
+    def TimeSinceStart(self) -> int:
+        return round((datetime.now() - self.bot.uptime).total_seconds(), ndigits=1)
 
     # noinspection PyUnboundLocalVariable
     @Cog.listener()
@@ -26,6 +28,8 @@ class ErrorHandler(Cog):
                 return
             elif error.__class__.__name__ in IGNORE_EXCEPTIONS:
                 return
+            if self.TimeSinceStart() < self.waitTime:  # Databases and internal caches might not be fully loaded yet
+                return await errorEmb(inter, f"The bot just started, please wait {round(self.waitTime - self.TimeSinceStart(), ndigits=2)}s.")
             # non real error handling
             if isinstance(error, CommandNotFound):
                 return await errorEmb(inter, "Command not found! use /help for a list of commands")
@@ -34,14 +38,8 @@ class ErrorHandler(Cog):
                     inter, f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`"
                 )
             elif isinstance(error, HTTPException):
-                await self.send_traceback(inter, error)
                 await errorEmb(inter, error.text)
-            elif isinstance(error, CheckFailure):
-                await self.send_traceback(inter, error)
-                return await errorEmb(
-                    inter,
-                    f"One or more permission checks have failed\nif you think this is a bug please report it to the developers via /reportbug",
-                )
+                return await self.send_traceback(inter, error)
             elif isinstance(error, MissingPermissions):
                 return await permsEmb(inter, permissions=f"{', '.join(error.missing_permissions)}")
             elif isinstance(error, MaxConcurrencyReached):
@@ -49,7 +47,8 @@ class ErrorHandler(Cog):
                     inter, "You've reached max capacity of command usage at once, please finish the previous one..."
                 )
             elif isinstance(error, CommandOnCooldown):
-                return await errorEmb(inter, f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
+                return await errorEmb(inter,
+                                      f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
             elif isinstance(error, GuildNotFound):
                 return await errorEmb(error, f"You can only use this command in a server")
             elif self.debug_mode:
@@ -81,10 +80,10 @@ class ErrorHandler(Cog):
             traceback_nice_e = "".join(traceback.format_exception(type(e), e, e.__traceback__, 4)).replace("```", "")
 
             debug_info_e = (
-                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
-                + "```"
-                + f"```py\n{traceback_nice_e}"[: 2000 - 206]
-                + "```"
+                    f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
+                    + "```"
+                    + f"```py\n{traceback_nice_e}"[: 2000 - 206]
+                    + "```"
             )
             await error_channel.send(debug_info_e)
 

@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 import aiosqlite
 import disnake
@@ -36,6 +37,7 @@ class OGIROID(commands.Bot):
             **kwargs,
         )
         self._ready_ = False
+        self.uptime = datetime.now()
         self.session = HTTPSession(loop=self.loop)
         self.config = Config()
         self.commands_ran = {}
