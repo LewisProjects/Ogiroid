@@ -1,9 +1,9 @@
-<h1>Ogiroid - a multipurpose discord bot!</h1>
+<h1>Ogiroid - the most handsome Discord bot!</h1>
 <hr>
 <img src="https://media.discordapp.net/attachments/985729550732394536/1002138392554897479/Ogiroid.png?width=1440&height=583" alt="img">
 <hr>
 <h3>Introduction:</h3>
-Ogiroid is a multipurpose Discord Bot developed for the YouTuber, <a href="https://www.youtube.com/c/CodingwithLewis">Lewis Menelaws'</a> Discord Server.
+Ogiroid is a multipurpose Discord Bot (who is very handsome 😋😋) developed for the YouTuber, <a href="https://www.youtube.com/c/CodingwithLewis">Lewis Menelaws'</a> Discord Server.
 This bot offers:
 <ul>
 <li>Fun Commands, example: /askogiroid, /beer, /sus and more! </li>
