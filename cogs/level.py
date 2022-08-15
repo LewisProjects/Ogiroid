@@ -16,3 +16,7 @@ class Level(commands.Cog):
     @staticmethod
     async def random_xp(self):
         return random.choice(self.xp_probability)
+
+
+def setup(bot: OGIROID):
+    bot.add_cog(Level(bot))
