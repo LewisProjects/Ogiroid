@@ -60,11 +60,12 @@ class Tickets(commands.Cog):
                 pass
 
         ticket = await category.create_text_channel(f"ticket-{user.id}")
+        await ticket.edit(topic=f"Ticket opened by {user.name}.")
         await ticket.set_permissions(inter.guild.get_role(inter.guild.id), read_messages=False)
         await ticket.set_permissions(user, **TICKET_PERMS)
         await ticket.set_permissions(staff, **TICKET_PERMS)
         message_content = (
-            "Thank you for contacting support! A staff member will be here shortly!\nTo close the the tag use ``/close``"
+            "Thank you for contacting support! A staff member will be here shortly!\nTo close the the ticket use ``/close``"
         )
         em = disnake.Embed(
             title=f"Ticket made by {user.name}#{user.discriminator}",
