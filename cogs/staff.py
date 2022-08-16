@@ -66,6 +66,40 @@ class Staff(commands.Cog):
         self.reaction_roles: RolesHandler = RolesHandler(self.bot, self.bot.db)
         await self.reaction_roles.startup()
 
+    @commands.slash_command(name="ban", description="Bans a user from the server.")
+    @commands.has_permissions(ban_members=True)
+    @commands.guild_only()
+    async def ban(self, inter, member: disnake.Member, reason: str = None):
+        """Bans a user from the server."""
+        await member.ban(reason=reason)
+        await sucEmb(inter, "User has been banned successfully!")
+
+    @commands.slash_command(name="kick", description="Kicks a user from the server.")
+    @commands.has_permissions(kick_members=True)
+    @commands.guild_only()
+    async def kick(self, inter, member: disnake.Member, reason: str = None):
+        """Kicks a user from the server."""
+        await member.kick(reason=reason)
+        await sucEmb(inter, "User has been kicked successfully!")
+
+    # todo create unban command
+    # @commands.slash_command(name="unban", description="Unbans a user from the server.")
+    # @commands.has_permissions(ban_members=True)
+    # @commands.guild_only()
+    # async def unban(self, inter, member=ParamInfo(description="Member or User ID"), reason: str = None):
+    #     """Unbans a user from the server."""
+    #     if isinstance(member, disnake.Member):
+    #         member: disnake.Member = member
+    #         if member is None:
+    #             return await errorEmb(inter, "User not found!")
+    #         await member.unban(reason=reason)
+    #     else:
+    #         member: int = member
+    #
+    #         await inter.guild.unban(int(member), reason=reason)
+    #
+    #     await sucEmb(inter, "User has been unbanned successfully!")
+
     @commands.slash_command(name="faq")
     @commands.guild_only()
     @commands.has_role("Staff")
