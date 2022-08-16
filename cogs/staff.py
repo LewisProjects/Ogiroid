@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 
 import disnake
 from disnake import TextInputStyle, PartialEmoji
@@ -95,6 +96,53 @@ class Staff(commands.Cog):
             return await errorEmb(inter, "User not found or not banned!")
 
         await sucEmb(inter, "User has been unbanned successfully!")
+
+    @commands.slash_command(name="mute", description="Timeout(mute)'s a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def mute(self, inter, member: disnake.Member, duration: str = ParamInfo(description="Format: 1s, 1m, 1h, 1d, max: 28d"), reason: str = None):
+        """Mutes a user from the server."""
+        if duration.lower() == "max":
+            duration = "28d"
+
+        try:
+            if "d" in duration:
+                duration = dt.timedelta(days=float(duration.split("d")[0]))
+                if duration > dt.timedelta(days=28):
+                    return await errorEmb(inter, "Duration is too long!")
+            elif "h" in duration:
+                duration = dt.timedelta(hours=float(duration.split("h")[0]))
+            elif "m" in duration:
+                duration = dt.timedelta(minutes=float(duration.split("m")[0]))
+            elif "s" in duration:
+                duration = dt.timedelta(seconds=float(duration.split("s")[0]))
+        except ValueError:
+            return await errorEmb(inter, "Invalid duration!")
+
+        try:
+            await member.timeout(reason=reason, duration=duration)
+        except ValueError:
+            return await errorEmb(inter, "Invalid duration!")
+        except disnake.errors.NotFound:
+            return await errorEmb(inter, "User not found or not banned!")
+        except disnake.HTTPException as e:
+            return await errorEmb(inter, e.text)
+
+        await sucEmb(inter, "User has been muted successfully!")
+
+    @commands.slash_command(name="unmute", description="Unmutes a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def unmute(self, inter, member: disnake.Member, reason: str = None):
+        """Unmutes a user from the server."""
+        try:
+            await member.timeout(reason=reason, duration=None)
+        except disnake.errors.NotFound:
+            return await errorEmb(inter, "User not found or not muted!")
+        except disnake.HTTPException as e:
+            return await errorEmb(inter, e.text)
+
+        await sucEmb(inter, "User has been unmuted successfully!")
 
     @commands.slash_command(name="faq")
     @commands.guild_only()
