@@ -53,3 +53,12 @@ IF NOT EXISTS reaction_roles
     emoji TEXT,
     roles_given INTEGER DEFAULT 0
 );
+
+CREATE TABLE
+IF NOT EXISTS warnings
+(
+    warning_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    moderator_id INTEGER,
+    reason TEXT
+);

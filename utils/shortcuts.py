@@ -41,6 +41,33 @@ async def errorEmb(inter, text, *args, **kwargs):
     )
 
 
+async def warning_embed(inter, user, reason):
+    emb = Embed(
+        title=f"Warned {user}",
+        description=f"{user.mention} has been warned by {inter.author.mention} for {reason if reason else 'no reason specified'}",
+        color=disnake.Color.red(),
+    )
+    emb.set_thumbnail(url=user.display_avatar)
+    emb.set_footer(text=f'Warned by {inter.author} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+    await inter.send(embed=emb)
+
+
+async def warnings_embed(inter, member, warnings):
+    embed = disnake.Embed(title=f"{member.name}'s warnings", color=0xFFFFFF)
+    warning_string = ""
+    i = 0
+    for warning in warnings:
+        i += 1
+        warning_string += f"{i}. Reason: {warning.reason if warning.reason else 'unknown'} • " \
+                          f"Warned by {await inter.guild.fetch_member(warning.moderator_id)}\n"
+
+    embed.description = warning_string
+    embed.set_thumbnail(url=member.display_avatar)
+    embed.add_field(name="Total Warnings", value=len(warnings))
+    embed.set_footer(text=f'Called by {inter.author} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+    await inter.send(embed=embed)
+
+
 async def sucEmb(inter, text, ephemeral=True):
     emb = Embed(description=text, color=disnake.Color.green())
     await inter.send(

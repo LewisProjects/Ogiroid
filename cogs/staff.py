@@ -6,10 +6,10 @@ from disnake import TextInputStyle, PartialEmoji
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
 
-from utils.DBhandlers import RolesHandler
+from utils.DBhandlers import RolesHandler, WarningHandler
 from utils.bot import OGIROID
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
-from utils.shortcuts import sucEmb, errorEmb
+from utils.shortcuts import sucEmb, errorEmb, warning_embed, QuickEmb, warnings_embed
 
 
 class StaffVote(disnake.ui.Modal):
@@ -61,10 +61,12 @@ class Staff(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.reaction_roles: RolesHandler = None
+        self.warning: WarningHandler = None
 
     @commands.Cog.listener()
     async def on_ready(self):
         self.reaction_roles: RolesHandler = RolesHandler(self.bot, self.bot.db)
+        self.warning: WarningHandler = WarningHandler(self.bot, self.bot.db)
         await self.reaction_roles.startup()
 
     @commands.slash_command(name="ban", description="Bans a user from the server.")
@@ -143,6 +145,68 @@ class Staff(commands.Cog):
             return await errorEmb(inter, e.text)
 
         await sucEmb(inter, "User has been unmuted successfully!")
+
+    @commands.slash_command(name="warn", description="Warns a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def warn(self, inter, member: disnake.Member, reason: str = None):
+        """Warns a user from the server."""
+        await self.warning.create_warning(member.id, reason, moderator_id=inter.author.id)
+        await warning_embed(inter, user=member, reason=reason)
+
+    @commands.slash_command(name="removewarning", description="Removes a warning from a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def remove_warning(self, inter, member: disnake.Member):
+        """Removes a warning from a user from the server."""
+        warnings = await self.warning.get_warnings(member.id)
+        if len(warnings) == 0:
+            return await errorEmb(inter, "User has no warnings!")
+        elif len(warnings) == 1:
+            status = await self.warning.remove_warning(warnings[0].warning_id)
+            if status:
+                await sucEmb(inter, "Warning has been removed successfully!")
+            else:
+                await errorEmb(inter, "Warning could not be removed!")
+        else:
+            await warnings_embed(inter, member=member, warnings=warnings)
+            temp_msg = await inter.channel.send(embed=disnake.Embed(title="Reply with the index of the warning to remove",
+                                                            color=0x00ff00))
+
+            def check(m):
+                return m.author == inter.author and m.channel == inter.channel
+
+            try:
+                msg = await self.bot.wait_for("message", check=check, timeout=60)
+            except asyncio.TimeoutError:
+                return await errorEmb(inter, "Timed out!")
+
+            id = int(msg.content)
+            if id > len(warnings) or id < 1:
+                return await errorEmb(inter, "Invalid warning index!")
+
+            status = await self.warning.remove_warning(warnings[id - 1].warning_id)
+            if status:
+                await sucEmb(inter, "Warning has been removed successfully!")
+            else:
+                await errorEmb(inter, "Warning could not be removed!")
+
+            # Delete the messages
+            await temp_msg.delete()
+            original_message = await inter.original_message()
+            await original_message.delete()
+            await msg.delete()
+
+    @commands.slash_command(name="warnings", description="Shows the warnings of a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def warnings(self, inter, member: disnake.Member):
+        """Shows the warnings of a user from the server."""
+        warnings = await self.warning.get_warnings(member.id)
+        if not warnings:
+            return await QuickEmb(inter, "User has no warnings!").send()
+
+        await warnings_embed(inter, member=member, warnings=warnings)
 
     @commands.slash_command(name="faq")
     @commands.guild_only()

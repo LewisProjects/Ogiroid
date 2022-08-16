@@ -7,7 +7,7 @@ from typing import List, Literal, Optional
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
-from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole
+from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole, WarningModel
 
 
 class FlagQuizHandler:
@@ -472,3 +472,44 @@ class RolesHandler:
         await self.db.execute("DELETE FROM reaction_roles WHERE message_id = ?", [message_id])
         await self.db.commit()
         self.messages = [msg for msg in self.messages if msg.message_id != message_id]
+
+
+class WarningHandler:
+    def __init__(self, bot, db):
+        self.db = db
+        self.bot = bot
+
+    async def get_warning(self, warning_id: int) -> Optional[WarningModel]:
+        async with self.db.execute("SELECT * FROM warnings WHERE warning_id = ?", [warning_id]) as cur:
+            content = await cur.fetchone()
+            if content is None:
+                return None
+            return WarningModel(*content)
+
+    async def get_warnings(self, user_id: int) -> List[WarningModel]:
+        warnings = []
+        async with self.db.execute("SELECT * FROM warnings WHERE user_id = ?", [user_id]) as cur:
+            async for row in cur:
+                warnings.append(WarningModel(*row))
+        return warnings
+
+    async def create_warning(self, user_id: int, reason: str, moderator_id: int):
+        await self.db.execute("INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)", [user_id, reason, moderator_id])
+        await self.db.commit()
+        return True
+
+    async def remove_all_warnings(self, user_id: int) -> bool:
+        warnings = await self.get_warnings(user_id)
+        if len(warnings) == 0:
+            return False
+        await self.db.execute("DELETE FROM warnings WHERE user_id = ?", [user_id])
+        await self.db.commit()
+
+    async def remove_warning(self, warning_id: int) -> bool:
+        warning = await self.get_warning(warning_id)
+        if warning is None:
+            return False
+        await self.db.execute("DELETE FROM warnings WHERE warning_id = ?", [warning_id])
+        await self.db.commit()
+        return True
+
