@@ -83,22 +83,19 @@ class Staff(commands.Cog):
         await sucEmb(inter, "User has been kicked successfully!")
 
     # todo create unban command
-    # @commands.slash_command(name="unban", description="Unbans a user from the server.")
-    # @commands.has_permissions(ban_members=True)
-    # @commands.guild_only()
-    # async def unban(self, inter, member=ParamInfo(description="Member or User ID"), reason: str = None):
-    #     """Unbans a user from the server."""
-    #     if isinstance(member, disnake.Member):
-    #         member: disnake.Member = member
-    #         if member is None:
-    #             return await errorEmb(inter, "User not found!")
-    #         await member.unban(reason=reason)
-    #     else:
-    #         member: int = member
-    #
-    #         await inter.guild.unban(int(member), reason=reason)
-    #
-    #     await sucEmb(inter, "User has been unbanned successfully!")
+    @commands.slash_command(name="unban", description="Unbans a user from the server.")
+    @commands.has_permissions(ban_members=True)
+    @commands.guild_only()
+    async def unban(self, inter, user_id, reason: str = None):
+        """Unbans a user from the server."""
+        try:
+            await inter.guild.unban(disnake.Object(id=int(user_id)), reason=reason)
+        except ValueError:
+            return await errorEmb(inter, "Invalid user ID!")
+        except disnake.errors.NotFound:
+            return await errorEmb(inter, "User not found or not banned!")
+
+        await sucEmb(inter, "User has been unbanned successfully!")
 
     @commands.slash_command(name="faq")
     @commands.guild_only()
