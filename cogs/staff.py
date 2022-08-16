@@ -82,7 +82,6 @@ class Staff(commands.Cog):
         await member.kick(reason=reason)
         await sucEmb(inter, "User has been kicked successfully!")
 
-    # todo create unban command
     @commands.slash_command(name="unban", description="Unbans a user from the server.")
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
