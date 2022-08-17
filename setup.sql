@@ -53,3 +53,12 @@ IF NOT EXISTS reaction_roles
     emoji TEXT,
     roles_given INTEGER DEFAULT 0
 );
+
+CREATE TABLE
+IF NOT EXISTS levels
+(
+    guild_id INTEGER,
+    user_id INTEGER,
+    lvl INTEGER DEFAULT 0,
+    xp INTEGER DEFAULT 1
+);
