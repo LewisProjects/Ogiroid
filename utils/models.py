@@ -88,4 +88,3 @@ class WarningModel:
     user_id: int
     moderator_id: int
     reason: str
-

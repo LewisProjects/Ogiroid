@@ -58,8 +58,10 @@ async def warnings_embed(inter, member, warnings):
     i = 0
     for warning in warnings:
         i += 1
-        warning_string += f"{i}. Reason: {warning.reason if warning.reason else 'unknown'} • " \
-                          f"Warned by {await inter.guild.fetch_member(warning.moderator_id)}\n"
+        warning_string += (
+            f"{i}. Reason: {warning.reason if warning.reason else 'unknown'} • "
+            f"Warned by {await inter.guild.fetch_member(warning.moderator_id)}\n"
+        )
 
     embed.description = warning_string
     embed.set_thumbnail(url=member.display_avatar)

@@ -72,9 +72,15 @@ class Staff(commands.Cog):
     @commands.slash_command(name="ban", description="Bans a user from the server.")
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
-    async def ban(self, inter, member: disnake.Member, reason: str = None,
-                  delete_messages: int = ParamInfo(description="How many days of messages to delete.",
-                                                   default=0, choices=[0, 1, 2, 3, 4, 5, 6, 7])):
+    async def ban(
+        self,
+        inter,
+        member: disnake.Member,
+        reason: str = None,
+        delete_messages: int = ParamInfo(
+            description="How many days of messages to delete.", default=0, choices=[0, 1, 2, 3, 4, 5, 6, 7]
+        ),
+    ):
         """Bans a user from the server."""
         await inter.guild.ban(user=member, reason=reason, delete_message_days=delete_messages)
         await sucEmb(inter, "User has been banned successfully!")
@@ -104,7 +110,13 @@ class Staff(commands.Cog):
     @commands.slash_command(name="mute", description="Timeout(mute)'s a user from the server.")
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def mute(self, inter, member: disnake.Member, duration: str = ParamInfo(description="Format: 1s, 1m, 1h, 1d, max: 28d"), reason: str = None):
+    async def mute(
+        self,
+        inter,
+        member: disnake.Member,
+        duration: str = ParamInfo(description="Format: 1s, 1m, 1h, 1d, max: 28d"),
+        reason: str = None,
+    ):
         """Mutes a user from the server."""
         if duration.lower() == "max":
             duration = "28d"
@@ -172,8 +184,9 @@ class Staff(commands.Cog):
                 await errorEmb(inter, "Warning could not be removed!")
         else:
             await warnings_embed(inter, member=member, warnings=warnings)
-            temp_msg = await inter.channel.send(embed=disnake.Embed(title="Reply with the index of the warning to remove",
-                                                            color=0x00ff00))
+            temp_msg = await inter.channel.send(
+                embed=disnake.Embed(title="Reply with the index of the warning to remove", color=0x00FF00)
+            )
 
             def check(m):
                 return m.author == inter.author and m.channel == inter.channel

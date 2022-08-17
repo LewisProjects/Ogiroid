@@ -494,7 +494,9 @@ class WarningHandler:
         return warnings
 
     async def create_warning(self, user_id: int, reason: str, moderator_id: int):
-        await self.db.execute("INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)", [user_id, reason, moderator_id])
+        await self.db.execute(
+            "INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)", [user_id, reason, moderator_id]
+        )
         await self.db.commit()
         return True
 
@@ -512,4 +514,3 @@ class WarningHandler:
         await self.db.execute("DELETE FROM warnings WHERE warning_id = ?", [warning_id])
         await self.db.commit()
         return True
-
