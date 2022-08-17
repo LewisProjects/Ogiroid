@@ -62,3 +62,13 @@ IF NOT EXISTS warnings
     moderator_id INTEGER,
     reason TEXT
 );
+
+
+CREATE TABLE
+IF NOT EXISTS levels
+(
+    guild_id INTEGER,
+    user_id INTEGER,
+    lvl INTEGER DEFAULT 0,
+    xp INTEGER DEFAULT 1
+);

@@ -12,6 +12,7 @@ textdistance==4.3.0
 typing_extensions==4.3.0
 ujson==5.4.0
 msgpack==1.0.4
+Pillow~=9.2.0
 aiocache==0.11.1
 translators==5.4.2
 wikipedia==1.4.0
