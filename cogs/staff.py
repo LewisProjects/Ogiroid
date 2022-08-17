@@ -72,9 +72,11 @@ class Staff(commands.Cog):
     @commands.slash_command(name="ban", description="Bans a user from the server.")
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
-    async def ban(self, inter, member: disnake.Member, reason: str = None):
+    async def ban(self, inter, member: disnake.Member, reason: str = None,
+                  delete_messages: int = ParamInfo(description="How many days of messages to delete.",
+                                                   default=0, choices=[0, 1, 2, 3, 4, 5, 6, 7])):
         """Bans a user from the server."""
-        await member.ban(reason=reason)
+        await inter.guild.ban(user=member, reason=reason, delete_message_days=delete_messages)
         await sucEmb(inter, "User has been banned successfully!")
 
     @commands.slash_command(name="kick", description="Kicks a user from the server.")
