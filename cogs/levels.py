@@ -13,6 +13,9 @@ class LevelsController:
         self.bot = bot
         self.db = db
 
+    def user_xp_given(self, user_id: int):
+        pass
+
     async def add_xp(self, user_id: int, xp: int):
         return self.db.add_xp(user_id, xp)
 
@@ -28,20 +31,10 @@ class Level(commands.Cog):
         self.levels = xp_needed
         self.controller: LevelsController = None
 
-    async def generate_image_card(self, msg):#, user_id, lvl):
+    async def generate_image_card(self, msg, lvl, rank):
         """generates an image card for the user"""
-        #user = self.get_user(user_id)
         user = msg.author
-        username = msg.author.name + "#" + msg.author.discriminator
-        currentxp = 1
-        lastxp = 0
-        lvlxp = 2
-        current_level = 1
-        current_rank = 1
-        background = None
-        image = await Rankcard().create_img(user=user, xp=(currentxp, lvlxp), level=current_level, rank=current_rank)
-        file = disnake.File(filename="rankcard.png", fp=image)
-        await msg.channel.send(file=file)
+        pass
 
 
     def cog_unload(self) -> None:
