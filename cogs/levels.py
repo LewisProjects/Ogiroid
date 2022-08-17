@@ -31,10 +31,15 @@ class Level(commands.Cog):
         self.levels = xp_needed
         self.controller: LevelsController = None
 
-    async def generate_image_card(self, msg, lvl, rank):
+    @commands.slash_command(name="rankcardtesting")
+    async def generate_image_card(self, inter, lvl, rank):
         """generates an image card for the user"""
-        user = msg.author
-        pass
+        user = inter.author
+        # with open("utils/data/images/rankcard5.svg", "r") as f:
+        #     svg = f.read()
+        #     svg = svg.replace("{{USERNAME}}", user.name)
+        #     with open("file.svg", "w") as o:
+        #         o.write(svg)
 
 
     def cog_unload(self) -> None:
