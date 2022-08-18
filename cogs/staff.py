@@ -548,6 +548,19 @@ class Staff(commands.Cog):
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
 
+    @commands.slash_command(name="staffhelp", description="Get the help for the staff commands.")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def staffhelp(self, inter):
+        """Get the help for the staff commands."""
+        staff_commands = commands.Cog.get_slash_commands(self)
+        emb = disnake.Embed(title="Staff Commands", description="All staff commands", color=0xFFFFFF)
+        for command in staff_commands:
+            emb.add_field(
+                name=f"/{command.qualified_name}", value=command.description, inline=False)
+
+        await inter.send(embed=emb)
+
 
 def setup(bot):
     bot.add_cog(Staff(bot))
