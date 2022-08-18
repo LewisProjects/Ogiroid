@@ -330,6 +330,7 @@ class Staff(commands.Cog):
         self,
         inter: disnake.ApplicationCommandInteraction,
         emoji: str = ParamInfo(description="The emoji to be on the button. You can add more later."),
+        color=ParamInfo(choices=["blurple", "grey", "red", "green"], description="Color of the button."),
         role: disnake.Role = ParamInfo(description="The role to be given when clicked."),
         channel: disnake.TextChannel = ParamInfo(
             channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
@@ -354,7 +355,8 @@ class Staff(commands.Cog):
         if emoji is None:
             return await errorEmb(inter, "The emoji is invalid")
 
-        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}")
+        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}",
+                                   style=disnake.ButtonStyle[color])
         view = disnake.ui.View()
         view.add_item(button)
         msg = await channel.send(text, view=view)
@@ -374,6 +376,7 @@ class Staff(commands.Cog):
         message_id,
         new_emoji: str,
         role: disnake.Role,
+        color=ParamInfo(choices=["blurple", "grey", "red", "green"], description="Color of the button."),
         channel: disnake.TextChannel = ParamInfo(
             channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
         ),
@@ -403,7 +406,7 @@ class Staff(commands.Cog):
 
         custom_id = f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}"
 
-        new_button = disnake.ui.Button(emoji=emoji, custom_id=custom_id)
+        new_button = disnake.ui.Button(emoji=emoji, custom_id=custom_id, style=disnake.ButtonStyle[color])
 
         components.add_item(new_button)
         try:
