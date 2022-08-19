@@ -3,7 +3,7 @@ from utils.CONSTANTS import *
 
 @dataclass
 class Config:
-    Development = True  # if true will use base server ID's else will use development server ID's
+    Development = False # if true will use base server ID's else will use development server ID's
     colors = Colors
     colours = colors
     tokens = Tokens
