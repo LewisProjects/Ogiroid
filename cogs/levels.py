@@ -1,7 +1,6 @@
 from collections import namedtuple
 from typing import Tuple, Union, Optional, Dict
 
-import disnake
 from disnake import Message, Member, MessageType
 from disnake.ext import commands
 import random
@@ -24,11 +23,6 @@ class LevelsController:
         self.__per = 60
         self._cooldown = CooldownMapping.from_cooldown(self.__rate, self.__per, BucketType.user)
         self.__max_level__ = len(LEVELS_AND_XP) - 1
-
-    @staticmethod
-    def levels_and_xp() -> Dict[str, int]:
-        """Returns a copy of LEVELS_AND_XP"""
-        return LEVELS_AND_XP.copy()
 
     def get_xp_for_level(self, level: int) -> int:
         """
@@ -64,16 +58,15 @@ class LevelsController:
         self.__rate = rate
         self.__per = per
 
+    async def is_in_database(self, member: Union[Member, int], guild: Union[FakeGuild, int] = None) -> bool:
+        record = await self.db.execute("SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = ? AND guild_id = ? )", (member.id, guild.id if guild else member.guild.id))
+        return bool((await record.fetchone())[0])
+
     async def _update_record(
-        self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, name: Optional[str] = None, **kwargs
+        self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, **kwargs
     ) -> None:
         maybe_new_record = kwargs.get("maybe_new_record", False)
-        if maybe_new_record and not name:
-            raise Exception('kwarg "name" needs to be set when adding a new record')
 
-        # :meth:`LevelingSystem.is_in_database` parameter "guild" expects a :class:`disnake.Guild` object. We don't necessarily *need* an actual :class:`disnake.Guild`
-        # object because that method really only needs the ID to operate on the correct guild. Since this method has no :class:`disnake.Guild` object, just make a false guild
-        # object so :meth:`LevelingSystem.is_in_database` will work as intended
         if await self.is_in_database(
             member, guild=FakeGuild(id=guild_id)
         ):
@@ -86,7 +79,6 @@ class LevelsController:
                 (guild_id, member.id if isinstance(member, Member) else member, level, xp, total_xp),
             )
         await self.db.commit()
-
 
     async def set_level(self, member: Member, level: int) -> None:
         if 0 <= level <= self.__max_level__:
@@ -116,7 +108,6 @@ class LevelsController:
         on_cooldown = await self.on_cooldown(message)
         if not on_cooldown:
             await self.add_xp(message, await self.random_xp())
-
 
     async def handle_message(self, message):
         if any(
@@ -179,6 +170,9 @@ class Level(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.controller = LevelsController(self.bot, self.bot.db)
+        print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
+        await self.controller._update_record(member=self.bot.user, level=1, xp=0, total_xp=0, guild_id=self.bot.guilds[0].id, maybe_new_record=True)
+        print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
 
     def get_user(self, user_id: int):
         return self.controller.get_user(user_id)
