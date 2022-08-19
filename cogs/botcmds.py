@@ -5,7 +5,7 @@ from collections import Counter
 import disnake
 from disnake.ext import commands
 
-from utils.CONSTANTS import status
+from utils.CONSTANTS import status, __VERSION__
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb
 
@@ -80,7 +80,7 @@ class Commands(commands.Cog):
         """Shows the info of the bot"""
         embed = disnake.Embed(title="Ogiroid Information: ", description=" ", color=0xFFFFFF)
         embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
-        embed.add_field(name="**Bot Version: **", value=f"```>> 1.4.0```", inline=False)
+        embed.add_field(name="**Bot Version: **", value=f"```>> {__VERSION__}```", inline=False)
         embed.add_field(
             name="**Disnake Version: **",
             value=f"```>> {disnake.__version__}```",
@@ -88,14 +88,20 @@ class Commands(commands.Cog):
         )
         embed.add_field(
             name="**Bot Developers: **",
-            value=f"__Owners:__\n`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **\n\n__Contributors:__\n**`>`[JasonLovesDoggo](https://github.com/JasonLovesDoggo) (<@511724576674414600>),\n`>`[DWAA1660](https://github.com/DWAA1660) (<@491266830674034699>), \n`>`[LevaniVashadze](https://github.com/LevaniVashadze) (<@662656158129192961>),\n`>`[CordlessCoder](https://github.com/CordlessCoder) (<@577885109894512659>).**",
+            value=f"__Owners:__\n`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n"
+            f"`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **\n\n"
+            f"__Contributors:__\n**`>`[JasonLovesDoggo](https://github.com/JasonLovesDoggo) (<@511724576674414600>)\n"
+            f"`>`[DWAA1660](https://github.com/DWAA1660) (<@491266830674034699>) \n"
+            f"`>`[LevaniVashadze](https://github.com/LevaniVashadze) (<@662656158129192961>)\n"
+            f"`>`[CordlessCoder](https://github.com/CordlessCoder) (<@577885109894512659>)**",
             inline=False,
         )
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
         )
 
-        await inter.response.send_message(embed=embed)
+        button = disnake.ui.Button(label="Source", style=disnake.ButtonStyle.url, url="https://github.com/LewisProjects/Ogiroid")
+        await inter.send(embed=embed, components=button)
 
     @commands.slash_command()
     @commands.guild_only()
@@ -253,6 +259,17 @@ class Commands(commands.Cog):
         )
 
         await inter.send(embed=e)
+
+    @commands.slash_command(name="avatar", description="Shows the avatar of a user.")
+    async def avatar(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None):
+        """Shows the avatar of a user."""
+        if user == None:
+            user = inter.author
+
+        embed = disnake.Embed(title=f"{user}'s avatar")
+        embed.set_image(url=user.avatar.url)
+        embed.set_author(name=f"{user}", icon_url=user.avatar.url)
+        await inter.send(embed=embed)
 
 
 def setup(bot):

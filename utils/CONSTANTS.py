@@ -1,37 +1,58 @@
 from __future__ import annotations
+
+import os
 from dataclasses import dataclass
 
-__VERSION__ = "1.6.0"
+__VERSION__ = "1.7.0"
 
 
 @dataclass
 class Channels:
-    suggestion: int = 982353129913851924
-    bug_report: int = 982669110926250004
+    suggestion_reddit_bot: int = 982353129913851924
+    bug_report_reddit_bot: int = 982669110926250004
+    suggestion_ogiroid: int = 985554479405490216
+    bug_report_ogiroid: int = 985554459948122142
     errors: int = 986531210283069450
     reddit_faq: int = 985908874362093620
     tickets: int = 1005904969737711760
     logs: int = 977581277010100315
     staff_vote: int = 1005741491861344286
+    welcome: int = 905183354930995320
+    goodbye: int = 905183354930995320  # same as welcome
 
     @classmethod
     def dev(cls):
-        cls.suggestion: int = 985554479405490216
-        cls.bug_report: int = 985554459948122142
+        cls.suggestion_reddit_bot: int = 1007334702442619010
+        cls.bug_report_reddit_bot: int = 1007334758214279198
+        cls.suggestion_ogiroid: int = 985554479405490216
+        cls.bug_report_ogiroid: int = 985554459948122142
         cls.reddit_faq: int = 985908874362093620
         cls.tickets: int = 1003006753564262452
         cls.logs: int = 988162723890217040
         cls.staff_vote: int = 1002132747441152071
+        cls.welcome = cls.goodbye = 985961186107461673
         return cls
 
 
 @dataclass
 class Roles:
-    staff: int = 985943266115584010
+    staff: int = 980700205328502794
 
     @classmethod
     def dev(cls):
-        cls.staff: int = 1005904440039047208
+        cls.staff: int = 1005904440039047208  # 985943266115584010 one of those is the staff role
+        return cls
+
+
+@dataclass
+class Emojis:
+    rules: str = "<:rules:1006016761809866752>"
+    roles: str = "<:roles:1006016760731926641>"
+
+    @classmethod
+    def dev(cls):
+        cls.rules: str = "<:emoji_18:1006073757976244244>"
+        cls.roles: str = "<:role:990310706874290216>"
         return cls
 
 
@@ -39,6 +60,23 @@ class Roles:
 class Colors:
     invis: int = 0x2F3136
     white: int = 0xFFFFFF
+
+
+@dataclass
+class Tokens:
+    SRA: str = os.getenv("SRA_API_KEY")
+    bot: str = os.getenv("TOKEN")
+    weathermap: str = os.getenv("OPEN_WEATHER_MAP_API_KEY")
+
+
+@dataclass
+class timings:
+    SECOND = 1
+    MINUTE = 60
+    HOUR = MINUTE * 60
+    DAY = HOUR * 24
+    WEEK = DAY * 7
+    MONTH = 2592000
 
 
 def status(stat):
@@ -50,6 +88,149 @@ def status(stat):
         "streaming": "<:streaming:879146899809128478>",
     }
     return statuses[stat]
+
+
+levels = {
+    1: 100,
+    2: 200,
+    3: 300,
+    4: 400,
+    5: 500,
+    6: 650,
+    7: 800,
+    8: 950,
+    9: 1100,
+    10: 1250,
+    11: 1450,
+    12: 1650,
+    13: 1850,
+    14: 2050,
+    15: 2250,
+    16: 2500,
+    17: 2750,
+    18: 3000,
+    19: 3250,
+    20: 3500,
+    21: 3800,
+    22: 4100,
+    23: 4400,
+    24: 4700,
+    25: 5000,
+    26: 5350,
+    27: 5700,
+    28: 6050,
+    29: 6400,
+    30: 6750,
+    31: 7150,
+    32: 7550,
+    33: 7950,
+    34: 8350,
+    35: 8750,
+}
+
+xp_probability = [
+    10,
+    10,
+    10,
+    10,
+    11,
+    11,
+    11,
+    11,
+    12,
+    12,
+    12,
+    12,
+    13,
+    13,
+    13,
+    13,
+    14,
+    14,
+    14,
+    14,
+    15,
+    15,
+    15,
+    15,
+    16,
+    16,
+    16,
+    16,
+    17,
+    17,
+    17,
+    17,
+    18,
+    18,
+    18,
+    18,
+    19,
+    19,
+    19,
+    19,
+    20,
+    20,
+    20,
+    20,
+    21,
+    21,
+    21,
+    21,
+    22,
+    22,
+    22,
+    22,
+    23,
+    23,
+    23,
+    23,
+    24,
+    24,
+    24,
+    24,
+    25,
+    25,
+    26,
+    26,
+    27,
+    27,
+    28,
+    28,
+    29,
+    29,
+    30,
+    30,
+    31,
+    31,
+    32,
+    32,
+    33,
+    33,
+    34,
+    34,
+    35,
+    35,
+    36,
+    36,
+    37,
+    37,
+    38,
+    38,
+    39,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+]
 
 
 IGNORE_EXCEPTIONS = ["UserBlacklisted"]
@@ -225,7 +406,7 @@ COUNTRIES = {
     "🇰🇷": "South Korea",
     "🇽🇰": "Kosovo",
     "🇰🇼": "Kuwait",
-    "🇰🇬": "Kyrgyzstan",
+    "kg": "Kyrgyzstan",
     "🇱🇦": "Laos",
     "🇱🇻": "Latvia",
     "🇱🇧": "Lebanon",
@@ -444,4 +625,31 @@ VALID_CODE_LANGUAGES = [
     "yaml",
     "yeethon",
     "zig",
+]
+
+TRIVIA_CATEGORIES = [
+    {"id": 9, "name": "General Knowledge"},
+    {"id": 10, "name": "Entertainment: Books"},
+    {"id": 11, "name": "Entertainment: Film"},
+    {"id": 12, "name": "Entertainment: Music"},
+    {"id": 13, "name": "Entertainment: Musicals & Theatres"},
+    {"id": 14, "name": "Entertainment: Television"},
+    {"id": 15, "name": "Entertainment: Video Games"},
+    {"id": 16, "name": "Entertainment: Board Games"},
+    {"id": 17, "name": "Science & Nature"},
+    {"id": 18, "name": "Science: Computers"},
+    {"id": 19, "name": "Science: Mathematics"},
+    {"id": 20, "name": "Mythology"},
+    {"id": 21, "name": "Sports"},
+    {"id": 22, "name": "Geography"},
+    {"id": 23, "name": "History"},
+    {"id": 24, "name": "Politics"},
+    {"id": 25, "name": "Art"},
+    {"id": 26, "name": "Celebrities"},
+    {"id": 27, "name": "Animals"},
+    {"id": 28, "name": "Vehicles"},
+    {"id": 29, "name": "Entertainment: Comics"},
+    {"id": 30, "name": "Science: Gadgets"},
+    {"id": 31, "name": "Entertainment: Japanese Anime & Manga"},
+    {"id": 32, "name": "Entertainment: Cartoon & Animations"},
 ]

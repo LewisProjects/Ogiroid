@@ -1,9 +1,9 @@
-<h1>Ogiroid - a multipurpose discord bot!</h1>
+<h1>Ogiroid - the most handsome Discord bot!</h1>
 <hr>
 <img src="https://media.discordapp.net/attachments/985729550732394536/1002138392554897479/Ogiroid.png?width=1440&height=583" alt="img">
 <hr>
 <h3>Introduction:</h3>
-Ogiroid is a multipurpose Discord Bot developed for the YouTuber, <a href="https://www.youtube.com/c/CodingwithLewis">Lewis Menelaws'</a> Discord Server.
+Ogiroid is a multipurpose Discord Bot (who is very handsome 😋😋) developed for the YouTuber, <a href="https://www.youtube.com/c/CodingwithLewis">Lewis Menelaws'</a> Discord Server.
 This bot offers:
 <ul>
 <li>Fun Commands, example: /askogiroid, /beer, /sus and more! </li>
@@ -22,6 +22,7 @@ This bot offers:
 <hr>
 <h3>Bot Development Information:</h3>
 <p>Written in: <b>Python</b><br>Made using <a href="https://disnake.dev/">Disnake</a>, a Discord.py fork!</p>
+<p>NOTE: you need to use python 3.8+ for this bot</p>
 Developers:
 <ul>
 <li><a href="https://github.com/ImmaHarry">HarryDaDev</a></li>
@@ -30,8 +31,9 @@ Developers:
 <li><a href="https://github.com/LevaniVashadze">Levani Vashadze</a></li>
 <li><a href="https://github.com/DWAA1660">DWAA1660</a></li>
 </ul>
-The bot is currently on release: <b>1.6.0</b>
-License: MIT
+The bot is currently on release: <b>1.6.0</b><br>
+License: MIT<br>
+Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/contributing.md">contribution guidelines</a>
 <hr>
 <h3>Changelog 07-08-2022:</h3>
 <ol>

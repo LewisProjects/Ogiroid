@@ -12,7 +12,6 @@ from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
 from dotenv import load_dotenv
-from requests import session
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
@@ -33,9 +32,10 @@ class Fun(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        TOKEN = os.getenv("TOKEN")
-        # noinspection PyUnresolvedReferences
-        self.togetherControl = await DiscordTogether(TOKEN)
+        if not self.bot.ready_:
+            TOKEN = os.getenv("TOKEN")
+            # noinspection PyUnresolvedReferences
+            self.togetherControl = await DiscordTogether(TOKEN)
 
     @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -121,10 +121,10 @@ class Fun(commands.Cog):
             await poll.add_reaction(emoji)
 
     @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
-    async def youtube(self, ctx):
+    async def youtube(self, inter):
         """Watch YouTube in a Discord VC with your friends"""
-        if ctx.author.voice:
-            chan = ctx.author.voice.channel.id
+        if inter.author.voice:
+            chan = inter.author.voice.channel.id
             link = await self.togetherControl.create_link(chan, "youtube")
             embed = disnake.Embed(
                 title="YouTube",
@@ -133,12 +133,12 @@ class Fun(commands.Cog):
                 timestamp=datetime.utcnow(),
             )
             embed.set_footer(
-                text=f"Command issued by: {ctx.author.name}",
-                icon_url=ctx.author.avatar,
+                text=f"Command issued by: {inter.author.name}",
+                icon_url=inter.author.avatar,
             )
-            await ctx.send(embed=embed)
+            await inter.send(embed=embed)
         else:
-            e = await ctx.send("**You must be in a voice channel to use this command!**")
+            e = await inter.send("**You must be in a voice channel to use this command!**")
             time.sleep(5)
             await e.delete()
 
@@ -224,19 +224,20 @@ class Fun(commands.Cog):
     @commands.slash_command(
         name="beer", description="Give someone a beer! 🍻"
     )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
-    async def beer(self, ctx, user: disnake.Member = None, *, reason):
+    async def beer(self, inter, user: disnake.Member = None, *, reason):
         """Give someone a beer! 🍻"""
-        if not user or user.id == ctx.author.id:
-            return await ctx.send(f"**{ctx.author.name}**: paaaarty!🎉🍺")
+        if not user or user.id == inter.author.id:
+            return await inter.send(f"**{inter.author.name}**: paaaarty!🎉🍺")
         if user.id == self.bot.user.id:
-            return await ctx.send("*drinks beer with you* 🍻")
+            return await inter.send("*drinks beer with you* 🍻")
         if user.bot:
-            return await ctx.send(
-                f"I would love to give beer to the bot **{ctx.author.name}**, but I don't think it will respond to you :/"
+            return await inter.send(
+                f"I would love to give beer to the bot **{inter.author.name}**, but I don't think it will respond to you :/"
             )
-        beer_offer = f"**{user.name}**, you got a 🍺 offer from **{ctx.author.name}**"
+        beer_offer = f"**{user.name}**, you got a 🍺 offer from **{inter.author.name}**"
         beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
-        msg = await ctx.send(beer_offer)
+        await inter.send(beer_offer)
+        msg = await inter.original_message()
 
         def reaction_check(m):
             if m.message_id == msg.id and m.user_id == user.id and str(m.emoji) == "🍻":
@@ -246,29 +247,29 @@ class Fun(commands.Cog):
         try:
             await msg.add_reaction("🍻")
             await self.bot.wait_for("raw_reaction_add", timeout=30.0, check=reaction_check)
-            await msg.edit(content=f"**{user.name}** and **{ctx.author.name}** are enjoying a lovely beer together 🍻")
+            await msg.edit(content=f"**{user.name}** and **{inter.author.name}** are enjoying a lovely beer together 🍻")
         except asyncio.TimeoutError:
             await msg.delete()
-            await ctx.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{ctx.author.name}** ;-;")
+            await inter.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{inter.author.name}** ;-;")
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
-            beer_offer = f"**{user.name}**, you got a 🍺 from **{ctx.author.name}**"
+            beer_offer = f"**{user.name}**, you got a 🍺 from **{inter.author.name}**"
             beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
             await msg.edit(content=beer_offer)
 
     @commands.slash_command(aliases=["slots", "bet"])  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
-    async def slot(self, ctx):
+    async def slot(self, inter):
         """Roll the slot machine"""
         emojis = "💻💾💿🖥🖨🖱🌐⌨"
         a, b, c = [random.choice(emojis) for g in range(3)]
-        slotmachine = f"**[ {a} | {b} | {c} ]\n{ctx.author.name}**,"
+        slotmachine = f"**[ {a} | {b} | {c} ]\n{inter.author.name}**,"
 
         if a == b == c:
-            await ctx.send(f"{slotmachine} All matching, you won! 🎉")
+            await inter.send(f"{slotmachine} All matching, you won! 🎉")
         elif (a == b) or (a == c) or (b == c):
-            await ctx.send(f"{slotmachine} 2 in a row, you won! 🎉")
+            await inter.send(f"{slotmachine} 2 in a row, you won! 🎉")
         else:
-            await ctx.send(f"{slotmachine} No match, you lost 😢")
+            await inter.send(f"{slotmachine} No match, you lost 😢")
 
     @commands.slash_command(name="8ball", brief="8ball", description="Ask the magic 8ball a question")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -303,11 +304,11 @@ class Fun(commands.Cog):
         description="Ogiroid will guess the character you are thinking off.",
     )
     # Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
-    async def askogiroid(self, ctx):
-        async with ctx.author.typing():
+    async def askogiroid(self, inter):
+        async with inter.author.typing():
             intro = disnake.Embed(
                 title="Ogiroid",
-                description=f"Hello {ctx.author.mention}!",
+                description=f"Hello {inter.author.mention}!",
                 color=0xFFFFFF,
             )
             intro.set_thumbnail(
@@ -316,82 +317,83 @@ class Fun(commands.Cog):
             intro.set_footer(text="Think about a real or fictional character. I will try to guess who it is")
             bye = disnake.Embed(
                 title="Ogiroid",
-                description="Bye, " + ctx.author.mention,
+                description="Bye, " + inter.author.mention,
                 color=0xFFFFFF,
             )
             bye.set_footer(text="Ogiroid left the chat!")
             bye.set_thumbnail(
                 url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
             )
-            await ctx.send(embed=intro)
+            await inter.send(embed=intro)
 
             def check(msg):
-                return (
-                    msg.author == ctx.author
-                    and msg.channel == ctx.channel
-                    and msg.content.lower() in ["y", "n", "p", "b", "yes", "no", "probably", "idk", "back"]
-                )
+                return msg.author == inter.author and msg.channel == inter.channel
+
+            components = [
+                disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
+                disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
+                disnake.ui.Button(label="Probably", custom_id="p"),
+                disnake.ui.Button(label="Idk", custom_id="idk"),
+                disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple),
+            ]
 
             try:
                 aki = ak.Akinator()
                 q = aki.start_game(language="en")
+                channel = self.bot.get_channel(inter.channel.id)
+                button_click = channel
                 while aki.progression <= 80:
                     question = disnake.Embed(title="Question", description=q, color=0xFFFFFF)
                     question.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )
-                    question.set_footer(text="Your answer:(y/n/p/idk/b)")
-                    question_sent = await ctx.send(embed=question)
+                    await button_click.send(embed=question, components=components)
                     try:
-                        msg = await self.bot.wait_for("message", check=check, timeout=30)
+                        button_click = await self.bot.wait_for("button_click", check=check, timeout=30)
                     except asyncio.TimeoutError:
-                        # await question_sent.delete()
-                        await ctx.send("Sorry you took too long to respond!(waited for 30sec)")
-                        await ctx.send(embed=bye)
+                        await inter.send("Sorry you took too long to respond!(waited for 30sec)")
+                        await inter.send(embed=bye)
                         return
-                    # await question_sent.delete()
-                    if msg.content.lower() in ["b", "back"]:
+                    if button_click.component.custom_id == "b":
                         try:
                             q = aki.back()
-                        except ak.CantGoBackAnyFurther:
-                            await ctx.send(e)
+                        except ak.CantGoBackAnyFurther as e:
+                            await errorEmb(button_click, e)
                             continue
                     else:
-                        try:
-                            q = aki.answer(msg.content.lower())
-                        except ak.InvalidAnswerError as e:
-                            await ctx.send(e)
-                            continue
+                        q = aki.answer(button_click.component.custom_id)
+
                 aki.win()
                 answer = disnake.Embed(
                     title=f"Your character: {aki.first_guess['name']}",
                     description=f"Your character is: {aki.first_guess['description']}",
                     color=0xFFFFFF,
                 )
-                answer.set_footer(text="Was I correct? (y/n)")
-                await ctx.send(embed=answer)
-                # await ctx.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
+                # answer.set_image(aki.first_guess['absolute_picture_path']) may contain NSFW images
+                answer.set_footer(text="Was I correct?")
+                await button_click.send(embed=answer, components=[components[0], components[1]])
+                # await inter.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
                 try:
-                    correct = await self.bot.wait_for("message", check=check, timeout=30)
+                    correct = await self.bot.wait_for("button_click", check=check, timeout=30)
                 except asyncio.TimeoutError:
-                    await ctx.send("Sorry you took too long to respond! [30 seconds+]")
-                    await ctx.send(embed=bye)
+                    await errorEmb(correct, "Sorry you took too long to respond.")
+                    await inter.send(embed=bye)
                     return
-                if correct.content.lower() == "y":
+                if correct.component.custom_id == "y":
                     yes = disnake.Embed(title="Yeah!!!", color=0xFFFFFF)
                     yes.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )
-                    await ctx.send(embed=yes)
+                    await correct.send(embed=yes)
                 else:
                     no = disnake.Embed(title="Oh Noooooo!!!", color=0xFFFFFF)
                     no.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )
-                    await ctx.send(embed=no)
-                await ctx.send(embed=bye)
+                    await correct.send(embed=no)
+                await channel.send(embed=bye)
             except Exception as e:
-                await ctx.send(e)
+                await errorEmb(inter, e)
 
     @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
     @commands.cooldown(1, 1, commands.BucketType.user)
@@ -433,31 +435,31 @@ class Fun(commands.Cog):
         decoded_string = "".join(decoded_list)
         await inter.send(f"``{decoded_string}``")
 
-    # noinspection PyUnboundLocalVariable
-    """def wyr(self):  # todo delete
-        # grabs the source code of a random question
-        r = session.get(f"https://www.either.io/{str(random.randint(3, 100000))}")
-        # note to harry use aiohttp instead of requests
-        # Check if there was no errors getting it.
-        if r.status_code == 200:
-            # Saves the two question. NOTE: Blue is option 1 and red is option 2.It was easier for me to call it blue and red cause that's how the website is formated.
-            for count, option in enumerate(r.html.find(".option-text")):
-                if count == 0:
-                    blue = option.text
-                elif count == 1:
-                    red = option.text
-            # Saves how many people pick each option.
-            for count, option in enumerate(r.html.find(".count")):
-                if count == 0:
-                    blue_count = option.text
-                elif count == 1:
-                    red_count = option.text
+    @commands.slash_command(description="Get Pokémon related information!")
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def pokemon(self, inter):
+        pass
 
-            # format the question and responce
-            question = f"would you rather {blue} or {red}?"
-            response = f"{blue_count} pick {blue} and {red_count} picked {red}."
+    @pokemon.sub_command(name="info", description="Get information about a Pokémon.")
+    async def info(self, inter, pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon")):
+        response = await self.bot.session.get(f"https://pokeapi.co/api/v2/pokemon/{pokem}")
+        poke_data = await response.json()
 
-            return question, response"""
+        try:
+            embed = disnake.Embed(title=poke_data["name"], color=0xFFFFFF)
+            embed.set_thumbnail(url=poke_data["sprites"]["front_default"])
+            embed.add_field(name="Type", value=poke_data["types"][0]["type"]["name"])
+            embed.add_field(name="Height", value=f"{poke_data['height']}m")
+            embed.add_field(name="Weight", value=f"{poke_data['weight']}kg")
+            embed.add_field(name="Abilities", value=poke_data["abilities"][0]["ability"]["name"])
+            embed.add_field(name="Base Experience", value=poke_data["base_experience"])
+            embed.add_field(name="Species", value=poke_data["species"]["name"])
+            embed.set_footer(
+                text=f"ID: {poke_data['id']} | Generation: {poke_data['game_indices'][0]['version']['name']} • Requested by: {inter.author.name}"
+            )
+        except KeyError as key:
+            return await errorEmb(inter, f"{key}")
+        return await inter.send(embed=embed)
 
 
 def setup(bot):

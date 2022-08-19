@@ -9,6 +9,14 @@ class BlacklistException(BotException):
     pass
 
 
+class UserNotFound(BotException):
+    pass
+
+
+class UsersNotFound(BotException):
+    pass
+
+
 class TagException(BotException):
     pass
 
@@ -18,6 +26,10 @@ class AliasException(TagException):
 
 
 class FlagQuizException(BotException):
+    pass
+
+
+class RoleReactionException(BotException):
     pass
 
 
@@ -41,11 +53,19 @@ class AliasNotFound(AliasException):
     pass
 
 
-class FlagQuizUserNotFound(FlagQuizException):
+class AliasLimitReached(AliasException):
     pass
 
 
 class FlagQuizUsersNotFound(FlagQuizException):
+    pass
+
+
+class ReactionAlreadyExists(RoleReactionException):
+    pass
+
+
+class ReactionNotFound(RoleReactionException):
     pass
 
 

@@ -9,6 +9,23 @@ from utils.shortcuts import get_expiry
 
 
 @dataclass
+class TriviaUser:
+    id: int  # user id
+    correct: int = 0
+    incorrect: int = 0
+    streak: int = 0
+    longest_streak: int = 0
+
+    @property
+    def current_streak_is_longest(self) -> bool:
+        return self.streak >= self.longest_streak
+
+    def total(self):
+        """total amount of quizzes answered"""
+        return self.correct + self.incorrect
+
+
+@dataclass
 class BlacklistedUser:
     id: int
     reason: str
@@ -55,3 +72,19 @@ class FlagQuizUser:
     tries: int
     correct: int
     completed: int
+
+
+@dataclass
+class ReactionRole:
+    message_id: int
+    role_id: int
+    emoji: str
+    roles_given: int
+
+
+@dataclass
+class WarningModel:
+    warning_id: int
+    user_id: int
+    moderator_id: int
+    reason: str

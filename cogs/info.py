@@ -1,5 +1,3 @@
-import os
-
 import disnake
 from disnake.ext import commands
 
@@ -12,7 +10,7 @@ from utils.wrappers.OpenWeatherMap import OpenWeatherAPI
 class Info(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
-        self.openweathermap_api_key = os.getenv("OPEN_WEATHER_MAP_API_KEY")
+        self.openweathermap_api_key = self.bot.config.tokens.weathermap
         self.openweather = OpenWeatherAPI(key=self.openweathermap_api_key, session=self.bot.session)
 
     @commands.slash_command(

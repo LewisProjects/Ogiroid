@@ -34,3 +34,31 @@ IF NOT EXISTS flag_quizz
     correct INTEGER,
     completed INTEGER
 );
+
+CREATE TABLE
+IF NOT EXISTS trivia
+(
+    id INTEGER,
+    correct INTEGER,
+    incorrect INTEGER,
+    streak INTEGER,
+    longest_streak INTEGER
+);
+
+CREATE TABLE
+IF NOT EXISTS reaction_roles
+(
+    message_id INTEGER,
+    role_id INTEGER,
+    emoji TEXT,
+    roles_given INTEGER DEFAULT 0
+);
+
+CREATE TABLE
+IF NOT EXISTS warnings
+(
+    warning_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    moderator_id INTEGER,
+    reason TEXT
+);
