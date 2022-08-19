@@ -5,7 +5,11 @@ disnake==2.5.2
 parsedatetime==2.6
 python-dotenv==0.20.0
 textdistance==4.3.0
-aiocache==0.11.1
-expr~=0.0.1h
+typing_extensions==4.3.0
+ujson==5.4.0
+msgpack==1.0.4
 Pillow~=9.2.0
-python-dateutil~=2.8.2
+aiocache==0.11.1
+translators==5.4.2
+wikipedia==1.4.0
+aiocache==0.11.1

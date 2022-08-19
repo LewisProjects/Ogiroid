@@ -55,10 +55,20 @@ IF NOT EXISTS reaction_roles
 );
 
 CREATE TABLE
+IF NOT EXISTS warnings
+(
+    warning_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    moderator_id INTEGER,
+    reason TEXT
+);
+
+CREATE TABLE
 IF NOT EXISTS levels
 (
     guild_id INTEGER,
     user_id INTEGER,
-    lvl INTEGER DEFAULT 0,
-    xp INTEGER DEFAULT 1
+    level INTEGER DEFAULT 0,
+    xp INTEGER DEFAULT 0,
+    total_xp INTEGER DEFAULT 0
 );

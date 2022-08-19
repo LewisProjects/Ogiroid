@@ -1,14 +1,15 @@
 import asyncio
+import datetime as dt
 
 import disnake
 from disnake import TextInputStyle, PartialEmoji
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
 
-from utils.DBhandlers import RolesHandler
+from utils.DBhandlers import RolesHandler, WarningHandler
 from utils.bot import OGIROID
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
-from utils.shortcuts import sucEmb, errorEmb
+from utils.shortcuts import sucEmb, errorEmb, warning_embed, QuickEmb, warnings_embed
 
 
 class StaffVote(disnake.ui.Modal):
@@ -60,11 +61,167 @@ class Staff(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.reaction_roles: RolesHandler = None
+        self.warning: WarningHandler = None
 
     @commands.Cog.listener()
     async def on_ready(self):
         self.reaction_roles: RolesHandler = RolesHandler(self.bot, self.bot.db)
+        self.warning: WarningHandler = WarningHandler(self.bot, self.bot.db)
         await self.reaction_roles.startup()
+
+    @commands.slash_command(name="ban", description="Bans a user from the server.")
+    @commands.has_permissions(ban_members=True)
+    @commands.guild_only()
+    async def ban(
+        self,
+        inter,
+        member: disnake.Member,
+        reason: str = None,
+        delete_messages: int = ParamInfo(
+            description="How many days of messages to delete.", default=0, choices=[0, 1, 2, 3, 4, 5, 6, 7]
+        ),
+    ):
+        """Bans a user from the server."""
+        await inter.guild.ban(user=member, reason=reason, delete_message_days=delete_messages)
+        await sucEmb(inter, "User has been banned successfully!")
+
+    @commands.slash_command(name="kick", description="Kicks a user from the server.")
+    @commands.has_permissions(kick_members=True)
+    @commands.guild_only()
+    async def kick(self, inter, member: disnake.Member, reason: str = None):
+        """Kicks a user from the server."""
+        await member.kick(reason=reason)
+        await sucEmb(inter, "User has been kicked successfully!")
+
+    @commands.slash_command(name="unban", description="Unbans a user from the server.")
+    @commands.has_permissions(ban_members=True)
+    @commands.guild_only()
+    async def unban(self, inter, user_id, reason: str = None):
+        """Unbans a user from the server."""
+        try:
+            await inter.guild.unban(disnake.Object(id=int(user_id)), reason=reason)
+        except ValueError:
+            return await errorEmb(inter, "Invalid user ID!")
+        except disnake.errors.NotFound:
+            return await errorEmb(inter, "User not found or not banned!")
+
+        await sucEmb(inter, "User has been unbanned successfully!")
+
+    @commands.slash_command(name="mute", description="Timeout(mute)'s a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def mute(
+        self,
+        inter,
+        member: disnake.Member,
+        duration: str = ParamInfo(description="Format: 1s, 1m, 1h, 1d, max: 28d"),
+        reason: str = None,
+    ):
+        """Mutes a user from the server."""
+        if duration.lower() == "max":
+            duration = "28d"
+
+        try:
+            if "d" in duration:
+                duration = dt.timedelta(days=float(duration.split("d")[0]))
+                if duration > dt.timedelta(days=28):
+                    return await errorEmb(inter, "Duration is too long!")
+            elif "h" in duration:
+                duration = dt.timedelta(hours=float(duration.split("h")[0]))
+            elif "m" in duration:
+                duration = dt.timedelta(minutes=float(duration.split("m")[0]))
+            elif "s" in duration:
+                duration = dt.timedelta(seconds=float(duration.split("s")[0]))
+        except ValueError:
+            return await errorEmb(inter, "Invalid duration!")
+
+        try:
+            await member.timeout(reason=reason, duration=duration)
+        except ValueError:
+            return await errorEmb(inter, "Invalid duration!")
+        except disnake.errors.NotFound:
+            return await errorEmb(inter, "User not found or not banned!")
+        except disnake.HTTPException as e:
+            return await errorEmb(inter, e.text)
+
+        await sucEmb(inter, "User has been muted successfully!")
+
+    @commands.slash_command(name="unmute", description="Unmutes a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def unmute(self, inter, member: disnake.Member, reason: str = None):
+        """Unmutes a user from the server."""
+        try:
+            await member.timeout(reason=reason, duration=None)
+        except disnake.errors.NotFound:
+            return await errorEmb(inter, "User not found or not muted!")
+        except disnake.HTTPException as e:
+            return await errorEmb(inter, e.text)
+
+        await sucEmb(inter, "User has been unmuted successfully!")
+
+    @commands.slash_command(name="warn", description="Warns a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def warn(self, inter, member: disnake.Member, reason: str = None):
+        """Warns a user from the server."""
+        await self.warning.create_warning(member.id, reason, moderator_id=inter.author.id)
+        await warning_embed(inter, user=member, reason=reason)
+
+    @commands.slash_command(name="removewarning", description="Removes a warning from a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def remove_warning(self, inter, member: disnake.Member):
+        """Removes a warning from a user from the server."""
+        warnings = await self.warning.get_warnings(member.id)
+        if len(warnings) == 0:
+            return await errorEmb(inter, "User has no warnings!")
+        elif len(warnings) == 1:
+            status = await self.warning.remove_warning(warnings[0].warning_id)
+            if status:
+                await sucEmb(inter, "Warning has been removed successfully!")
+            else:
+                await errorEmb(inter, "Warning could not be removed!")
+        else:
+            await warnings_embed(inter, member=member, warnings=warnings)
+            temp_msg = await inter.channel.send(
+                embed=disnake.Embed(title="Reply with the index of the warning to remove", color=0x00FF00)
+            )
+
+            def check(m):
+                return m.author == inter.author and m.channel == inter.channel
+
+            try:
+                msg = await self.bot.wait_for("message", check=check, timeout=60)
+            except asyncio.TimeoutError:
+                return await errorEmb(inter, "Timed out!")
+
+            id = int(msg.content)
+            if id > len(warnings) or id < 1:
+                return await errorEmb(inter, "Invalid warning index!")
+
+            status = await self.warning.remove_warning(warnings[id - 1].warning_id)
+            if status:
+                await sucEmb(inter, "Warning has been removed successfully!")
+            else:
+                await errorEmb(inter, "Warning could not be removed!")
+
+            # Delete the messages
+            await temp_msg.delete()
+            original_message = await inter.original_message()
+            await original_message.delete()
+            await msg.delete()
+
+    @commands.slash_command(name="warnings", description="Shows the warnings of a user from the server.")
+    @commands.has_role("Staff")
+    @commands.guild_only()
+    async def warnings(self, inter, member: disnake.Member):
+        """Shows the warnings of a user from the server."""
+        warnings = await self.warning.get_warnings(member.id)
+        if not warnings:
+            return await QuickEmb(inter, "User has no warnings!").send()
+
+        await warnings_embed(inter, member=member, warnings=warnings)
 
     @commands.slash_command(name="faq")
     @commands.guild_only()
@@ -173,6 +330,7 @@ class Staff(commands.Cog):
         self,
         inter: disnake.ApplicationCommandInteraction,
         emoji: str = ParamInfo(description="The emoji to be on the button. You can add more later."),
+        color=ParamInfo(choices=["blurple", "grey", "red", "green"], description="Color of the button."),
         role: disnake.Role = ParamInfo(description="The role to be given when clicked."),
         channel: disnake.TextChannel = ParamInfo(
             channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
@@ -197,7 +355,8 @@ class Staff(commands.Cog):
         if emoji is None:
             return await errorEmb(inter, "The emoji is invalid")
 
-        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}")
+        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}",
+                                   style=disnake.ButtonStyle[color])
         view = disnake.ui.View()
         view.add_item(button)
         msg = await channel.send(text, view=view)
@@ -217,6 +376,7 @@ class Staff(commands.Cog):
         message_id,
         new_emoji: str,
         role: disnake.Role,
+        color=ParamInfo(choices=["blurple", "grey", "red", "green"], description="Color of the button."),
         channel: disnake.TextChannel = ParamInfo(
             channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
         ),
@@ -246,7 +406,7 @@ class Staff(commands.Cog):
 
         custom_id = f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}"
 
-        new_button = disnake.ui.Button(emoji=emoji, custom_id=custom_id)
+        new_button = disnake.ui.Button(emoji=emoji, custom_id=custom_id, style=disnake.ButtonStyle[color])
 
         components.add_item(new_button)
         try:
@@ -387,6 +547,19 @@ class Staff(commands.Cog):
     async def staffvote(self, inter):
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
+
+    @commands.slash_command(name="staffhelp", description="Get the help for the staff commands.")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def staffhelp(self, inter):
+        """Get the help for the staff commands."""
+        staff_commands = commands.Cog.get_slash_commands(self)
+        emb = disnake.Embed(title="Staff Commands", description="All staff commands", color=0xFFFFFF)
+        for command in staff_commands:
+            emb.add_field(
+                name=f"/{command.qualified_name}", value=command.description, inline=False)
+
+        await inter.send(embed=emb)
 
 
 def setup(bot):

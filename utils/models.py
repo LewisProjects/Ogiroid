@@ -99,3 +99,11 @@ class ReactionRole:
     role_id: int
     emoji: str
     roles_given: int
+
+
+@dataclass
+class WarningModel:
+    warning_id: int
+    user_id: int
+    moderator_id: int
+    reason: str

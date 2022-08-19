@@ -14,6 +14,7 @@ class Math(commands.Cog):
     @commands.slash_command(description="Evaluates a math equation.")
     async def math(self, inter, equation):
         """Evaluates a math equation"""
+        equation = equation.replace("×", "*")
         try:
             answer = expr.evaluate(equation)
         except expr.errors.InvalidSyntax:

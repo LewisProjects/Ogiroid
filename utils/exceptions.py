@@ -89,3 +89,7 @@ class CityNotFound(BotException):
 class InvalidAPIKEY(BotException):
     def __init__(self):
         super().__init__(f"You have an invalid API key!")
+
+
+class LevelingSystemError(BotException):
+    pass

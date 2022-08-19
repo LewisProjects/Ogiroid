@@ -34,27 +34,30 @@ def strip_num(num: int | str):
 
 class Rankcard:
     def __init__(self):
-        self.POSITIONS: Dict[str, Tuple] = {'AVATAR_DIAM': (189, 189), 'AVATAR_POS': (107, -186),
-                                            'TEXT_POS': (-177, -348), 'STATUS_POS': (290, 330, -40, 20)
-
-                                            }
+        self.POSITIONS: Dict[str, Tuple] = {
+            "AVATAR_DIAM": (189, 189),
+            "AVATAR_POS": (107, -186),
+            "TEXT_POS": (-177, -348),
+            "STATUS_POS": (290, 330, -40, 20),
+        }
 
     async def getavatar(self, user: Union[disnake.User, disnake.Member]) -> bytes:
         async with session.get(str(user.display_avatar.url)) as response:
             avatarbytes = await response.read()
         with Image.open(BytesIO(avatarbytes)) as im:
-            USER_IMG = im.resize(self.POSITIONS['AVATAR_DIAM'])
+            USER_IMG = im.resize(self.POSITIONS["AVATAR_DIAM"])
         return USER_IMG
 
-    async def create_img(self, user: disnake.Member | disnake.User, level: int | str, xp: Tuple[int, int],
-                         rank: int | str) -> bytes:
+    async def create_img(
+        self, user: disnake.Member | disnake.User, level: int | str, xp: Tuple[int, int], rank: int | str
+    ) -> bytes:
         """
         args:
             user: the user that the rankcard is for
             level: the user's current level
             xp: A tuple of (currentXP, NeededXP)
         """
-        level = f'{level:,d}'
+        level = f"{level:,d}"
         currentxp = xp[0]
         neededxp = xp[1]
         missingxp = xp[1] - xp[0]
@@ -65,7 +68,7 @@ Username: {user.name}
 Experience: {currentxp:,d} / {neededxp:,d} ({missingxp:,d} missing)
 Level {level}
 Rank #{rank:,d}"""
-        BACKGROUND = Image.open('./assets/images/rank/background.png')
+        BACKGROUND = Image.open("./assets/images/rank/background.png")
         draw = ImageDraw.Draw(BACKGROUND)
 
         draw.ellipse((160, 170, 208, 218), fill=0)  # status outline
@@ -74,13 +77,13 @@ Rank #{rank:,d}"""
         try:
 
             if user.status == disnake.Status.online:
-                draw.ellipse(self.POSITIONS['STATUS_POS'], fill=(67, 181, 129))
+                draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(67, 181, 129))
             elif user.status == disnake.Status.offline:
-                draw.ellipse(self.POSITIONS['STATUS_POS'], fill=(116, 127, 141))
+                draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(116, 127, 141))
             elif user.status == disnake.Status.dnd:
-                draw.ellipse(self.POSITIONS['STATUS_POS'], fill=(240, 71, 71))
+                draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(240, 71, 71))
             elif user.status == disnake.Status.idle:
-                draw.ellipse(self.POSITIONS['STATUS_POS'], fill=(250, 166, 26))
+                draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(250, 166, 26))
         except:
             draw.ellipse((165, 175, 204, 214), fill=(114, 137, 218))
 

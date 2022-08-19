@@ -121,10 +121,10 @@ class Fun(commands.Cog):
             await poll.add_reaction(emoji)
 
     @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
-    async def youtube(self, ctx):
+    async def youtube(self, inter):
         """Watch YouTube in a Discord VC with your friends"""
-        if ctx.author.voice:
-            chan = ctx.author.voice.channel.id
+        if inter.author.voice:
+            chan = inter.author.voice.channel.id
             link = await self.togetherControl.create_link(chan, "youtube")
             embed = disnake.Embed(
                 title="YouTube",
@@ -133,12 +133,12 @@ class Fun(commands.Cog):
                 timestamp=datetime.utcnow(),
             )
             embed.set_footer(
-                text=f"Command issued by: {ctx.author.name}",
-                icon_url=ctx.author.avatar,
+                text=f"Command issued by: {inter.author.name}",
+                icon_url=inter.author.avatar,
             )
-            await ctx.send(embed=embed)
+            await inter.send(embed=embed)
         else:
-            e = await ctx.send("**You must be in a voice channel to use this command!**")
+            e = await inter.send("**You must be in a voice channel to use this command!**")
             time.sleep(5)
             await e.delete()
 
@@ -224,19 +224,20 @@ class Fun(commands.Cog):
     @commands.slash_command(
         name="beer", description="Give someone a beer! 🍻"
     )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
-    async def beer(self, ctx, user: disnake.Member = None, *, reason):
+    async def beer(self, inter, user: disnake.Member = None, *, reason):
         """Give someone a beer! 🍻"""
-        if not user or user.id == ctx.author.id:
-            return await ctx.send(f"**{ctx.author.name}**: paaaarty!🎉🍺")
+        if not user or user.id == inter.author.id:
+            return await inter.send(f"**{inter.author.name}**: paaaarty!🎉🍺")
         if user.id == self.bot.user.id:
-            return await ctx.send("*drinks beer with you* 🍻")
+            return await inter.send("*drinks beer with you* 🍻")
         if user.bot:
-            return await ctx.send(
-                f"I would love to give beer to the bot **{ctx.author.name}**, but I don't think it will respond to you :/"
+            return await inter.send(
+                f"I would love to give beer to the bot **{inter.author.name}**, but I don't think it will respond to you :/"
             )
-        beer_offer = f"**{user.name}**, you got a 🍺 offer from **{ctx.author.name}**"
+        beer_offer = f"**{user.name}**, you got a 🍺 offer from **{inter.author.name}**"
         beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
-        msg = await ctx.send(beer_offer)
+        await inter.send(beer_offer)
+        msg = await inter.original_message()
 
         def reaction_check(m):
             if m.message_id == msg.id and m.user_id == user.id and str(m.emoji) == "🍻":
@@ -246,29 +247,29 @@ class Fun(commands.Cog):
         try:
             await msg.add_reaction("🍻")
             await self.bot.wait_for("raw_reaction_add", timeout=30.0, check=reaction_check)
-            await msg.edit(content=f"**{user.name}** and **{ctx.author.name}** are enjoying a lovely beer together 🍻")
+            await msg.edit(content=f"**{user.name}** and **{inter.author.name}** are enjoying a lovely beer together 🍻")
         except asyncio.TimeoutError:
             await msg.delete()
-            await ctx.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{ctx.author.name}** ;-;")
+            await inter.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{inter.author.name}** ;-;")
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
-            beer_offer = f"**{user.name}**, you got a 🍺 from **{ctx.author.name}**"
+            beer_offer = f"**{user.name}**, you got a 🍺 from **{inter.author.name}**"
             beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
             await msg.edit(content=beer_offer)
 
     @commands.slash_command(aliases=["slots", "bet"])  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
-    async def slot(self, ctx):
+    async def slot(self, inter):
         """Roll the slot machine"""
         emojis = "💻💾💿🖥🖨🖱🌐⌨"
         a, b, c = [random.choice(emojis) for g in range(3)]
-        slotmachine = f"**[ {a} | {b} | {c} ]\n{ctx.author.name}**,"
+        slotmachine = f"**[ {a} | {b} | {c} ]\n{inter.author.name}**,"
 
         if a == b == c:
-            await ctx.send(f"{slotmachine} All matching, you won! 🎉")
+            await inter.send(f"{slotmachine} All matching, you won! 🎉")
         elif (a == b) or (a == c) or (b == c):
-            await ctx.send(f"{slotmachine} 2 in a row, you won! 🎉")
+            await inter.send(f"{slotmachine} 2 in a row, you won! 🎉")
         else:
-            await ctx.send(f"{slotmachine} No match, you lost 😢")
+            await inter.send(f"{slotmachine} No match, you lost 😢")
 
     @commands.slash_command(name="8ball", brief="8ball", description="Ask the magic 8ball a question")
     @commands.cooldown(1, 5, commands.BucketType.user)
