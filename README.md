@@ -31,7 +31,7 @@ Developers:
 <li><a href="https://github.com/LevaniVashadze">Levani Vashadze</a></li>
 <li><a href="https://github.com/DWAA1660">DWAA1660</a></li>
 </ul>
-The bot is currently on release: <b>1.6.0</b><br>
+The bot is currently on release: <b>1.7.0</b><br>
 License: MIT<br>
 Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/contributing.md">contribution guidelines</a>
 <hr>
