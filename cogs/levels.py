@@ -1,11 +1,14 @@
 from collections import namedtuple
 from typing import Tuple, Union
 
-from disnake import Message, Member, MessageType
+from disnake import Message, Member, MessageType, File
 from disnake.ext import commands
 import random
 
 from disnake.ext.commands import CooldownMapping, BucketType
+
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
 
 from utils.bot import OGIROID
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP
@@ -136,21 +139,50 @@ class Level(commands.Cog):
         self.levels = LEVELS_AND_XP
         self.controller: LevelsController = None
 
-    async def generate_image_card(self, msg, lvl, rank):
-        """generates an image card for the user"""
-        user = msg.author
-        pass
-
     @commands.slash_command(name="rankcardtesting")
-    async def generate_image_card(self, inter, lvl, rank):
+    async def generate_image_card(self, msg, rank, lvl, xp):
         """generates an image card for the user"""
-        user = inter.author
-        # with open("utils/data/images/rankcard5.svg", "r") as f:
-        #     svg = f.read()
-        #     svg = svg.replace("{{USERNAME}}", user.name)
-        #     with open("file.svg", "w") as o:
-        #         o.write(svg)
+        xp = int(xp)
+        user = msg.author
+        avatar = user.display_avatar
 
+        # x = 999999 * 9999999
+        # for key, value in LEVELS_AND_XP.items():
+        #     if value - xp < x and not xp - value == xp and value - xp >= 0:
+        #         x = value
+        #
+        # next_xp = x
+        # print(next_xp)
+        # with Image.open("utils/data/images/10%.png").convert("RGBA") as base:
+        #     # make a blank image for the text, initialized to transparent text color
+        #     txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
+        #
+        #     width = round((xp / next_xp) * 418, 2)
+        #
+        #     # get a font
+        #     fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
+        #     # get a drawing context
+        #     d = ImageDraw.Draw(txt)
+        #
+        #     # username
+        #     d.text((174, 44), user.name, font=fnt, fill=(0, 0, 0, 255))
+        #
+        #     # xp
+        #     d.text((180, 77), xp + "/" + next_xp, font=fnt, fill=(0, 0, 0, 255))
+        #
+        #     # level
+        #     d.text((110, 109), lvl, font=fnt, fill=(0, 0, 0, 255))
+        #
+        #     # Rank
+        #     d.text((108, 142), rank, font=fnt, fill=(0, 0, 0, 255))
+        #
+        #     out = Image.alpha_composite(base, txt)
+        #
+        #     with BytesIO() as image_binary:
+        #         out.save(image_binary, 'PNG')
+        #         image_binary.seek(0)
+        #         await msg.send(file=File(fp=image_binary, filename='image.png'))
+        #         return File(fp=image_binary, filename='image.png')
 
     def cog_unload(self) -> None:
         pass
