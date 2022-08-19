@@ -63,7 +63,6 @@ IF NOT EXISTS warnings
     reason TEXT
 );
 
-
 CREATE TABLE
 IF NOT EXISTS levels
 (

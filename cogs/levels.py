@@ -13,7 +13,6 @@ from utils.exceptions import LevelingSystemError
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
-
 class LevelsController:
     def __init__(self, bot: OGIROID, db):
         self.bot = bot
@@ -131,7 +130,6 @@ class LevelsController:
         return self.db.get_user(user_id)
 
 
-
 class Level(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
@@ -142,6 +140,16 @@ class Level(commands.Cog):
         """generates an image card for the user"""
         user = msg.author
         pass
+        
+    @commands.slash_command(name="rankcardtesting")
+    async def generate_image_card(self, inter, lvl, rank):
+        """generates an image card for the user"""
+        user = inter.author
+        # with open("utils/data/images/rankcard5.svg", "r") as f:
+        #     svg = f.read()
+        #     svg = svg.replace("{{USERNAME}}", user.name)
+        #     with open("file.svg", "w") as o:
+        #         o.write(svg)
 
 
     def cog_unload(self) -> None:
@@ -160,7 +168,6 @@ class Level(commands.Cog):
 **rank:** {rank}"""
         await msg.channel.send(raw)
 
-
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot:
@@ -172,7 +179,11 @@ class Level(commands.Cog):
         self.controller = LevelsController(self.bot, self.bot.db)
         print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
         await self.controller._update_record(member=self.bot.user, level=1, xp=0, total_xp=0, guild_id=self.bot.guilds[0].id, maybe_new_record=True)
-        print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
+        print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0])) # todo remove
+
+    @staticmethod
+    async def random_xp():
+        return random.choice(xp_probability)
 
     def get_user(self, user_id: int):
         return self.controller.get_user(user_id)
