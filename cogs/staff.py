@@ -518,9 +518,13 @@ class Staff(commands.Cog):
     async def button_click(self, inter):
         message = inter.message
         emoji = inter.component.emoji
+        guild = inter.guild
 
         try:
             role_id = int(inter.component.custom_id.split("-")[0])
+            role = guild.get_role(role_id)
+            if role is None:
+                return
         except ValueError:
             return
 
@@ -528,10 +532,8 @@ class Staff(commands.Cog):
             return await errorEmb(inter, "This doesnt exists in the database")
 
         await self.reaction_roles.increment_roles_given(message.id, str(emoji))
-        guild = inter.guild
 
         member = guild.get_member(inter.user.id)
-        role = guild.get_role(role_id)
 
         if member.get_role(role_id) is None:
             await member.add_roles(role, reason=f"Clicked button to get role. gave {role.name}")
