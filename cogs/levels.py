@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Tuple, Union, Optional, Dict
+from typing import Tuple, Union
 
 from disnake import Message, Member, MessageType
 from disnake.ext import commands
@@ -140,7 +140,7 @@ class Level(commands.Cog):
         """generates an image card for the user"""
         user = msg.author
         pass
-        
+
     @commands.slash_command(name="rankcardtesting")
     async def generate_image_card(self, inter, lvl, rank):
         """generates an image card for the user"""
