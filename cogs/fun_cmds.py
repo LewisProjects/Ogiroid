@@ -4,6 +4,7 @@ import os
 import random
 import time
 from datetime import datetime, timezone
+from urllib import request
 
 import akinator as ak
 import disnake
@@ -12,6 +13,7 @@ from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
 from dotenv import load_dotenv
+import requests
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
@@ -469,6 +471,26 @@ class Fun(commands.Cog):
         embed.set_image(url=qr)
         embed.set_footer(text=f"Requested by: {inter.author.name}")
         return await inter.send(embed=embed)
+
+    @commands.slash_command(name="urlshortner", description="Shortens a URL.")
+    async def urlshortner(self, inter, url: str):
+        #chechking if url starts with http:// or https://, if it does not, adding https:// towards the start
+        if not url.startswith("http://") and not url.startswith("https://"):
+            url = f"https://{url}"
+        data = {
+            "url": url,
+        } 
+        response = requests.post("https://cleanuri.com/api/v1/shorten", data=data)
+        if response.status_code == 200:
+            embed = disnake.Embed(
+            title=f"URL created for: {url.replace('http://', '').replace('https://', '')}",
+            color=0xFFFFFF,
+            description=f"Your shortend URL is: {response.json()['result_url']}, or click [here]({response.json()['result_url']}) to visit it.")
+            embed.set_footer(text=f"Requested by: {inter.author.name}")
+            return await inter.send(embed=embed)
+        else:
+            return await errorEmb(inter, "An unexpected error occured! Please try again later.")
+        
 
 def setup(bot):
     bot.add_cog(Fun(bot))
