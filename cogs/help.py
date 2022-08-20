@@ -2,6 +2,7 @@ import disnake
 from disnake.ext import commands
 
 from utils.bot import OGIROID
+from utils.pagination import CreatePaginator
 
 
 class HelpCommand(commands.Cog, name="Help"):
@@ -14,38 +15,34 @@ class HelpCommand(commands.Cog, name="Help"):
     @commands.slash_command(name="help", description="Lists all commands")
     async def help(self, inter):
         """Lists all commands"""
-        embed = disnake.Embed(title="Bot Commands", colour=self.COLOUR)
-        embed.set_author(
-            name="Ogiroid's help menu!",
-            url="https://freebie.codes",
-            icon_url="https://cdn.discordapp.com/avatars/984802008403959879/7016c34bd6bce62f9b0f2534f8918c49.png?size=1024",
-        )
+        embeds = []
 
         cogs = self.bot.cogs.items()
         for cog_name, cog in cogs:
+            embed = disnake.Embed(title=cog.qualified_name, colour=self.COLOUR)
             if cog is None:
                 continue
             cmds = cog.get_slash_commands()
             name = cog.qualified_name
 
-            value = " ".join(f"`/{cmd.name}`" for cmd in cmds)
+            value = ""
+            for cmd in cmds:
+                value += f"`/{cmd.qualified_name}` - {cmd.description}\n"
+                if cmd.children:
+                    for children, sub_command in cmd.children.items():
+                        try:
+                            value += f"`/{sub_command.qualified_name}` - {sub_command.description}\n"
+                        except AttributeError:
+                            pass
 
             if value == "":
                 continue
 
-            if name == "Tickets":
-                continue
+            embed.description = f"{cog.description}\n\n{value}"
+            embeds.append(embed)
 
-            if cog and cog.description:
-                value = "{0}\n{1}".format(cog.description, value)
-
-            embed.add_field(name=name, value=value)
-
-        embed.set_footer(
-            text="If you want more information on a particular command start typing out the command "
-            "and a description will show up"
-        )
-        await inter.send(embed=embed)
+        paginator = CreatePaginator(embeds, inter.author.id, timeout=300.0)
+        await inter.send(embed=embeds[0], view=paginator)
 
 
 def setup(bot: commands.Bot):
