@@ -1,13 +1,15 @@
+import io
 from collections import namedtuple
 from typing import Tuple, Union
 
+import disnake
 from disnake import Message, Member, MessageType, File
 from disnake.ext import commands
 import random
 
 from disnake.ext.commands import CooldownMapping, BucketType
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from io import BytesIO
 
 from utils.bot import OGIROID
@@ -139,50 +141,75 @@ class Level(commands.Cog):
         self.levels = LEVELS_AND_XP
         self.controller: LevelsController = None
 
-    @commands.slash_command(name="rankcardtesting")
-    async def generate_image_card(self, msg, rank, lvl, xp):
+    async def generate_image_card(self, msg, rank, xp):
         """generates an image card for the user"""
         xp = int(xp)
         user = msg.author
-        avatar = user.display_avatar
+        avatar: disnake.Asset = user.display_avatar.with_size(512)
 
-        # x = 999999 * 9999999
-        # for key, value in LEVELS_AND_XP.items():
-        #     if value - xp < x and not xp - value == xp and value - xp >= 0:
-        #         x = value
-        #
-        # next_xp = x
-        # print(next_xp)
-        # with Image.open("utils/data/images/10%.png").convert("RGBA") as base:
-        #     # make a blank image for the text, initialized to transparent text color
-        #     txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
-        #
-        #     width = round((xp / next_xp) * 418, 2)
-        #
-        #     # get a font
-        #     fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
-        #     # get a drawing context
-        #     d = ImageDraw.Draw(txt)
-        #
-        #     # username
-        #     d.text((174, 44), user.name, font=fnt, fill=(0, 0, 0, 255))
-        #
-        #     # xp
-        #     d.text((180, 77), xp + "/" + next_xp, font=fnt, fill=(0, 0, 0, 255))
-        #
-        #     # level
-        #     d.text((110, 109), lvl, font=fnt, fill=(0, 0, 0, 255))
-        #
-        #     # Rank
-        #     d.text((108, 142), rank, font=fnt, fill=(0, 0, 0, 255))
-        #
-        #     out = Image.alpha_composite(base, txt)
-        #
-        #     with BytesIO() as image_binary:
-        #         out.save(image_binary, 'PNG')
-        #         image_binary.seek(0)
-        #         await msg.send(file=File(fp=image_binary, filename='image.png'))
-        #         return File(fp=image_binary, filename='image.png')
+        # this for loop finds the closest level to the xp and defines the values accordingly
+        x = 999999 * 9999999
+        for key, value in LEVELS_AND_XP.items():
+            if value - xp < x and not xp - value == xp and value - xp > 0:
+                x = value - xp
+                next_xp = value
+                lvl = key
+
+        with Image.open("utils/data/images/rankcard.png").convert("RGBA") as base:
+
+            # make a blank image for the text, initialized to transparent text color
+            txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
+
+            response = await self.bot.session.get(avatar.url)
+            avatar_image_bytes = io.BytesIO(await response.read())
+            avatar_img = Image.open(avatar_image_bytes).convert("RGBA")
+
+            def mask_circle_transparent(pil_img, blur_radius, offset=0):
+                """Make Image round(CTRL + C, CTRL + V ftw). https://note.nkmk.me/en/python-pillow-square-circle-thumbnail/"""
+                offset = blur_radius * 2 + offset
+                mask = Image.new("L", pil_img.size, 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((offset, offset, pil_img.size[0] - offset, pil_img.size[1] - offset), fill=255)
+                mask = mask.filter(ImageFilter.GaussianBlur(blur_radius))
+
+                result = pil_img.copy()
+                result.putalpha(mask)
+
+                return result
+
+            # makes the avatar ROUND
+            avatar_img = mask_circle_transparent(avatar_img.resize((189, 189)), blur_radius=1, offset=0)
+
+            previous_xp = LEVELS_AND_XP[str(int(lvl) - 1)]
+
+            width = round(((xp - previous_xp) / (next_xp - previous_xp)) * 418, 2)
+
+            # get a font
+            fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
+            # get a drawing context
+            d = ImageDraw.Draw(txt)
+
+            # username
+            d.text((179, 32), user.name, font=fnt, fill=(0, 0, 0, 255))
+
+            # xp
+            d.text((185, 65), f"{xp}/{next_xp}", font=fnt, fill=(0, 0, 0, 255))
+
+            # level
+            d.text((115, 96), lvl, font=fnt, fill=(0, 0, 0, 255))
+
+            # Rank
+            d.text((113, 130), rank, font=fnt, fill=(0, 0, 0, 255))
+
+            d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
+
+            txt.paste(avatar_img, (489, 23))
+
+            out = Image.alpha_composite(base, txt)
+            with BytesIO() as image_binary:
+                out.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                return File(fp=image_binary, filename='image.png')
 
     def cog_unload(self) -> None:
         pass
