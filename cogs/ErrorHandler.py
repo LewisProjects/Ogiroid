@@ -18,7 +18,7 @@ class ErrorHandler(Cog):
         self.debug_mode = self.bot.config.debug
         self.waitTime = 25
 
-    def TimeSinceStart(self) -> int:
+    def TimeSinceStart(self) -> float:
         return round((datetime.now() - self.bot.uptime).total_seconds(), ndigits=1)
 
     # noinspection PyUnboundLocalVariable
@@ -29,10 +29,14 @@ class ErrorHandler(Cog):
                 return
             elif error.__class__.__name__ in IGNORE_EXCEPTIONS:
                 return
-            if self.TimeSinceStart() < self.waitTime:  # Databases and internal caches might not be fully loaded yet
+
+            # Databases and internal caches might not be fully loaded yet.
+            # In debug mode we don't want to wait for them cause its fucking annoying.
+            if self.TimeSinceStart() < self.waitTime and not self.debug_mode:
                 return await errorEmb(
                     inter, f"The bot just started, please wait {round(self.waitTime - self.TimeSinceStart(), ndigits=2)}s."
                 )
+
             # non real error handling
             if isinstance(error, CommandNotFound):
                 return await errorEmb(inter, "Command not found! use /help for a list of commands")
