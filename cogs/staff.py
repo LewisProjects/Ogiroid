@@ -525,6 +525,8 @@ class Staff(commands.Cog):
             role = guild.get_role(role_id)
             if role is None:
                 return
+            if "-" not in inter.component.custom_id:
+                return
         except ValueError:
             return
 
