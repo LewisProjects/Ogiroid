@@ -1,13 +1,14 @@
 import os
 
 from dotenv import load_dotenv
+
 from utils.leveling.leveling_system import LevelingSystem
 
-load_dotenv("secrets.env")  # keep above OGIROID import
+load_dotenv('secrets.env')
 from utils.bot import OGIROID
 
-levels = LevelingSystem()
 bot = OGIROID()
+levels = LevelingSystem()
 TOKEN = bot.config.tokens.bot
 
 

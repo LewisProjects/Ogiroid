@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 
 __VERSION__ = "1.7.0"
 
 from typing import Final
+
+from dotenv import load_dotenv
 
 
 @dataclass
@@ -62,14 +63,6 @@ class Emojis:
 class Colors:
     invis: int = 0x2F3136
     white: int = 0xFFFFFF
-
-
-@dataclass
-class Tokens:
-    SRA: str = os.getenv("SRA_API_KEY")
-    bot: str = os.getenv("TOKEN")
-    weathermap: str = os.getenv("OPEN_WEATHER_MAP_API_KEY")
-
 
 @dataclass
 class timings:
