@@ -461,6 +461,14 @@ class Fun(commands.Cog):
             return await errorEmb(inter, f"{key}")
         return await inter.send(embed=embed)
 
+    @commands.slash_command(name="urltoqr", description="Converts a URL to a QR code.")
+    async def urltoqr(self, inter, url: str, size: int):
+        url = url.replace("http://", "").replace("https://", "")
+        qr = f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
+        embed = disnake.Embed(title=f"URL created for: {url}", color=0xFFFFFF)
+        embed.set_image(url=qr)
+        embed.set_footer(text=f"Requested by: {inter.author.name}")
+        return await inter.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
