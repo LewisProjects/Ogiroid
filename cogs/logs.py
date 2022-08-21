@@ -55,6 +55,21 @@ class Log(Cog):
             embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
             await log_channel.send(embed=embed)
 
+        if before.avatar.url is None:
+            embed = Embed(
+                title="Avatar change",
+                description="New image is below, old to the right.",
+                colour=log_channel.guild.get_member(after.id).colour,
+                timestamp=datetime.utcnow(),
+            )
+
+            embed.set_thumbnail(url=before.display_avatar.url)
+            embed.set_image(url=after.avatar.url if after.avatar.url else after.display_avatar.url)
+            embed.set_footer(text=f"{after.name}#{after.discriminator}",
+                             icon_url=after.avatar.url if after.avatar.url else after.display_avatar.url)
+            await log_channel.send(embed=embed)
+
+
     @Cog.listener()
     async def on_member_update(self, before, after):
         log_channel = self.bot.get_channel(self.bot.config.channels.logs)

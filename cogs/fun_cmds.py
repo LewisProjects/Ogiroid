@@ -136,7 +136,7 @@ class Fun(commands.Cog):
             )
             embed.set_footer(
                 text=f"Command issued by: {inter.author.name}",
-                icon_url=inter.author.avatar,
+                icon_url=inter.author.display_avatar,
             )
             await inter.send(embed=embed)
         else:
@@ -153,7 +153,7 @@ class Fun(commands.Cog):
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
             text=f"Command issued by: {inter.author.name}",
-            icon_url=inter.message.author.avatar,
+            icon_url=inter.message.author.display_avatar,
         )
         await inter.send(embed=embed)
 
@@ -167,7 +167,7 @@ class Fun(commands.Cog):
         """Time to get triggered."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
@@ -184,7 +184,7 @@ class Fun(commands.Cog):
             member = inter.author
         impostor = random.choice(["true", "false"])
         apikey = os.getenv("SRA_API_KEY")
-        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
+        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
         resp = await self.bot.session.get(uri)
         if 300 > resp.status >= 200:
             fp = io.BytesIO(await resp.read())
@@ -198,7 +198,7 @@ class Fun(commands.Cog):
         """Invert your profile picture."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
 
@@ -208,7 +208,7 @@ class Fun(commands.Cog):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
@@ -219,7 +219,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
 
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
 

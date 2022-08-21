@@ -25,7 +25,7 @@ class Starboard(commands.Cog):
                         color=disnake.Color.gold(),
                         timestamp=datetime.utcnow(),
                     )
-                    embed.set_author(name=message.author, icon_url=message.author.avatar.url)
+                    embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
                     await starboard_channel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -41,7 +41,7 @@ class Starboard(commands.Cog):
                         color=disnake.Color.gold(),
                         timestamp=datetime.utcnow(),
                     )
-                    embed.set_author(name=message.author, icon_url=message.author.avatar.url)
+                    embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
                     await starboard_channel.send(embed=embed)
 
 
