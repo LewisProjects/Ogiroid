@@ -40,7 +40,7 @@ class Roles:
 
     @classmethod
     def dev(cls):
-        cls.staff: int = 1005904440039047208  # 985943266115584010 one of those is the staff role
+        cls.staff: int = 985943266115584010
         return cls
 
 
