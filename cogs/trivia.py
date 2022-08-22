@@ -131,7 +131,6 @@ class Trivia(commands.Cog, name="Trivia"):
             await errorEmb(inter, "This user never took part in the flag quiz or doesn't exist.")
             return
 
-        player = player[0]
         user = self.bot.get_user(player.user_id)
         embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
         embed.set_thumbnail(url=user.display_avatar.url)
