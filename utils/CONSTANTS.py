@@ -19,6 +19,7 @@ class Channels:
     staff_vote: int = 1005741491861344286
     welcome: int = 905183354930995320
     goodbye: int = 905183354930995320  # same as welcome
+    starboard: int = 1011210884875550821
 
     @classmethod
     def dev(cls):
@@ -31,6 +32,7 @@ class Channels:
         cls.logs: int = 988162723890217040
         cls.staff_vote: int = 1002132747441152071
         cls.welcome = cls.goodbye = 985961186107461673
+        cls.starboard: int = 985936949581865030
         return cls
 
 
