@@ -48,7 +48,6 @@ class FlagQuizHandler:
     async def add_data(self, user_id: int, tries: int, correct: int):
         try:
             user = await self.get_user(user_id)
-            user = user[0]
         except UserNotFound:
             await self.add_user(user_id, tries, correct)
             return
