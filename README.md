@@ -35,23 +35,14 @@ The bot is currently on release: <b>1.7.0</b><br>
 License: MIT<br>
 Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/contributing.md">contribution guidelines</a>
 <hr>
-<h3>Changelog 07-08-2022:</h3>
+<h3>Changelog 23-08-2022:</h3>
 <ol>
-<li>Made the commands case-insensitive.</li>
-<li>All commands are now slash commands.</li>
-<li>Created a new code command which opens a windows for the code and language using modals.</li>
-<li>Better Error Handling.</li>
-<li>Tag System Revamped.</li>
-<li>New Ticket System.</li>
-<li>Bug Report & Suggestions using modals.</li>
-<li>New Moderation Commands.</li>
-<li>Flag Quiz Command.</li>
-<li>Server Info Command.</li>
-<li>Whois Command.</li>
-<li>Blacklist command.</li>
-<li>Maths Commands.</li>
-<li>New readme.md file! :)</li>
-<li>Staff Vote Command</li>
+<li>Reaction & Button Based reaction system.</li>
+<li>Minor Fix in the ticket command</li>
+<li>Pokemon commands for those pokemon fans</li>
+<li>Moderation commands finished</li>
+<li>Trivia Command</li>
+<li>Error handling improvised</li>
 </ol>
 <p><i>Some</i> of these commands are on their first version, but they should be functional!</p>
 <hr>
