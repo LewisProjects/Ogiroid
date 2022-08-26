@@ -52,6 +52,8 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
     async def get(self, inter, name: str, embeded: bool = False):
+        if not name:
+            return await errorEmb(inter, "You need to specify a tag name")
         name = name.casefold()
         try:
             tag = await self.tags.get(name)
