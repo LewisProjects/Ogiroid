@@ -6,7 +6,6 @@ __VERSION__ = "1.7.0"
 
 from typing import Final
 
-from dotenv import load_dotenv
 
 
 @dataclass
