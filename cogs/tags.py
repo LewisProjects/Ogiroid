@@ -163,7 +163,7 @@ class Tags(commands.Cog, name="Tags"):
     async def deltag(self, inter, name):
         try:
             name = name.casefold()
-            await self.exists(name, TagNotFound, should=True)
+            await self.tags.exists(name, TagNotFound, should=True)
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             await self.tags.delete(name)
@@ -298,7 +298,7 @@ class Tags(commands.Cog, name="Tags"):
     async def add_alias(self, inter, name, alias):
         try:
             name = name.casefold()
-            await self.exists(name, TagNotFound, should=True)
+            await self.tags.exists(name, TagNotFound, should=True)
             alias = alias.casefold()
 
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
