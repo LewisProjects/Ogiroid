@@ -269,9 +269,11 @@ class TagManager:
             else:
                 await self.cache.add(name, await self.get(name, force=True))
 
-        async with self.db.execute("SELECT * FROM tags WHERE tag_id= ?", [name]) as cur:
-            raw = await cur.fetchone()
-            return Tag(*raw)
+        _cur = await self.db.execute("SELECT * FROM tags WHERE tag_id= ?", [name])
+        raw = await _cur.fetchone()
+        if raw is None:
+            return
+        return Tag(*raw)
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
@@ -287,6 +289,7 @@ class TagManager:
         await self.db.execute("DELETE FROM tags WHERE tag_id = ?", [name])
         await self.db.commit()
         # internals below
+        self.names["tags"].remove(name)
         for tag in await self.get_aliases(name):
             self.names["aliases"].remove(tag)
             await self.cache.delete(tag)
@@ -353,9 +356,11 @@ class TagManager:
         name_or_alias = name_or_alias.casefold()
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
-        async with self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]) as cur:
-            async for row in cur:  # it's an alias
-                return row[0]
+        _cur = await self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias])
+        value = await _cur.fetchone()
+        if value is None:
+            raise TagNotFound(name_or_alias)
+        return value
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
