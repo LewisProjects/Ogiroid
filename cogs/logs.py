@@ -65,10 +65,11 @@ class Log(Cog):
 
             embed.set_thumbnail(url=before.display_avatar.url)
             embed.set_image(url=after.avatar.url if after.avatar.url else after.display_avatar.url)
-            embed.set_footer(text=f"{after.name}#{after.discriminator}",
-                             icon_url=after.avatar.url if after.avatar.url else after.display_avatar.url)
+            embed.set_footer(
+                text=f"{after.name}#{after.discriminator}",
+                icon_url=after.avatar.url if after.avatar.url else after.display_avatar.url,
+            )
             await log_channel.send(embed=embed)
-
 
     @Cog.listener()
     async def on_member_update(self, before, after):

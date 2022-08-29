@@ -63,20 +63,21 @@ class LevelsController:
         self.__per = per
 
     async def is_in_database(self, member: Union[Member, int], guild: Union[FakeGuild, int] = None) -> bool:
-        record = await self.db.execute("SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = ? AND guild_id = ? )",
-                                       (member.id, guild.id if guild else member.guild.id))
+        record = await self.db.execute(
+            "SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = ? AND guild_id = ? )",
+            (member.id, guild.id if guild else member.guild.id),
+        )
         return bool((await record.fetchone())[0])
 
     async def _update_record(
-            self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, **kwargs
+        self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, **kwargs
     ) -> None:
 
-        if await self.is_in_database(
-                member, guild=FakeGuild(id=guild_id)
-        ):
+        if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
             await self.db.execute(
                 "UPDATE levels SET level = ?, xp = ?, total_xp = ? WHERE user_id = ? AND guild_id = ?",
-                (level, xp, total_xp, member.id if isinstance(member, Member) else member, guild_id), )
+                (level, xp, total_xp, member.id if isinstance(member, Member) else member, guild_id),
+            )
         else:
             await self.db.execute(
                 "INSERT INTO levels (user_id, guild_id, level, xp, total_xp) VALUES (?, ?, ?, ?, ?)",
@@ -115,11 +116,11 @@ class LevelsController:
 
     async def handle_message(self, message):
         if any(
-                [
-                    message.guild is None,
-                    message.author.bot,
-                    message.type != MessageType.default,
-                ]
+            [
+                message.guild is None,
+                message.author.bot,
+                message.type != MessageType.default,
+            ]
         ):
             return
         user = await self.grant_xp(message)
@@ -132,7 +133,7 @@ class LevelsController:
         #    return True
 
     async def get_user(self, user_id: int):
-        return await self.db.get_user(user_id) # todo continue this
+        return await self.db.get_user(user_id)  # todo continue this
 
     async def generate_image_card(self, msg, rank, xp):
         """generates an image card for the user"""
@@ -200,9 +201,9 @@ class LevelsController:
 
             out = Image.alpha_composite(base, txt)
             with BytesIO() as image_binary:
-                out.save(image_binary, 'PNG')
+                out.save(image_binary, "PNG")
                 image_binary.seek(0)
-                return File(fp=image_binary, filename='image.png')
+                return File(fp=image_binary, filename="image.png")
 
     @staticmethod
     async def send_levelup(message: Message, level: int):
@@ -231,7 +232,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        return #todo remove this
+        return  # todo remove this
 
         if message.author.bot:
             return
@@ -239,11 +240,12 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        return #todo remove this
+        return  # todo remove this
         self.controller = LevelsController(self.bot, self.bot.db)
         print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
-        await self.controller._update_record(member=self.bot.user, level=1, xp=0, total_xp=0,
-                                             guild_id=self.bot.guilds[0].id, maybe_new_record=True)
+        await self.controller._update_record(
+            member=self.bot.user, level=1, xp=0, total_xp=0, guild_id=self.bot.guilds[0].id, maybe_new_record=True
+        )
         print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))  # todo remove
 
     @commands.slash_command()

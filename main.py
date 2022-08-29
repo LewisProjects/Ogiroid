@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from utils.leveling.leveling_system import LevelingSystem
 
-load_dotenv('secrets.env')
+load_dotenv("secrets.env")
 from utils.bot import OGIROID
 
 bot = OGIROID()

@@ -355,8 +355,11 @@ class Staff(commands.Cog):
         if emoji is None:
             return await errorEmb(inter, "The emoji is invalid")
 
-        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}",
-                                   style=disnake.ButtonStyle[color])
+        button = disnake.ui.Button(
+            emoji=emoji,
+            custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}",
+            style=disnake.ButtonStyle[color],
+        )
         view = disnake.ui.View()
         view.add_item(button)
         msg = await channel.send(text, view=view)
@@ -560,8 +563,7 @@ class Staff(commands.Cog):
         staff_commands = commands.Cog.get_slash_commands(self)
         emb = disnake.Embed(title="Staff Commands", description="All staff commands", color=0xFFFFFF)
         for command in staff_commands:
-            emb.add_field(
-                name=f"/{command.qualified_name}", value=command.description, inline=False)
+            emb.add_field(name=f"/{command.qualified_name}", value=command.description, inline=False)
 
         await inter.send(embed=emb)
 

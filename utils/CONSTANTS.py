@@ -7,7 +7,6 @@ __VERSION__ = "1.7.0"
 from typing import Final
 
 
-
 @dataclass
 class Channels:
     suggestion_reddit_bot: int = 982353129913851924
@@ -23,6 +22,10 @@ class Channels:
     goodbye: int = 905183354930995320  # same as welcome
     starboard: int = 1011210884875550821
     reddit_bot: int = 981613938166890556
+    introduction: int = 980049243236597780
+    general: int = 897666935708352587
+    roles: int = 933102052173828136
+    rules: int = 905182869410955355
 
     @classmethod
     def dev(cls):
@@ -37,6 +40,10 @@ class Channels:
         cls.welcome = cls.goodbye = 985961186107461673
         cls.starboard: int = 985936949581865030
         cls.reddit_bot: int = 1012349179810553917
+        cls.introduction: int = 1013853473172893837
+        cls.general: int = 985729550732394536
+        cls.roles: int = 1013853473172893837
+        cls.rules: int = 1013853473172893837
         return cls
 
 
@@ -66,6 +73,7 @@ class Emojis:
 class Colors:
     invis: int = 0x2F3136
     white: int = 0xFFFFFF
+
 
 @dataclass
 class timings:

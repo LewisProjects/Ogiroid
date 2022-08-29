@@ -13,23 +13,33 @@ class Welcome(Cog):
         self.get_channel = self.bot.get_channel
 
     @Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: disnake.Member):
         if member.dm_channel is None:
+            introduction = self.bot.get_channel(self.bot.config.channels.introduction)
+            general = self.bot.get_channel(self.bot.config.channels.general)
+            roles = self.bot.get_channel(self.bot.config.channels.roles)
+            reddit_bot = self.bot.get_channel(self.bot.config.channels.reddit_bot)
+            rules = self.bot.get_channel(self.bot.config.channels.rules)
+
             await member.create_dm()
             embed = disnake.Embed(
-                title="Welcome to Lewis Menelaws' Official Discord Server", 
-                description=f"Welcome to the official Discord server {member.name}, please checkout the designated channels.We hope you have a great time here.", 
-                color=0xFFFFFF)
-            embed.add_field(name="Chat with other members:", value=f"Chat with the members, <#897666935708352587>", inline=True)
-            embed.add_field(name="Introductions:", value="Introduce yourself, <#980049243236597780>", inline=True)
-            embed.add_field(name="Roles:", value="Select some roles, <#933102052173828136>", inline=True)
-            embed.add_field(name="Reddit Bot Related:", value="Here for the Reddit bot? Checkout <#981613938166890556>", inline=True)
-            embed.add_field(name="Rules:", value="Checkout the rules, <#905182869410955355>", inline=True)
+                title="Welcome to Lewis Menelaws' Official Discord Server",
+                description=f"Welcome to the official Discord server {member.name},"
+                f" please checkout the designated channels.We hope you have a great time here.",
+                color=0xFFFFFF,
+            )
+            embed.add_field(name="Chat with other members:", value=f"Chat with the members, {general.mention}", inline=True)
+            embed.add_field(name="Introductions:", value=f"Introduce yourself, {introduction.mention}", inline=True)
+            embed.add_field(name="Roles:", value=f"Select some roles, {roles.mention}", inline=True)
+            embed.add_field(
+                name="Reddit Bot Related:", value=f"Here for the Reddit bot? Checkout {reddit_bot.mention}", inline=True
+            )
+            embed.add_field(name="Rules:", value=f"Checkout the rules, {rules.mention}", inline=True)
             embed.set_thumbnail(url=member.display_avatar)
             await member.dm_channel.send(embed=embed)
         else:
             pass
-        
+
         greetings = ["Hello", "Hi", "Greetings", "Hola", "Bonjour"]
         chan = self.get_channel(self.bot.config.channels.welcome)
         embed = disnake.Embed(
@@ -44,7 +54,6 @@ class Welcome(Cog):
         )
         embed.set_thumbnail(url=member.display_avatar)
         await chan.send(f"{member.mention}, Welcome to Coding w/ Lewis' official Discord Server!", embed=embed)
-        
 
     @Cog.listener()
     async def on_member_remove(self, member):
@@ -63,6 +72,7 @@ class Welcome(Cog):
         embed.set_image(url=member.display_avatar)
         embed.set_footer(text="Member Left")
         await channel.send(f"{member.mention} has left!", embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Welcome(bot))

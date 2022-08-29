@@ -35,8 +35,10 @@ class Tickets(commands.Cog):
     async def send_message(self):
         ticket_channel = self.bot.get_channel(self.ticket_channel)
         await ticket_channel.send(
-            "Create a Ticket.", components=disnake.ui.Button(emoji=disnake.PartialEmoji.from_str("📩"), label="Create a Ticket",
-                                                             custom_id="ticket_button")
+            "Create a Ticket.",
+            components=disnake.ui.Button(
+                emoji=disnake.PartialEmoji.from_str("📩"), label="Create a Ticket", custom_id="ticket_button"
+            ),
         )
 
     @commands.slash_command(name="edit-ticket-message", description="Update the ticket message.")

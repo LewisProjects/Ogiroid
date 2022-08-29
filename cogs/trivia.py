@@ -254,14 +254,16 @@ class Trivia(commands.Cog, name="Trivia"):
                     await QuickEmb(user_inter, f"Correct the answer indeed is {html.unescape(answer)}.").success().send()
                 else:
                     await QuickEmb(
-                        user_inter, f"Correct the answer indeed is {html.unescape(answer)}. Your score so far is {correct} / {questions}"
+                        user_inter,
+                        f"Correct the answer indeed is {html.unescape(answer)}. Your score so far is {correct} / {questions}",
                     ).success().send()
             else:
                 if n == len(data["results"]):
                     await QuickEmb(user_inter, f"Incorrect the correct answer is {html.unescape(answer)}.").error().send()
                 else:
                     await QuickEmb(
-                        user_inter, f"Incorrect the correct answer is {html.unescape(answer)}. Your score so far is {correct} / {questions}"
+                        user_inter,
+                        f"Incorrect the correct answer is {html.unescape(answer)}. Your score so far is {correct} / {questions}",
                     ).error().send()
 
         await QuickEmb(channel, f"Thanks for playing. Your final Score is {correct} / {questions}.").send()
