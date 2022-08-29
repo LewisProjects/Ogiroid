@@ -48,7 +48,6 @@ class FlagQuizHandler:
     async def add_data(self, user_id: int, tries: int, correct: int):
         try:
             user = await self.get_user(user_id)
-            user = user[0]
         except UserNotFound:
             await self.add_user(user_id, tries, correct)
             return
@@ -248,12 +247,12 @@ class TagManager:
 
     async def create(self, name, content, owner):
         await self.db.execute(
-            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            "INSERT INTO tags (tag_id, content, owner, created_at, views) VALUES (?, ?, ?, ?, 0)",
             [name, content, owner, int(time.time())],
         )
         await self.db.commit()
         self.names["tags"].append(name)
-        await self.cache.add(name, Tag(name, content, owner, 0, int(time.time())))
+        await self.cache.add(name, Tag(name, content, owner, int(time.time()), 0))
 
     async def get(self, name, /, force: bool = False) -> Tag:
         """
@@ -270,9 +269,11 @@ class TagManager:
             else:
                 await self.cache.add(name, await self.get(name, force=True))
 
-        async with self.db.execute("SELECT * FROM tags WHERE tag_id= ?", [name]) as cur:
-            raw = await cur.fetchone()
-            return Tag(*raw)
+        _cur = await self.db.execute("SELECT * FROM tags WHERE tag_id= ?", [name])
+        raw = await _cur.fetchone()
+        if raw is None:
+            return
+        return Tag(*raw)
 
     async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
         tags = []
@@ -288,6 +289,7 @@ class TagManager:
         await self.db.execute("DELETE FROM tags WHERE tag_id = ?", [name])
         await self.db.commit()
         # internals below
+        self.names["tags"].remove(name)
         for tag in await self.get_aliases(name):
             self.names["aliases"].remove(tag)
             await self.cache.delete(tag)
@@ -354,9 +356,11 @@ class TagManager:
         name_or_alias = name_or_alias.casefold()
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
-        async with self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]) as cur:
-            async for row in cur:  # it's an alias
-                return row[0]
+        _cur = await self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias])
+        value = await _cur.fetchone()
+        if value is None:
+            raise TagNotFound(name_or_alias)
+        return value
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
@@ -447,7 +451,8 @@ class RolesHandler:
     async def increment_roles_given(self, message_id: str, emoji: str):
         """increments the roles given out for a message"""
         await self.db.execute(
-            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?", [message_id, emoji]
+            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?",
+            [message_id, emoji],
         )
         await self.db.commit()
         # todo: cache remove below
@@ -462,7 +467,8 @@ class RolesHandler:
         if not msg:
             raise ReactionNotFound
         await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = ? AND emoji = ? AND role_id = ?", [message_id, emoji, role_id]
+            "DELETE FROM reaction_roles WHERE message_id = ? AND emoji = ? AND role_id = ?",
+            [message_id, emoji, role_id],
         )
         await self.db.commit()
         self.messages.remove(msg)

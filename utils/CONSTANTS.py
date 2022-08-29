@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 
 __VERSION__ = "1.7.0"
+
+from typing import Final
 
 
 @dataclass
@@ -19,6 +20,12 @@ class Channels:
     staff_vote: int = 1005741491861344286
     welcome: int = 905183354930995320
     goodbye: int = 905183354930995320  # same as welcome
+    starboard: int = 1011210884875550821
+    reddit_bot: int = 981613938166890556
+    introduction: int = 980049243236597780
+    general: int = 897666935708352587
+    roles: int = 933102052173828136
+    rules: int = 905182869410955355
 
     @classmethod
     def dev(cls):
@@ -31,6 +38,12 @@ class Channels:
         cls.logs: int = 988162723890217040
         cls.staff_vote: int = 1002132747441152071
         cls.welcome = cls.goodbye = 985961186107461673
+        cls.starboard: int = 985936949581865030
+        cls.reddit_bot: int = 1012349179810553917
+        cls.introduction: int = 1013853473172893837
+        cls.general: int = 985729550732394536
+        cls.roles: int = 1013853473172893837
+        cls.rules: int = 1013853473172893837
         return cls
 
 
@@ -40,7 +53,7 @@ class Roles:
 
     @classmethod
     def dev(cls):
-        cls.staff: int = 1005904440039047208  # 985943266115584010 one of those is the staff role
+        cls.staff: int = 985943266115584010
         return cls
 
 
@@ -60,13 +73,6 @@ class Emojis:
 class Colors:
     invis: int = 0x2F3136
     white: int = 0xFFFFFF
-
-
-@dataclass
-class Tokens:
-    SRA: str = os.getenv("SRA_API_KEY")
-    bot: str = os.getenv("TOKEN")
-    weathermap: str = os.getenv("OPEN_WEATHER_MAP_API_KEY")
 
 
 @dataclass
@@ -90,148 +96,112 @@ def status(stat):
     return statuses[stat]
 
 
-levels = {
-    1: 100,
-    2: 200,
-    3: 300,
-    4: 400,
-    5: 500,
-    6: 650,
-    7: 800,
-    8: 950,
-    9: 1100,
-    10: 1250,
-    11: 1450,
-    12: 1650,
-    13: 1850,
-    14: 2050,
-    15: 2250,
-    16: 2500,
-    17: 2750,
-    18: 3000,
-    19: 3250,
-    20: 3500,
-    21: 3800,
-    22: 4100,
-    23: 4400,
-    24: 4700,
-    25: 5000,
-    26: 5350,
-    27: 5700,
-    28: 6050,
-    29: 6400,
-    30: 6750,
-    31: 7150,
-    32: 7550,
-    33: 7950,
-    34: 8350,
-    35: 8750,
+xp_probability = sorted(list(range(10, 25)) + list(range(10, 25)) + list(range(25, 35, 1)))
+LEVELS_AND_XP: Final = {  # credit's for this goes to the mee6 developers as we use the same exp values as them
+    "0": 0,
+    "1": 100,
+    "2": 255,
+    "3": 475,
+    "4": 770,
+    "5": 1150,
+    "6": 1625,
+    "7": 2205,
+    "8": 2900,
+    "9": 3720,
+    "10": 4675,
+    "11": 5775,
+    "12": 7030,
+    "13": 8450,
+    "14": 10045,
+    "15": 11825,
+    "16": 13800,
+    "17": 15980,
+    "18": 18375,
+    "19": 20995,
+    "20": 23850,
+    "21": 26950,
+    "22": 30305,
+    "23": 33925,
+    "24": 37820,
+    "25": 42000,
+    "26": 46475,
+    "27": 51255,
+    "28": 56350,
+    "29": 61770,
+    "30": 67525,
+    "31": 73625,
+    "32": 80080,
+    "33": 86900,
+    "34": 94095,
+    "35": 101675,
+    "36": 109650,
+    "37": 118030,
+    "38": 126825,
+    "39": 136045,
+    "40": 145700,
+    "41": 155800,
+    "42": 166355,
+    "43": 177375,
+    "44": 188870,
+    "45": 200850,
+    "46": 213325,
+    "47": 226305,
+    "48": 239800,
+    "49": 253820,
+    "50": 268375,
+    "51": 283475,
+    "52": 299130,
+    "53": 315350,
+    "54": 332145,
+    "55": 349525,
+    "56": 367500,
+    "57": 386080,
+    "58": 405275,
+    "59": 425095,
+    "60": 445550,
+    "61": 466650,
+    "62": 488405,
+    "63": 510825,
+    "64": 533920,
+    "65": 557700,
+    "66": 582175,
+    "67": 607355,
+    "68": 633250,
+    "69": 659870,
+    "70": 687225,
+    "71": 715325,
+    "72": 744180,
+    "73": 773800,
+    "74": 804195,
+    "75": 835375,
+    "76": 867350,
+    "77": 900130,
+    "78": 933725,
+    "79": 968145,
+    "80": 1003400,
+    "81": 1039500,
+    "82": 1076455,
+    "83": 1114275,
+    "84": 1152970,
+    "85": 1192550,
+    "86": 1233025,
+    "87": 1274405,
+    "88": 1316700,
+    "89": 1359920,
+    "90": 1404075,
+    "91": 1449175,
+    "92": 1495230,
+    "93": 1542250,
+    "94": 1590245,
+    "95": 1639225,
+    "96": 1689200,
+    "97": 1740180,
+    "98": 1792175,
+    "99": 1845195,
+    "100": 1899250,
 }
-
-xp_probability = [
-    10,
-    10,
-    10,
-    10,
-    11,
-    11,
-    11,
-    11,
-    12,
-    12,
-    12,
-    12,
-    13,
-    13,
-    13,
-    13,
-    14,
-    14,
-    14,
-    14,
-    15,
-    15,
-    15,
-    15,
-    16,
-    16,
-    16,
-    16,
-    17,
-    17,
-    17,
-    17,
-    18,
-    18,
-    18,
-    18,
-    19,
-    19,
-    19,
-    19,
-    20,
-    20,
-    20,
-    20,
-    21,
-    21,
-    21,
-    21,
-    22,
-    22,
-    22,
-    22,
-    23,
-    23,
-    23,
-    23,
-    24,
-    24,
-    24,
-    24,
-    25,
-    25,
-    26,
-    26,
-    27,
-    27,
-    28,
-    28,
-    29,
-    29,
-    30,
-    30,
-    31,
-    31,
-    32,
-    32,
-    33,
-    33,
-    34,
-    34,
-    35,
-    35,
-    36,
-    36,
-    37,
-    37,
-    38,
-    38,
-    39,
-    39,
-    40,
-    41,
-    42,
-    43,
-    44,
-    45,
-    46,
-    47,
-    48,
-    49,
-    50,
-]
-
+MAX_LEVEL: Final = len(LEVELS_AND_XP) - 1
+MAX_XP: Final = LEVELS_AND_XP[str(MAX_LEVEL)]
 
 IGNORE_EXCEPTIONS = ["UserBlacklisted"]
 morse = {
@@ -350,14 +320,14 @@ COUNTRIES = {
     "🇨🇱": "Chile",
     "🇨🇳": "China",
     "🇨🇴": "Colombia",
-    "🇨🇬": "Republic of the Congo",
-    "🇨🇩": "DR Congo",
+    "🇨🇬": ["Republic of the Congo", "Rep of Congo", "Republic of Congo"],
+    "🇨🇩": ["DR Congo", "Democratic Republic of Congo"],
     "🇨🇷": "Costa Rica",
-    "🇨🇮": "Ivory Coast",
+    "🇨🇮": ["Ivory Coast", "cote d ivorie", "Côte d'Ivoire"],
     "🇭🇷": "Croatia",
     "🇨🇺": "Cuba",
     "🇨🇾": "Cyprus",
-    "🇨🇿": "Czechia",
+    "🇨🇿": ["Czechia", "Czech Republic"],
     "🇩🇰": "Denmark",
     "🇩🇯": "Djibouti",
     "🇩🇲": "Dominica",
@@ -383,7 +353,7 @@ COUNTRIES = {
     "🇬🇺": "Guam",
     "🇬🇹": "Guatemala",
     "🇬🇳": "Guinea",
-    "🇬🇼": "Guinea-Bissau",
+    "🇬🇼": ["Guinea-Bissau", "guinea bissau"],
     "🇬🇾": "Guyana",
     "🇭🇹": "Haiti",
     "🇭🇳": "Honduras",
@@ -406,7 +376,7 @@ COUNTRIES = {
     "🇰🇷": "South Korea",
     "🇽🇰": "Kosovo",
     "🇰🇼": "Kuwait",
-    "kg": "Kyrgyzstan",
+    "🇰🇬": "Kyrgyzstan",
     "🇱🇦": "Laos",
     "🇱🇻": "Latvia",
     "🇱🇧": "Lebanon",
@@ -487,7 +457,7 @@ COUNTRIES = {
     "🇹🇯": "Tajikistan",
     "🇹🇿": "Tanzania",
     "🇹🇭": "Thailand",
-    "🇹🇱": "Timor-Leste",
+    "🇹🇱": ["Timor-Leste", "timor leste"],
     "🇹🇬": "Togo",
     "🇹🇴": "Tonga",
     "🇹🇹": "Trinidad and Tobago",
@@ -497,13 +467,13 @@ COUNTRIES = {
     "🇹🇻": "Tuvalu",
     "🇺🇬": "Uganda",
     "🇺🇦": "Ukraine",
-    "🇦🇪": "United Arab Emirates",
-    "🇬🇧": "United Kingdom",
-    "🇺🇸": "United States",
+    "🇦🇪": ["United Arab Emirates", "UAE"],
+    "🇬🇧": ["United Kingdom", "UK"],
+    "🇺🇸": ["United States", "USA"],
     "🇺🇾": "Uruguay",
     "🇺🇿": "Uzbekistan",
     "🇻🇺": "Vanuatu",
-    "🇻🇦": "Vatican City",
+    "🇻🇦": ["Vatican City", "Holy See"],
     "🇻🇪": "Venezuela",
     "🇻🇳": "Vietnam",
     "🇾🇪": "Yemen",

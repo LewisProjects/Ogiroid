@@ -52,6 +52,8 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
     async def get(self, inter, name: str, embeded: bool = False):
+        if not name:
+            return await errorEmb(inter, "You need to specify a tag name")
         name = name.casefold()
         try:
             tag = await self.tags.get(name)
@@ -78,7 +80,11 @@ class Tags(commands.Cog, name="Tags"):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def create(self, inter, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
-        await self.tags.exists(name, TagAlreadyExists, should=False)
+        try:
+            await self.tags.exists(name, TagAlreadyExists, should=False)
+        except TagAlreadyExists:
+            return await errorEmb(inter, f"tag {name} already exists")
+
         if len(content) >= 1900:
             return await errorEmb(inter, "The tag's content must be under 1900 chars")
         elif not await self.valid_name(name):
@@ -161,7 +167,7 @@ class Tags(commands.Cog, name="Tags"):
     async def deltag(self, inter, name):
         try:
             name = name.casefold()
-            await self.exists(name, TagNotFound, should=True)
+            await self.tags.exists(name, TagNotFound, should=True)
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
                 return await errorEmb(inter, "You must be the owner of the tag to delete it!")
             await self.tags.delete(name)
@@ -209,7 +215,7 @@ class Tags(commands.Cog, name="Tags"):
         nested_count = 0
         tag_content_count = 0
         for tag in tags:
-            if (len(tag.content) + tag_content_count) <= 1989:
+            if (len(tag.content) + tag_content_count) <= 1500:
                 tag_content_count += len(tag.content)
                 if isinstance(nested_tags[nested_count], Tag):
                     nested_count += 1
@@ -257,7 +263,8 @@ class Tags(commands.Cog, name="Tags"):
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter,
+                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes",
                     )
                     .error()
                     .send()
@@ -296,7 +303,7 @@ class Tags(commands.Cog, name="Tags"):
     async def add_alias(self, inter, name, alias):
         try:
             name = name.casefold()
-            await self.exists(name, TagNotFound, should=True)
+            await self.tags.exists(name, TagNotFound, should=True)
             alias = alias.casefold()
 
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
@@ -304,7 +311,8 @@ class Tags(commands.Cog, name="Tags"):
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter,
+                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes",
                     )
                     .error()
                     .send()

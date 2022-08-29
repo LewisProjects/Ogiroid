@@ -71,7 +71,7 @@ class Commands(commands.Cog):
         )
         embed.set_footer(
             text=f"Command issued by: {inter.author.name}",
-            icon_url=inter.author.avatar,
+            icon_url=inter.author.display_avatar,
         )
         await inter.response.send_message(embed=embed)
 
@@ -246,8 +246,7 @@ class Commands(commands.Cog):
 
         e.colour = 0xFFFFFF
 
-        if user.avatar:
-            e.set_thumbnail(url=user.avatar.url)
+        e.set_thumbnail(url=user.display_avatar.url)
 
         if isinstance(user, disnake.User):
             e.set_footer(text="This member is not in this server.")
@@ -267,8 +266,8 @@ class Commands(commands.Cog):
             user = inter.author
 
         embed = disnake.Embed(title=f"{user}'s avatar")
-        embed.set_image(url=user.avatar.url)
-        embed.set_author(name=f"{user}", icon_url=user.avatar.url)
+        embed.set_image(url=user.display_avatar.url)
+        embed.set_author(name=f"{user}", icon_url=user.display_avatar.url)
         await inter.send(embed=embed)
 
 

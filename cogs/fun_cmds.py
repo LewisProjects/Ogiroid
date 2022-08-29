@@ -4,6 +4,7 @@ import os
 import random
 import time
 from datetime import datetime, timezone
+from urllib import request
 
 import akinator as ak
 import disnake
@@ -12,6 +13,7 @@ from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
 from dotenv import load_dotenv
+import requests
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
@@ -134,7 +136,7 @@ class Fun(commands.Cog):
             )
             embed.set_footer(
                 text=f"Command issued by: {inter.author.name}",
-                icon_url=inter.author.avatar,
+                icon_url=inter.author.display_avatar,
             )
             await inter.send(embed=embed)
         else:
@@ -151,7 +153,7 @@ class Fun(commands.Cog):
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
             text=f"Command issued by: {inter.author.name}",
-            icon_url=inter.message.author.avatar,
+            icon_url=inter.message.author.display_avatar,
         )
         await inter.send(embed=embed)
 
@@ -165,7 +167,7 @@ class Fun(commands.Cog):
         """Time to get triggered."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
@@ -182,7 +184,7 @@ class Fun(commands.Cog):
             member = inter.author
         impostor = random.choice(["true", "false"])
         apikey = os.getenv("SRA_API_KEY")
-        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.avatar.url}&impostor={impostor}&key={apikey}"
+        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
         resp = await self.bot.session.get(uri)
         if 300 > resp.status >= 200:
             fp = io.BytesIO(await resp.read())
@@ -196,7 +198,7 @@ class Fun(commands.Cog):
         """Invert your profile picture."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
 
@@ -206,7 +208,7 @@ class Fun(commands.Cog):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
@@ -217,7 +219,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
 
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
 
@@ -460,6 +462,32 @@ class Fun(commands.Cog):
         except KeyError as key:
             return await errorEmb(inter, f"{key}")
         return await inter.send(embed=embed)
+
+    @commands.slash_command(name="urltoqr", description="Converts a URL to a QR code.")
+    async def urltoqr(self, inter, url: str, size: int):
+        url = url.replace("http://", "").replace("https://", "")
+        qr = f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
+        embed = disnake.Embed(title=f"URL created for: {url}", color=0xFFFFFF)
+        embed.set_image(url=qr)
+        embed.set_footer(text=f"Requested by: {inter.author.name}")
+        return await inter.send(embed=embed)
+
+    @commands.slash_command(name="urlshortner", description="Shortens a URL.")
+    async def urlshortner(self, inter, url: str):
+        # checking if url starts with http:// or https://, if it does not, adding https:// towards the start
+        if not url.startswith("http://") and not url.startswith("https://"):
+            url = f"https://{url}"
+        response = requests.post(f"https://u.jasoncodes.ca/add/{url}")
+        if response.status_code == 200:
+            embed = disnake.Embed(
+                title=f"URL created for: {url.replace('http://', '').replace('https://', '')}",
+                color=0xFFFFFF,
+                description=f"Your shortend URL is: {response.json()['short_url']}, or click [here]({response.json()['short_url']}) to visit it.",
+            )
+            embed.set_footer(text=f"Requested by: {inter.author.name}")
+            return await inter.send(embed=embed)
+        else:
+            return await errorEmb(inter, "An unexpected error occurred! Please try again later.")
 
 
 def setup(bot):

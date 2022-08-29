@@ -1,11 +1,12 @@
 from datetime import datetime
+import asyncio
 
 import disnake
 from disnake.ext import commands
 
 from utils.CONSTANTS import TICKET_PERMS
 from utils.bot import OGIROID
-from utils.shortcuts import errorEmb
+from utils.shortcuts import errorEmb, sucEmb, QuickEmb
 
 
 class Tickets(commands.Cog):
@@ -34,8 +35,36 @@ class Tickets(commands.Cog):
     async def send_message(self):
         ticket_channel = self.bot.get_channel(self.ticket_channel)
         await ticket_channel.send(
-            "Create a Ticket.", components=disnake.ui.Button(label="Create a Ticket✉", custom_id="ticket_button")
+            "Create a Ticket.",
+            components=disnake.ui.Button(
+                emoji=disnake.PartialEmoji.from_str("📩"), label="Create a Ticket", custom_id="ticket_button"
+            ),
         )
+
+    @commands.slash_command(name="edit-ticket-message", description="Update the ticket message.")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def edit_ticket_message(self, inter):
+        await inter.send("Please send the new message", ephemeral=True)
+
+        def check(m):
+            return m.author == inter.author and m.channel == inter.channel
+
+        try:
+            msg = await self.bot.wait_for("message", check=check, timeout=300.0)
+        except asyncio.exceptions.TimeoutError:
+            return await errorEmb(inter, "Due to no response the operation was canceled")
+
+        await msg.delete()
+
+        text = msg.content
+
+        try:
+            await self.message.edit(content=text)
+        except disnake.errors.Forbidden or disnake.errors.HTTPException:
+            return await errorEmb(inter, "I do not have permission to edit this message.")
+
+        await sucEmb(inter, "Edited!")
 
     @commands.Cog.listener("on_button_click")
     async def on_button_click(self, inter):

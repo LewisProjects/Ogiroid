@@ -355,8 +355,11 @@ class Staff(commands.Cog):
         if emoji is None:
             return await errorEmb(inter, "The emoji is invalid")
 
-        button = disnake.ui.Button(emoji=emoji, custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}",
-                                   style=disnake.ButtonStyle[color])
+        button = disnake.ui.Button(
+            emoji=emoji,
+            custom_id=f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}",
+            style=disnake.ButtonStyle[color],
+        )
         view = disnake.ui.View()
         view.add_item(button)
         msg = await channel.send(text, view=view)
@@ -366,7 +369,8 @@ class Staff(commands.Cog):
         await sucEmb(inter, "Successfully created message. To add more buttons use `/add_button`")
 
     @commands.slash_command(
-        name="add-button", description="Add a button to a previously created message." " Use /initialise-message for that."
+        name="add-button",
+        description="Add a button to a previously created message." " Use /initialise-message for that.",
     )
     @commands.guild_only()
     @commands.has_role("Staff")
@@ -430,7 +434,8 @@ class Staff(commands.Cog):
 
         if not exists:
             return await errorEmb(
-                inter, "The message does not exist in the Database to initialise a message use" " ``/initialise-message``."
+                inter,
+                "The message does not exist in the Database to initialise a message use" " ``/initialise-message``.",
             )
 
         message = await channel.fetch_message(message_id)
@@ -470,7 +475,8 @@ class Staff(commands.Cog):
 
         if not exists:
             return await errorEmb(
-                inter, "The message does not exist in the Database to initialise a message use" " ``/initialise-message``."
+                inter,
+                "The message does not exist in the Database to initialise a message use" " ``/initialise-message``.",
             )
 
         await self.reaction_roles.remove_messages(message_id)
@@ -518,9 +524,15 @@ class Staff(commands.Cog):
     async def button_click(self, inter):
         message = inter.message
         emoji = inter.component.emoji
+        guild = inter.guild
 
         try:
             role_id = int(inter.component.custom_id.split("-")[0])
+            role = guild.get_role(role_id)
+            if role is None:
+                return
+            if "-" not in inter.component.custom_id:
+                return
         except ValueError:
             return
 
@@ -528,10 +540,8 @@ class Staff(commands.Cog):
             return await errorEmb(inter, "This doesnt exists in the database")
 
         await self.reaction_roles.increment_roles_given(message.id, str(emoji))
-        guild = inter.guild
 
         member = guild.get_member(inter.user.id)
-        role = guild.get_role(role_id)
 
         if member.get_role(role_id) is None:
             await member.add_roles(role, reason=f"Clicked button to get role. gave {role.name}")
@@ -556,8 +566,7 @@ class Staff(commands.Cog):
         staff_commands = commands.Cog.get_slash_commands(self)
         emb = disnake.Embed(title="Staff Commands", description="All staff commands", color=0xFFFFFF)
         for command in staff_commands:
-            emb.add_field(
-                name=f"/{command.qualified_name}", value=command.description, inline=False)
+            emb.add_field(name=f"/{command.qualified_name}", value=command.description, inline=False)
 
         await inter.send(embed=emb)
 

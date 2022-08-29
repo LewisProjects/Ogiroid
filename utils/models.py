@@ -9,6 +9,25 @@ from utils.shortcuts import get_expiry
 
 
 @dataclass
+class User:
+    guild_id: int
+    user_id: int
+    lvl: int = 0
+    xp: int = 0
+
+    @property
+    def ExpNeeded(self):
+        return self.get_exp(self.lvl) - self.xp
+
+    def get_exp(self, level):
+        return 5 * (level ^ 2) + (50 * level) + 100
+
+    @property
+    def TotalExp(self):
+        return [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1] + [self.xp]
+
+
+@dataclass
 class TriviaUser:
     id: int  # user id
     correct: int = 0
@@ -57,7 +76,7 @@ class Tag:
     content: str
     owner: int
     created_at: int
-    views: int = 0
+    views: int
 
 
 @dataclass

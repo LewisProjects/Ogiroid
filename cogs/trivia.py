@@ -80,7 +80,17 @@ class Trivia(commands.Cog, name="Trivia"):
                         except asyncio.exceptions.TimeoutError:
                             await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                         else:
-                            if response.content.lower() not in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
+                            if response.content.lower() not in [
+                                "yes",
+                                "y",
+                                "yeah",
+                                "yeah",
+                                "yep",
+                                "yup",
+                                "sure",
+                                "ok",
+                                "ye",
+                            ]:
                                 continue
                         await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
                         await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
@@ -131,7 +141,6 @@ class Trivia(commands.Cog, name="Trivia"):
             await errorEmb(inter, "This user never took part in the flag quiz or doesn't exist.")
             return
 
-        player = player[0]
         user = self.bot.get_user(player.user_id)
         embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
         embed.set_thumbnail(url=user.display_avatar.url)
@@ -252,17 +261,19 @@ class Trivia(commands.Cog, name="Trivia"):
             if user_answer == answer:
                 correct += 1
                 if n == len(data["results"]):
-                    await QuickEmb(user_inter, f"Correct the answer indeed is {answer}.").success().send()
+                    await QuickEmb(user_inter, f"Correct the answer indeed is {html.unescape(answer)}.").success().send()
                 else:
                     await QuickEmb(
-                        user_inter, f"Correct the answer indeed is {answer}. Your score so far is {correct} / {questions}"
+                        user_inter,
+                        f"Correct the answer indeed is {html.unescape(answer)}. Your score so far is {correct} / {questions}",
                     ).success().send()
             else:
                 if n == len(data["results"]):
-                    await QuickEmb(user_inter, f"Incorrect the correct answer is {answer}.").error().send()
+                    await QuickEmb(user_inter, f"Incorrect the correct answer is {html.unescape(answer)}.").error().send()
                 else:
                     await QuickEmb(
-                        user_inter, f"Incorrect the correct answer is {answer}. Your score so far is {correct} / {questions}"
+                        user_inter,
+                        f"Incorrect the correct answer is {html.unescape(answer)}. Your score so far is {correct} / {questions}",
                     ).error().send()
 
         await QuickEmb(channel, f"Thanks for playing. Your final Score is {correct} / {questions}.").send()
