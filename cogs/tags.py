@@ -52,6 +52,8 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
     async def get(self, inter, name: str, embeded: bool = False):
+        if not name:
+            return await errorEmb(inter, "You need to specify a tag name")
         name = name.casefold()
         try:
             tag = await self.tags.get(name)
@@ -181,6 +183,7 @@ class Tags(commands.Cog, name="Tags"):
         await self.tags.exists(name, TagNotFound, should=True)
         try:
             tag = await self.tags.get(name)
+            print(tag)
             await self.tags.increment_views(name)
             owner = self.bot.get_user(tag.owner)
             emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
@@ -213,7 +216,7 @@ class Tags(commands.Cog, name="Tags"):
         nested_count = 0
         tag_content_count = 0
         for tag in tags:
-            if (len(tag.content) + tag_content_count) <= 1989:
+            if (len(tag.content) + tag_content_count) <= 1500:
                 tag_content_count += len(tag.content)
                 if isinstance(nested_tags[nested_count], Tag):
                     nested_count += 1
@@ -300,7 +303,7 @@ class Tags(commands.Cog, name="Tags"):
     async def add_alias(self, inter, name, alias):
         try:
             name = name.casefold()
-            await self.exists(name, TagNotFound, should=True)
+            await self.tags.exists(name, TagNotFound, should=True)
             alias = alias.casefold()
 
             if not inter.author.id == (await self.tags.get(name)).owner and not manage_messages_perms(inter):
