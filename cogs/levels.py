@@ -70,7 +70,6 @@ class LevelsController:
     async def _update_record(
             self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, **kwargs
     ) -> None:
-        maybe_new_record = kwargs.get("maybe_new_record", False)
 
         if await self.is_in_database(
                 member, guild=FakeGuild(id=guild_id)
@@ -232,12 +231,15 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        return #todo remove this
+
         if message.author.bot:
             return
         await self.controller.handle_message(message)
 
     @commands.Cog.listener()
     async def on_ready(self):
+        return #todo remove this
         self.controller = LevelsController(self.bot, self.bot.db)
         print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
         await self.controller._update_record(member=self.bot.user, level=1, xp=0, total_xp=0,
