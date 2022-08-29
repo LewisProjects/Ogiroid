@@ -183,7 +183,6 @@ class Tags(commands.Cog, name="Tags"):
         await self.tags.exists(name, TagNotFound, should=True)
         try:
             tag = await self.tags.get(name)
-            print(tag)
             await self.tags.increment_views(name)
             owner = self.bot.get_user(tag.owner)
             emb = Embed(color=disnake.Color.random(seed=hash(tag.name)))  # hash -> seed makes the color the same for the tag
