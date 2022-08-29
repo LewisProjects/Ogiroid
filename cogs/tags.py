@@ -78,7 +78,11 @@ class Tags(commands.Cog, name="Tags"):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def create(self, inter, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
-        await self.tags.exists(name, TagAlreadyExists, should=False)
+        try:
+            await self.tags.exists(name, TagAlreadyExists, should=False)
+        except TagAlreadyExists:
+            return await errorEmb(inter, f"tag {name} already exists")
+
         if len(content) >= 1900:
             return await errorEmb(inter, "The tag's content must be under 1900 chars")
         elif not await self.valid_name(name):
