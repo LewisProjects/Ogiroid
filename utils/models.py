@@ -75,8 +75,8 @@ class Tag:
     name: str
     content: str
     owner: int
-    views: int
     created_at: int
+    views: int
 
 
 @dataclass

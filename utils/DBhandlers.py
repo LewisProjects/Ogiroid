@@ -248,12 +248,12 @@ class TagManager:
 
     async def create(self, name, content, owner):
         await self.db.execute(
-            "INSERT INTO tags (tag_id, content, owner, views, created_at) VALUES (?, ?, ?, 0, ?)",
+            "INSERT INTO tags (tag_id, content, owner, created_at, views) VALUES (?, ?, ?, ?, 0)",
             [name, content, owner, int(time.time())],
         )
         await self.db.commit()
         self.names["tags"].append(name)
-        await self.cache.add(name, Tag(name, content, owner, 0, int(time.time())))
+        await self.cache.add(name, Tag(name, content, owner, int(time.time()), 0))
 
     async def get(self, name, /, force: bool = False) -> Tag:
         """
