@@ -263,7 +263,8 @@ class Tags(commands.Cog, name="Tags"):
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter,
+                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes",
                     )
                     .error()
                     .send()
@@ -310,7 +311,8 @@ class Tags(commands.Cog, name="Tags"):
             elif not await self.valid_name(name):
                 return (
                     await QuickEmb(
-                        inter, "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes"
+                        inter,
+                        "The tag's name must be only contain numbers, lowercase letters, spaces, underscores or dashes",
                     )
                     .error()
                     .send()

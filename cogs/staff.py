@@ -369,7 +369,8 @@ class Staff(commands.Cog):
         await sucEmb(inter, "Successfully created message. To add more buttons use `/add_button`")
 
     @commands.slash_command(
-        name="add-button", description="Add a button to a previously created message." " Use /initialise-message for that."
+        name="add-button",
+        description="Add a button to a previously created message." " Use /initialise-message for that.",
     )
     @commands.guild_only()
     @commands.has_role("Staff")
@@ -433,7 +434,8 @@ class Staff(commands.Cog):
 
         if not exists:
             return await errorEmb(
-                inter, "The message does not exist in the Database to initialise a message use" " ``/initialise-message``."
+                inter,
+                "The message does not exist in the Database to initialise a message use" " ``/initialise-message``.",
             )
 
         message = await channel.fetch_message(message_id)
@@ -473,7 +475,8 @@ class Staff(commands.Cog):
 
         if not exists:
             return await errorEmb(
-                inter, "The message does not exist in the Database to initialise a message use" " ``/initialise-message``."
+                inter,
+                "The message does not exist in the Database to initialise a message use" " ``/initialise-message``.",
             )
 
         await self.reaction_roles.remove_messages(message_id)

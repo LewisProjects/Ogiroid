@@ -32,7 +32,9 @@ class Welcome(Cog):
             embed.add_field(name="Introductions:", value=f"Introduce yourself, {introduction.mention}", inline=True)
             embed.add_field(name="Roles:", value=f"Select some roles, {roles.mention}", inline=True)
             embed.add_field(
-                name="Reddit Bot Related:", value=f"Here for the Reddit bot? Checkout {reddit_bot.mention}", inline=True
+                name="Reddit Bot Related:",
+                value=f"Here for the Reddit bot? Checkout {reddit_bot.mention}",
+                inline=True,
             )
             embed.add_field(name="Rules:", value=f"Checkout the rules, {rules.mention}", inline=True)
             embed.set_thumbnail(url=member.display_avatar)

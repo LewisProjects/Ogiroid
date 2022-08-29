@@ -408,7 +408,14 @@ class LevelingSystem:
         return any([has_no_xp_role, in_no_xp_channel])
 
     async def _update_record(
-        self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, name: Optional[str] = None, **kwargs
+        self,
+        member: Union[Member, int],
+        level: int,
+        xp: int,
+        total_xp: int,
+        guild_id: int,
+        name: Optional[str] = None,
+        **kwargs,
     ) -> None:
         maybe_new_record = kwargs.get("maybe_new_record", False)
         if maybe_new_record and not name:

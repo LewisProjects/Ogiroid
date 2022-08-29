@@ -142,7 +142,10 @@ class BotSupport(commands.Cog, name="Bot Support"):
         description="Report a bug",
         options=[
             Option(
-                name="for", required=True, description="Select for what this bug report is.", choices=["Reddit-Bot", "Ogiroid"]
+                name="for",
+                required=True,
+                description="Select for what this bug report is.",
+                choices=["Reddit-Bot", "Ogiroid"],
             )
         ],
         connectors={"for": "bug_report_for"},
@@ -155,7 +158,10 @@ class BotSupport(commands.Cog, name="Bot Support"):
         description="Suggest something for the bot",
         options=[
             Option(
-                name="for", required=True, description="Select for what this suggestion is.", choices=["Reddit-Bot", "Ogiroid"]
+                name="for",
+                required=True,
+                description="Select for what this suggestion is.",
+                choices=["Reddit-Bot", "Ogiroid"],
             )
         ],
         connectors={"for": "suggestion_for"},

@@ -34,7 +34,8 @@ class ErrorHandler(Cog):
             # In debug mode we don't want to wait for them cause its fucking annoying.
             if self.TimeSinceStart() < self.waitTime and not self.debug_mode:
                 return await errorEmb(
-                    inter, f"The bot just started, please wait {round(self.waitTime - self.TimeSinceStart(), ndigits=2)}s."
+                    inter,
+                    f"The bot just started, please wait {round(self.waitTime - self.TimeSinceStart(), ndigits=2)}s.",
                 )
 
             # non real error handling
@@ -42,7 +43,8 @@ class ErrorHandler(Cog):
                 return await errorEmb(inter, "Command not found! use /help for a list of commands")
             elif isinstance(error, NotOwner):
                 await errorEmb(
-                    inter, f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`"
+                    inter,
+                    f"You must be the owner of {inter.me.display_name} to use `{inter.application_command.name}`",
                 )
             elif isinstance(error, HTTPException):
                 await errorEmb(inter, error.text)

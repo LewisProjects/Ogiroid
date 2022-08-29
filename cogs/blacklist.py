@@ -96,7 +96,8 @@ class Blacklist(Cog):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.edit_reason(user.id, reason)
         await sucEmb(
-            inter, f"Edited {user.mention}'s reason in the blacklist to see the full reason use /blacklist info {user.mention}"
+            inter,
+            f"Edited {user.mention}'s reason in the blacklist to see the full reason use /blacklist info {user.mention}",
         )
 
     @commands.has_permissions(manage_messages=True)
@@ -130,9 +131,17 @@ class Blacklist(Cog):
                 required=True,
             ),
             Option(
-                "tickets", description="Whether to blacklist the user from using tickets", type=OptionType.boolean, required=True
+                "tickets",
+                description="Whether to blacklist the user from using tickets",
+                type=OptionType.boolean,
+                required=True,
             ),
-            Option("tags", description="Whether to blacklist the user from using tags", type=OptionType.boolean, required=True),
+            Option(
+                "tags",
+                description="Whether to blacklist the user from using tags",
+                type=OptionType.boolean,
+                required=True,
+            ),
             Option(
                 "expires",
                 description="When the blacklist should expire (e.g. 1w, 5m, never)",
@@ -193,7 +202,8 @@ class Blacklist(Cog):
                 emb = Embed(color=self.bot.config.colors.invis, description="")
                 for user in blacklist_list:
                     emb.add_field(
-                        name=f"**{self.get_user(user.id).name}**", value=f"Expires: {user.get_expiry}\nReason: {user.reason}\n"
+                        name=f"**{self.get_user(user.id).name}**",
+                        value=f"Expires: {user.get_expiry}\nReason: {user.reason}\n",
                     )
 
                 blacklist_embs.append(emb)

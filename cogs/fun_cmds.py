@@ -78,28 +78,27 @@ class Fun(commands.Cog):
         e.add_field(
             name="Duration",
             value=(
-                    f"{cur.seconds // 60:02}:{cur.seconds % 60:02}"
-                    + f" {bar} "
-                    + f"{dur.seconds // 60:02}:"
-                    + f"{dur.seconds % 60:02}"
+                f"{cur.seconds // 60:02}:{cur.seconds % 60:02}"
+                + f" {bar} "
+                + f"{dur.seconds // 60:02}:"
+                + f"{dur.seconds % 60:02}"
             ),
             inline=False,
         )
         await inter.send(embed=e)
 
-    @commands.slash_command(name="poll",
-                            description="Make a Poll enter a question atleast 2 options and upto 6 options.")
+    @commands.slash_command(name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
     @commands.has_permissions(manage_messages=True)
     async def poll(
-            self,
-            inter,
-            question,
-            choice1,
-            choice2,
-            choice3=None,
-            choice4=None,
-            choice5=None,
-            choice6=None,
+        self,
+        inter,
+        question,
+        choice1,
+        choice2,
+        choice3=None,
+        choice4=None,
+        choice5=None,
+        choice6=None,
     ):
         """
         Makes a poll quickly.
@@ -116,8 +115,7 @@ class Fun(commands.Cog):
 
         embed = disnake.Embed(title=question, description=choices_str, colour=0xFFFFFF)
 
-        embed.set_footer(
-            text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+        embed.set_footer(text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
 
         await inter.response.send_message(embed=embed)
         poll = await inter.original_message()  # Gets the message wich got sent
@@ -169,8 +167,7 @@ class Fun(commands.Cog):
         """Time to get triggered."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
@@ -201,8 +198,7 @@ class Fun(commands.Cog):
         """Invert your profile picture."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
 
@@ -212,8 +208,7 @@ class Fun(commands.Cog):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
@@ -224,8 +219,7 @@ class Fun(commands.Cog):
         if not member:
             member = inter.author
 
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}")
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
 
@@ -258,8 +252,7 @@ class Fun(commands.Cog):
             await msg.edit(content=f"**{user.name}** and **{inter.author.name}** are enjoying a lovely beer together 🍻")
         except asyncio.TimeoutError:
             await msg.delete()
-            await inter.send(
-                f"well, doesn't seem like **{user.name}** wanted a beer with you **{inter.author.name}** ;-;")
+            await inter.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{inter.author.name}** ;-;")
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
             beer_offer = f"**{user.name}**, you got a 🍺 from **{inter.author.name}**"
@@ -409,8 +402,7 @@ class Fun(commands.Cog):
     async def bored(self, inter):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
-            async with activitySession.get(f"https://boredapi.com/api/activity",
-                                           ssl=False) as activityData:  # keep as http
+            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 
@@ -490,7 +482,8 @@ class Fun(commands.Cog):
             embed = disnake.Embed(
                 title=f"URL created for: {url.replace('http://', '').replace('https://', '')}",
                 color=0xFFFFFF,
-                description=f"Your shortend URL is: {response.json()['short_url']}, or click [here]({response.json()['short_url']}) to visit it.")
+                description=f"Your shortend URL is: {response.json()['short_url']}, or click [here]({response.json()['short_url']}) to visit it.",
+            )
             embed.set_footer(text=f"Requested by: {inter.author.name}")
             return await inter.send(embed=embed)
         else:

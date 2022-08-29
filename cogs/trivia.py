@@ -80,7 +80,17 @@ class Trivia(commands.Cog, name="Trivia"):
                         except asyncio.exceptions.TimeoutError:
                             await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                         else:
-                            if response.content.lower() not in ["yes", "y", "yeah", "yeah", "yep", "yup", "sure", "ok", "ye"]:
+                            if response.content.lower() not in [
+                                "yes",
+                                "y",
+                                "yeah",
+                                "yeah",
+                                "yep",
+                                "yup",
+                                "sure",
+                                "ok",
+                                "ye",
+                            ]:
                                 continue
                         await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
                         await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)

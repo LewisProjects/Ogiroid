@@ -451,7 +451,8 @@ class RolesHandler:
     async def increment_roles_given(self, message_id: str, emoji: str):
         """increments the roles given out for a message"""
         await self.db.execute(
-            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?", [message_id, emoji]
+            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = ? AND emoji = ?",
+            [message_id, emoji],
         )
         await self.db.commit()
         # todo: cache remove below
@@ -466,7 +467,8 @@ class RolesHandler:
         if not msg:
             raise ReactionNotFound
         await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = ? AND emoji = ? AND role_id = ?", [message_id, emoji, role_id]
+            "DELETE FROM reaction_roles WHERE message_id = ? AND emoji = ? AND role_id = ?",
+            [message_id, emoji, role_id],
         )
         await self.db.commit()
         self.messages.remove(msg)
