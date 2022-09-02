@@ -9,15 +9,15 @@ from typing import Union
 
 import disnake
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild
+from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Option, Embed
 from disnake.ext import commands
 from disnake.ext.commands import CooldownMapping, BucketType, Cog
 
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
 from utils.bot import OGIROID
 from utils.exceptions import LevelingSystemError, UserNotFound
-from utils.models import User
-from utils.shortcuts import errorEmb
+from utils.models import User, RoleReward
+from utils.shortcuts import errorEmb, sucEmb
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
@@ -336,6 +336,57 @@ class Level(commands.Cog):
     @staticmethod
     async def random_xp():
         return random.choice(xp_probability)
+
+    @commands.slash_command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    async def role_reward(self, inter: ApplicationCommandInteraction):
+
+        return
+
+    @role_reward.sub_command()
+    async def add(
+        self,
+        inter: ApplicationCommandInteraction,
+        role: Role = Option(type=Role, name="role", description="what role to give"),
+        level_needed=Option(name="level_needed", type=int, description="The level needed to get the role"),
+    ):
+        """adds a role to the reward list"""
+        if level_needed not in self.levels:
+            return await errorEmb(inter, text=f"Level must be within 1-{MAX_LEVEL} found")
+        sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
+        await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
+        await self.bot.db.commit()
+        await sucEmb(inter, f"Added {role.name} to the role reward list for level {level_needed}")
+
+    @role_reward.sub_command()
+    async def remove(
+        self, inter: ApplicationCommandInteraction, role: Role = Option(type=Role, name="role", description="what role to give")
+    ):
+        """remove a role reward"""
+        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
+            sql = "DELETE FROM role_rewards WHERE guild_id = ? AND role_id = ?"
+            await self.bot.db.execute(sql, (inter.guild.id, role.id))
+            await self.bot.db.commit()
+
+            return await sucEmb(inter, f"Removed {role.mention} from the role reward list")
+        return await errorEmb(inter, text=f"{role.mention} is not in the role reward list")
+
+    @role_reward.sub_command()
+    async def list(self, inter: ApplicationCommandInteraction):
+        """list all role rewards"""
+        sql = "SELECT * FROM role_rewards WHERE guild_id = ?"
+        records = await self.bot.db.execute(sql, (inter.guild.id,))
+        records = await records.fetchall()
+        if not records:
+            return await errorEmb(inter, text="No role rewards found")
+        embed = Embed(title="Role Rewards", color=0x00FF00)
+        for record in records:
+            record = RoleReward(*record)
+            embed.add_field(
+                name=f"Level {record.required_lvl}", value=f"{inter.guild.get_role(record.role_id).mention}", inline=False
+            )
+        await inter.send(embed=embed, allowed_mentions=disnake.AllowedMentions(everyone=False, roles=False, users=False))
 
 
 def setup(bot: OGIROID):

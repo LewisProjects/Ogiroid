@@ -9,6 +9,13 @@ from utils.shortcuts import get_expiry
 
 
 @dataclass
+class RoleReward:
+    guild_id: int
+    role_id: int
+    required_lvl: int
+
+
+@dataclass
 class User:
     guild_id: int
     user_id: int

@@ -72,3 +72,11 @@ IF NOT EXISTS levels
     xp INTEGER DEFAULT 0,
     total_exp INTEGER DEFAULT 0
 );
+
+CREATE TABLE
+IF NOT EXISTS role_rewards
+(
+    guild_id INTEGER,
+    role_id INTEGER,
+    required_lvl INTEGER DEFAULT 0
+)
