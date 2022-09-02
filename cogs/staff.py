@@ -88,7 +88,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="kick", description="Kicks a user from the server.")
     @commands.has_permissions(kick_members=True)
     @commands.guild_only()
-    async def kick(self, inter, member: disnake.Member, reason: str = None):
+    async def kick(self, inter: ApplicationCommandInteraction, member: disnake.Member, reason: str = None):
         """Kicks a user from the server."""
         await member.kick(reason=reason)
         await sucEmb(inter, "User has been kicked successfully!")
@@ -96,7 +96,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="unban", description="Unbans a user from the server.")
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
-    async def unban(self, inter, user_id, reason: str = None):
+    async def unban(self, inter: ApplicationCommandInteraction, user_id, reason: str = None):
         """Unbans a user from the server."""
         try:
             await inter.guild.unban(disnake.Object(id=int(user_id)), reason=reason)
@@ -112,7 +112,7 @@ class Staff(commands.Cog):
     @commands.guild_only()
     async def mute(
         self,
-        inter,
+        inter: ApplicationCommandInteraction,
         member: disnake.Member,
         duration: str = ParamInfo(description="Format: 1s, 1m, 1h, 1d, max: 28d"),
         reason: str = None,
@@ -149,7 +149,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="unmute", description="Unmutes a user from the server.")
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def unmute(self, inter, member: disnake.Member, reason: str = None):
+    async def unmute(self, inter: ApplicationCommandInteraction, member: disnake.Member, reason: str = None):
         """Unmutes a user from the server."""
         try:
             await member.timeout(reason=reason, duration=None)
@@ -163,7 +163,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="warn", description="Warns a user from the server.")
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def warn(self, inter, member: disnake.Member, reason: str = None):
+    async def warn(self, inter: ApplicationCommandInteraction, member: disnake.Member, reason: str = None):
         """Warns a user from the server."""
         await self.warning.create_warning(member.id, reason, moderator_id=inter.author.id)
         await warning_embed(inter, user=member, reason=reason)
@@ -171,7 +171,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="removewarning", description="Removes a warning from a user from the server.")
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def remove_warning(self, inter, member: disnake.Member):
+    async def remove_warning(self, inter: ApplicationCommandInteraction, member: disnake.Member):
         """Removes a warning from a user from the server."""
         warnings = await self.warning.get_warnings(member.id)
         if len(warnings) == 0:
@@ -215,7 +215,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="warnings", description="Shows the warnings of a user from the server.")
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def warnings(self, inter, member: disnake.Member):
+    async def warnings(self, inter: ApplicationCommandInteraction, member: disnake.Member):
         """Shows the warnings of a user from the server."""
         warnings = await self.warning.get_warnings(member.id)
         if not warnings:
@@ -254,7 +254,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="faq")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def faq(self, inter, person: disnake.Member):
+    async def faq(self, inter: ApplicationCommandInteraction, person: disnake.Member):
         """FAQ command for the staff team"""
         channel = self.bot.get_channel(self.bot.config.channels.reddit_faq)
         await channel.send(f"{person.mention}", delete_after=2)
@@ -264,7 +264,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="prune")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def prune(self, inter, amount: int):
+    async def prune(self, inter: ApplicationCommandInteraction, amount: int):
         """Delete messages, max limit set to 25."""
         # Checking if amount > 25:
         if amount > 25:
@@ -276,7 +276,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="channellock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channellock(self, inter, channel: disnake.TextChannel):
+    async def channellock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel):
         """Lock a channel"""
         # Lock's a channel by not letting anyone send messages to it
         await channel.set_permissions(inter.guild.default_role, send_messages=False)
@@ -285,7 +285,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="channelunlock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channelunlock(self, inter, channel: disnake.TextChannel):
+    async def channelunlock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel):
         """Unlock a channel"""
         # Unlock's a channel by letting everyone send messages to it
         await channel.set_permissions(inter.guild.default_role, send_messages=True)
@@ -295,7 +295,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="addreactionrole", description="Add a reaction based role to a message")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def add_reaction_role(self, inter, message_id, emoji: str, role: disnake.Role):
+    async def add_reaction_role(self, inter: ApplicationCommandInteraction, message_id, emoji: str, role: disnake.Role):
         # Checking if the message exists:
         message_id = int(message_id)
         message = await inter.channel.fetch_message(message_id)
