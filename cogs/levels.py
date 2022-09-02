@@ -1,20 +1,23 @@
+from __future__ import annotations
+
+import asyncio
 import io
+import random
 from collections import namedtuple
-from typing import Tuple, Union
+from io import BytesIO
+from typing import Union
 
 import disnake
-from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction
-from disnake.ext import commands
-import random
-
-from disnake.ext.commands import CooldownMapping, BucketType
-
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from io import BytesIO
+from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild
+from disnake.ext import commands
+from disnake.ext.commands import CooldownMapping, BucketType, Cog
 
-from utils.bot import OGIROID
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
-from utils.exceptions import LevelingSystemError
+from utils.bot import OGIROID
+from utils.exceptions import LevelingSystemError, UserNotFound
+from utils.models import User
+from utils.shortcuts import errorEmb
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
@@ -26,7 +29,21 @@ class LevelsController:
 
         self.__rate = 2
         self.__per = 60
-        self._cooldown = CooldownMapping.from_cooldown(self.__rate, self.__per, BucketType.user)
+        self._cooldown = CooldownMapping.from_cooldown(self.__rate, self.__per, BucketType.member)
+
+    @Cog.listener()
+    async def on_error(self, inter, error):
+        if isinstance(error, UserNotFound):
+            await self.add_user(inter.author, inter.guild)
+        else:
+            raise error
+
+    async def add_user(self, user: Member, guild: Guild):
+        await self.db.execute(
+            "INSERT INTO levels (user_id, guild_id, level, xp, total_exp) VALUES (?, ?, ?, ?, ?)",
+            (user.id, guild.id, 0, 0, 0),
+        )
+        await self.db.commit()
 
     def get_xp_for_level(self, level: int) -> int:
         """
@@ -40,7 +57,8 @@ class LevelsController:
     async def on_cooldown(self, message) -> bool:
         bucket = self._cooldown.get_bucket(message)
         on_cooldown = bucket.update_rate_limit()  # type: ignore
-        if not on_cooldown:
+        print(f"{on_cooldown=} {bucket=}")
+        if on_cooldown is not None:
             return True
         return False
 
@@ -70,18 +88,18 @@ class LevelsController:
         return bool((await record.fetchone())[0])
 
     async def _update_record(
-        self, member: Union[Member, int], level: int, xp: int, total_xp: int, guild_id: int, **kwargs
+            self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int, **kwargs
     ) -> None:
-
+        print(f"{member=} {level=} {xp=} {total_exp=} {guild_id=} {kwargs=}")
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
             await self.db.execute(
-                "UPDATE levels SET level = ?, xp = ?, total_xp = ? WHERE user_id = ? AND guild_id = ?",
-                (level, xp, total_xp, member.id if isinstance(member, Member) else member, guild_id),
+                "UPDATE levels SET level = ?, xp = ?, total_exp = ? WHERE user_id = ? AND guild_id = ?",
+                (level, xp, total_exp, member.id if isinstance(member, (Member, ClientUser)) else member, guild_id),
             )
         else:
             await self.db.execute(
-                "INSERT INTO levels (user_id, guild_id, level, xp, total_xp) VALUES (?, ?, ?, ?, ?)",
-                (guild_id, member.id if isinstance(member, Member) else member, level, xp, total_xp),
+                "INSERT INTO levels (user_id, guild_id, level, xp, total_exp) VALUES (?, ?, ?, ?, ?)",
+                (guild_id, member.id if isinstance(member, Member) else member, level, xp, total_exp),
             )
         await self.db.commit()
 
@@ -91,9 +109,8 @@ class LevelsController:
                 member=member,
                 level=level,
                 xp=0,
-                total_xp=LEVELS_AND_XP[str(level)],
+                total_exp=LEVELS_AND_XP[str(level)],
                 guild_id=member.guild.id,
-                name=str(member),
                 maybe_new_record=True,
             )
         else:
@@ -103,52 +120,82 @@ class LevelsController:
     async def random_xp():
         return random.choice(xp_probability)
 
-    def user_xp_given(self, user_id: int):
-        pass
-
     async def add_xp(self, message: Message, xp: int):
-        return self.db.add_xp(message.author, xp)
+        user = await self.get_user(message.author)
+        if user is None:
+            await self.set_level(message.author, 0)
+        user = await self.get_user(message.author)
+        user.xp += xp
+        user.total_exp += xp
+        if user.xp >= user.xp_needed:
+            extra_xp = user.xp - user.xp_needed
+            user.lvl += 1
+            user.xp = extra_xp
+            await self._update_record(
+                member=message.author,
+                level=user.lvl,
+                xp=user.xp,
+                total_exp=user.total_exp,
+                guild_id=message.guild.id,
+                maybe_new_record=False,
+            )
+
+            self.bot.dispatch("level_up", message.author)
+
+        await self._update_record(
+            member=message.author,
+            level=user.lvl,
+            xp=user.xp,
+            total_exp=user.total_exp,
+            guild_id=message.guild.id,
+            maybe_new_record=True,
+        )
 
     async def grant_xp(self, message):
-        on_cooldown = await self.on_cooldown(message)
-        if not on_cooldown:
+        try:
             await self.add_xp(message, await self.random_xp())
+        except UserNotFound:
+            await self.add_user(message.author, message.guild)
+            await self.add_xp(message, await self.random_xp())
+        self._cooldown.update_rate_limit(message)
 
-    async def handle_message(self, message):
+    async def handle_message(self, message: Message):
         if any(
-            [
-                message.guild is None,
-                message.author.bot,
-                message.type != MessageType.default,
-            ]
+                [
+                    message.guild is None,
+                    message.author.bot,
+                    message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
+                    message.content.__len__() < 5,
+                ]
         ):
             return
-        user = await self.grant_xp(message)
+        if not random.randrange(0, 3) == 2:
+            return
+        elif await self.on_cooldown(message):
+            return
 
-        # if user.exp > xp_needed:
-        #    user.lvl += 1
-        #    user.xp = 0
-        #    await self.db.update_user(user)
-        #    await sucEmb(message, f"You have leveled up to level {user.lvl}!")
-        #    return True
+        await self.grant_xp(message)
 
-    async def get_user(self, user_id: int):
-        return await self.db.get_user(user_id)  # todo continue this
+    async def get_user(self, user: Member) -> User:  # todo cache this
+        record = await self.db.execute(
+            "SELECT * FROM levels WHERE user_id = ? AND guild_id = ?", (user.id, user.guild.id,),
+        )
+        raw = await record.fetchone()
+        if raw is None:
+            raise UserNotFound
+        return User(*raw)
 
-    async def generate_image_card(self, msg, rank, xp):
+    async def generate_image_card(self, user: Member | User, rank: str, xp: int, lvl: int) -> Image:
         """generates an image card for the user"""
-        xp = int(xp)
-        user = msg.author
         avatar: disnake.Asset = user.display_avatar.with_size(512)
-
         # this for loop finds the closest level to the xp and defines the values accordingly
         x = 999999 * 9999999
+        next_xp = 100
         for key, value in LEVELS_AND_XP.items():
-            if x > value - xp > 0 and not xp - value == xp:
+            if (x > value - xp > 0) and not (xp - value == xp):
                 x = value - xp
                 next_xp = value
                 lvl = key
-
         with Image.open("utils/data/images/rankcard.png").convert("RGBA") as base:
 
             # make a blank image for the text, initialized to transparent text color
@@ -177,26 +224,18 @@ class LevelsController:
             previous_xp = LEVELS_AND_XP[str(int(lvl) - 1)]
 
             width = round(((xp - previous_xp) / (next_xp - previous_xp)) * 418, 2)
-
-            # get a font
             fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
             # get a drawing context
             d = ImageDraw.Draw(txt)
-
             # username
             d.text((179, 32), user.name, font=fnt, fill=(0, 0, 0, 255))
-
             # xp
             d.text((185, 65), f"{xp}/{next_xp}", font=fnt, fill=(0, 0, 0, 255))
-
             # level
             d.text((115, 96), lvl, font=fnt, fill=(0, 0, 0, 255))
-
             # Rank
-            d.text((113, 130), rank, font=fnt, fill=(0, 0, 0, 255))
-
+            d.text((113, 130), f'#{rank}', font=fnt, fill=(0, 0, 0, 255))
             d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
-
             txt.paste(avatar_img, (489, 23))
 
             out = Image.alpha_composite(base, txt)
@@ -212,6 +251,20 @@ class LevelsController:
         msg = f"""{user.mention}, you have leveled up to level {level}!
         """
         await message.channel.send(msg)
+
+    async def get_rank(self, user_record) -> int:
+        user_xp = user_record.total_exp
+        sql = "SELECT * FROM levels WHERE total_exp >= ? ORDER BY total_exp DESC"
+        records_raw = await self.db.execute(sql, (user_xp,))
+        records = await records_raw.fetchall()
+        rank = 1
+
+        for record in records:
+            record = User(*record)
+            if record.user_id == user_record.user_id:
+                return rank
+            rank += 1
+        raise UserNotFound
 
 
 class Level(commands.Cog):
@@ -232,35 +285,43 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        return  # todo remove this
+        try:
+            await self.controller.handle_message(message)
+        except AttributeError:  # bot has not fully started up yet
 
-        if message.author.bot:
-            return
-        await self.controller.handle_message(message)
+            await self.bot.wait_until_ready()
+            await asyncio.sleep(5)
+            await self.on_message(message)
 
     @commands.Cog.listener()
     async def on_ready(self):
-        return  # todo remove this
         self.controller = LevelsController(self.bot, self.bot.db)
-        print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))
-        await self.controller._update_record(
-            member=self.bot.user, level=1, xp=0, total_xp=0, guild_id=self.bot.guilds[0].id, maybe_new_record=True
-        )
-        print(await self.controller.is_in_database(self.bot.user, self.bot.guilds[0]))  # todo remove
+        print('[Level] Ready')
 
     @commands.slash_command()
+    @commands.guild_only()
     async def rank(self, inter: ApplicationCommandInteraction, user: Member):
-        user = await self.controller.get_user(user.id)
-        if not user:
-            return await inter.send(file=await self.controller.generate_image_card(inter.original_message(), user.id, user.name))
-        await inter.send(file=await self.controller.generate_image_card(inter.original_message(), user.xp, user.level))
+        user = user or inter.author
+        await inter.response.defer()
+        if user.bot:
+            return await errorEmb(inter, text="Bots can't rank up!")
+        try:
+            user_record = await self.controller.get_user(user)
+        except UserNotFound:
+            return await errorEmb(inter, text="User has never spoke!")
+        if not user_record:
+            print('[Level] User not found')
+            await self.controller.add_user(user, inter.guild)
+            return await self.rank(inter, user)
+        rank = await self.controller.get_rank(user_record)
+        image = await self.controller.generate_image_card(user,
+                                                          rank, user_record.xp,
+                                                          user_record.lvl)
+        await inter.send(file=image)
 
     @staticmethod
     async def random_xp():
         return random.choice(xp_probability)
-
-    def get_user(self, user_id: int):
-        return self.controller.get_user(user_id)
 
 
 def setup(bot: OGIROID):

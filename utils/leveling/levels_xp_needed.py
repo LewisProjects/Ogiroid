@@ -34,15 +34,15 @@ def _next_level_details(current_level: int) -> NamedTuple:
     return Details(level=int(key), xp_needed=val)
 
 
-def _find_level(current_total_xp: int) -> int:
+def _find_level(current_total_exp: int) -> int:
     """Return the members current level based on their total XP"""
-    if current_total_xp in LEVELS_AND_XP.values():
+    if current_total_exp in LEVELS_AND_XP.values():
         for level, xp_needed in LEVELS_AND_XP.items():
-            if current_total_xp == xp_needed:
+            if current_total_exp == xp_needed:
                 return int(level)
     else:
         for level, xp_needed in LEVELS_AND_XP.items():
-            if 0 <= current_total_xp <= xp_needed:
+            if 0 <= current_total_exp <= xp_needed:
                 level = int(level)
                 level -= 1
                 if level < 0:

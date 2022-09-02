@@ -81,7 +81,7 @@ def verify_levels_integrity(func):
             (2, "member_name", "TEXT", 1, None, 0),
             (3, "member_level", "INT", 1, None, 0),
             (4, "member_xp", "INT", 1, None, 0),
-            (5, "member_total_xp", "INT", 1, None, 0),
+            (5, "member_total_exp", "INT", 1, None, 0),
         ]
         instance = _return_self(args)
         async with instance._connection.execute("PRAGMA table_info(leaderboard)") as cursor:

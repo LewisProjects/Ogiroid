@@ -14,9 +14,10 @@ class User:
     user_id: int
     lvl: int = 0
     xp: int = 0
+    total_exp: int = 0
 
     @property
-    def ExpNeeded(self):
+    def xp_needed(self):
         return self.get_exp(self.lvl) - self.xp
 
     def get_exp(self, level):

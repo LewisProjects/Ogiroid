@@ -39,7 +39,7 @@ class AnnouncementMember:
 class LevelUpAnnouncement:
     """A helper class for setting up messages that are sent when someone levels up"""
 
-    TOTAL_XP: ClassVar[str] = "[$total_xp]"
+    TOTAL_XP: ClassVar[str] = "[$total_exp]"
     LEVEL: ClassVar[str] = "[$level]"
     RANK: ClassVar[str] = "[$rank]"
     Member: ClassVar[AnnouncementMember] = AnnouncementMember()
@@ -54,7 +54,7 @@ class LevelUpAnnouncement:
     ):
         self.message = message
         self.level_up_channel_ids = level_up_channel_ids
-        self._total_xp: Optional[int] = None
+        self._total_exp: Optional[int] = None
         self._level: Optional[int] = None
         self._rank: Optional[int] = None
         self._send_kwargs = {"allowed_mentions": allowed_mentions, "tts": tts, "delete_after": delete_after}
@@ -65,7 +65,7 @@ class LevelUpAnnouncement:
         .. added:: v0.0.2
         """
         markdowns = {
-            LevelUpAnnouncement.TOTAL_XP: self._total_xp,
+            LevelUpAnnouncement.TOTAL_XP: self._total_exp,
             LevelUpAnnouncement.LEVEL: self._level,
             LevelUpAnnouncement.RANK: self._rank,
         }

@@ -280,7 +280,7 @@ class LevelingSystem:
                             member_name TEXT NOT NULL,
                             member_level INT NOT NULL,
                             member_xp INT NOT NULL,
-                            member_total_xp INT NOT NULL
+                            member_total_exp INT NOT NULL
                         );
                     """
                     loop.run_until_complete(connection.execute(query))
@@ -412,7 +412,7 @@ class LevelingSystem:
         member: Union[Member, int],
         level: int,
         xp: int,
-        total_xp: int,
+        total_exp: int,
         guild_id: int,
         name: Optional[str] = None,
         **kwargs,
@@ -426,9 +426,9 @@ class LevelingSystem:
         # object so :meth:`LevelingSystem.is_in_database` will work as intended
         FakeGuild = collections.namedtuple("FakeGuild", "id")
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):  # type: ignore / it's a fake guild, so yes, it's not compatible with `disnake.Guild`
-            await self._cursor.execute("UPDATE leaderboard SET member_level = ?, member_xp = ?, member_total_xp = ? WHERE member_id = ? AND guild_id = ?", (level, xp, total_xp, member.id if isinstance(member, Member) else member, guild_id))  # type: ignore
+            await self._cursor.execute("UPDATE leaderboard SET member_level = ?, member_xp = ?, member_total_exp = ? WHERE member_id = ? AND guild_id = ?", (level, xp, total_exp, member.id if isinstance(member, Member) else member, guild_id))  # type: ignore
         else:
-            await self._cursor.execute(LevelingSystem._QUERY_NEW_MEMBER, (guild_id, member.id if isinstance(member, Member) else member, name, level, xp, total_xp))  # type: ignore
+            await self._cursor.execute(LevelingSystem._QUERY_NEW_MEMBER, (guild_id, member.id if isinstance(member, Member) else member, name, level, xp, total_exp))  # type: ignore
         await self._connection.commit()  # type: ignore
 
     @staticmethod
@@ -464,7 +464,7 @@ class LevelingSystem:
                 (1, "member_name", "TEXT", 1, None, 0),
                 (2, "member_level", "INT", 1, None, 0),
                 (3, "member_xp", "INT", 1, None, 0),
-                (4, "member_total_xp", "INT", 1, None, 0),
+                (4, "member_total_exp", "INT", 1, None, 0),
             ]
             NEW_PRAGMA_LAYOUT = [
                 (0, "guild_id", "INT", 1, None, 0),
@@ -472,7 +472,7 @@ class LevelingSystem:
                 (2, "member_name", "TEXT", 1, None, 0),
                 (3, "member_level", "INT", 1, None, 0),
                 (4, "member_xp", "INT", 1, None, 0),
-                (5, "member_total_xp", "INT", 1, None, 0),
+                (5, "member_total_exp", "INT", 1, None, 0),
             ]
             old_pragma_check = await db_from.connection.execute_fetchall("PRAGMA table_info(leaderboard)")
             new_pragma_check = await db_to.connection.execute_fetchall("PRAGMA table_info(leaderboard)")
@@ -566,7 +566,7 @@ class LevelingSystem:
                 member=member_id,
                 level=level,
                 xp=0,
-                total_xp=LEVELS_AND_XP[str(level)],
+                total_exp=LEVELS_AND_XP[str(level)],
                 guild_id=guild_id,
                 name=str(member_name),
                 maybe_new_record=True,
@@ -758,17 +758,17 @@ class LevelingSystem:
 
         md = await self.get_data_for(member)
         if md:
-            if md.total_xp >= MAX_XP:
+            if md.total_exp >= MAX_XP:
                 return
             else:
-                new_total_xp = md.total_xp + amount
-                new_total_xp = new_total_xp if new_total_xp <= MAX_XP else MAX_XP
-                maybe_new_level = _find_level(new_total_xp)
+                new_total_exp = md.total_exp + amount
+                new_total_exp = new_total_exp if new_total_exp <= MAX_XP else MAX_XP
+                maybe_new_level = _find_level(new_total_exp)
                 await self._update_record(
                     member=member,
                     level=maybe_new_level,
                     xp=md.xp,
-                    total_xp=new_total_xp,
+                    total_exp=new_total_exp,
                     guild_id=member.guild.id,
                     name=str(member),
                     maybe_new_record=True,
@@ -805,14 +805,14 @@ class LevelingSystem:
 
         md = await self.get_data_for(member)
         if md:
-            if md.total_xp == 0:
+            if md.total_exp == 0:
                 return
             else:
-                new_total_xp = md.total_xp - amount
-                new_total_xp = new_total_xp if new_total_xp >= 1 else 0
-                maybe_new_level = _find_level(new_total_xp)
+                new_total_exp = md.total_exp - amount
+                new_total_exp = new_total_exp if new_total_exp >= 1 else 0
+                maybe_new_level = _find_level(new_total_exp)
                 await self._update_record(
-                    member=member, level=maybe_new_level, xp=md.xp, total_xp=new_total_xp, guild_id=member.guild.id
+                    member=member, level=maybe_new_level, xp=md.xp, total_exp=new_total_exp, guild_id=member.guild.id
                 )
 
     @db_file_exists
@@ -846,7 +846,7 @@ class LevelingSystem:
                 member=member,
                 level=level,
                 xp=0,
-                total_xp=LEVELS_AND_XP[str(level)],
+                total_exp=LEVELS_AND_XP[str(level)],
                 guild_id=member.guild.id,
                 name=str(member),
                 maybe_new_record=True,
@@ -1033,7 +1033,7 @@ class LevelingSystem:
         - `ImproperLeaderboard`: Leaderboard table was altered. Components changed or deleted
         - `NotConnected`: Attempted to use a method that requires a connection to a database file
         """
-        await self._cursor.execute("UPDATE levels SET member_level = 0, member_xp = 0, member_total_xp = 0 WHERE member_id = ? AND guild_id = ?", (member.id, member.guild.id))  # type: ignore
+        await self._cursor.execute("UPDATE levels SET member_level = 0, member_xp = 0, member_total_exp = 0 WHERE member_id = ? AND guild_id = ?", (member.id, member.guild.id))  # type: ignore
         await self._connection.commit()  # type: ignore
 
     @db_file_exists
@@ -1066,9 +1066,9 @@ class LevelingSystem:
         """
         if intentional:
             if guild:
-                await self._cursor.execute("UPDATE leaderboard SET member_level = 0, member_xp = 0, member_total_xp = 0 WHERE guild_id = ?", (guild.id,))  # type: ignore
+                await self._cursor.execute("UPDATE leaderboard SET member_level = 0, member_xp = 0, member_total_exp = 0 WHERE guild_id = ?", (guild.id,))  # type: ignore
             else:
-                await self._cursor.execute("UPDATE leaderboard SET member_level = 0, member_xp = 0, member_total_xp = 0")  # type: ignore
+                await self._cursor.execute("UPDATE leaderboard SET member_level = 0, member_xp = 0, member_total_exp = 0")  # type: ignore
             await self._connection.commit()  # type: ignore
         else:
             raise FailSafe
@@ -1106,10 +1106,10 @@ class LevelingSystem:
             path = os.path.join(path, "disnake_leveling_system.json")
             container = []
             if guild:
-                data = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_xp FROM leaderboard WHERE guild_id = ?", (guild.id,))  # type: ignore
+                data = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_exp FROM leaderboard WHERE guild_id = ?", (guild.id,))  # type: ignore
                 levels = {}
-                for m_id, m_name, m_lvl, m_xp, m_total_xp in data:
-                    levels = {"id": m_id, "name": m_name, "level": m_lvl, "xp": m_xp, "total_xp": m_total_xp}
+                for m_id, m_name, m_lvl, m_xp, m_total_exp in data:
+                    levels = {"id": m_id, "name": m_name, "level": m_lvl, "xp": m_xp, "total_exp": m_total_exp}
                     container.append(levels.copy())
                 else:
                     with open(path, mode="w") as fp:
@@ -1123,14 +1123,14 @@ class LevelingSystem:
                     member_name = info[2]
                     member_level = info[3]
                     member_xp = info[4]
-                    member_total_xp = info[5]
+                    member_total_exp = info[5]
                     levels = {
                         "guild_id": guild_id,
                         "member_id": member_id,
                         "name": member_name,
                         "level": member_level,
                         "xp": member_xp,
-                        "total_xp": member_total_xp,
+                        "total_exp": member_total_exp,
                     }
                     container.append(levels.copy())
                 else:
@@ -1418,7 +1418,7 @@ class LevelingSystem:
     @db_file_exists
     @levels_exists
     @verify_levels_integrity
-    async def get_total_xp_for(self, member: Member) -> Optional[int]:
+    async def get_total_exp_for(self, member: Member) -> Optional[int]:
         """|coro|
 
         Get the total XP for the specified member
@@ -1441,7 +1441,7 @@ class LevelingSystem:
         """
         md = await self.get_data_for(member)
         if md:
-            return md.total_xp
+            return md.total_exp
         else:
             return None
 
@@ -1506,9 +1506,9 @@ class LevelingSystem:
                 m_name = result[2]
                 m_level = result[3]
                 m_xp = result[4]
-                m_total_xp = result[5]
+                m_total_exp = result[5]
                 m_rank = await self.get_rank_for(member)
-                return MemberData(m_id, m_name, m_level, m_xp, m_total_xp, m_rank)
+                return MemberData(m_id, m_name, m_level, m_xp, m_total_exp, m_rank)
             else:
                 return None
 
@@ -1557,32 +1557,32 @@ class LevelingSystem:
             async def result_to_memberdata(query_result) -> List[MemberData]:
                 """Convert the query result into a :class:`list` of :class:`MemberData` objects"""
                 data = []
-                for m_id, m_name, m_level, m_xp, m_total_xp in query_result:
+                for m_id, m_name, m_level, m_xp, m_total_exp in query_result:
                     rank = None
                     member = guild.get_member(m_id)
                     if member:
                         rank = await self.get_rank_for(
                             member
                         )  # if the member is None (no longer in guild), rank will be None. This is intentional
-                    data.append(MemberData(m_id, m_name, m_level, m_xp, m_total_xp, rank))
+                    data.append(MemberData(m_id, m_name, m_level, m_xp, m_total_exp, rank))
                 return data if limit is None else data[:limit]
 
             if not sort_by:
-                result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_xp FROM leaderboard WHERE guild_id = ?", (guild.id,))  # type: ignore
+                result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_exp FROM leaderboard WHERE guild_id = ?", (guild.id,))  # type: ignore
                 return await result_to_memberdata(result)
             else:
                 sort_by = sort_by.lower()
                 if sort_by in ("name", "level", "xp", "rank"):
                     if sort_by == "name":
-                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_xp FROM leaderboard WHERE guild_id = ? ORDER BY member_name COLLATE NOCASE", (guild.id,))  # type: ignore
+                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_exp FROM leaderboard WHERE guild_id = ? ORDER BY member_name COLLATE NOCASE", (guild.id,))  # type: ignore
                         return await result_to_memberdata(result)
 
                     elif sort_by == "level":
-                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_xp FROM leaderboard WHERE guild_id = ? ORDER BY member_level DESC", (guild.id,))  # type: ignore
+                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_exp FROM leaderboard WHERE guild_id = ? ORDER BY member_level DESC", (guild.id,))  # type: ignore
                         return await result_to_memberdata(result)
 
                     elif sort_by == "xp":
-                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_xp FROM leaderboard WHERE guild_id = ? ORDER BY member_total_xp DESC", (guild.id,))  # type: ignore
+                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_exp FROM leaderboard WHERE guild_id = ? ORDER BY member_total_exp DESC", (guild.id,))  # type: ignore
                         return await result_to_memberdata(result)
 
                     elif sort_by == "rank":
@@ -1593,7 +1593,7 @@ class LevelingSystem:
                                 md.rank = 0
                             return md
 
-                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_xp FROM leaderboard WHERE guild_id = ?", (guild.id,))  # type: ignore
+                        result = await self._connection.execute_fetchall("SELECT member_id, member_name, member_level, member_xp, member_total_exp FROM leaderboard WHERE guild_id = ?", (guild.id,))  # type: ignore
                         all_data: List[MemberData] = await result_to_memberdata(result)
 
                         converted = [convert(md) for md in all_data]  # convert the data so it can be sorted properly
@@ -1642,7 +1642,7 @@ class LevelingSystem:
         - `ImproperLeaderboard`: Leaderboard table was altered. Components changed or deleted
         - `NotConnected`: Attempted to use a method that requires a connection to a database file
         """
-        result = await self._connection.execute_fetchall("SELECT member_id FROM leaderboard WHERE guild_id = ? ORDER BY member_total_xp DESC", (member.guild.id,))  # type: ignore
+        result = await self._connection.execute_fetchall("SELECT member_id FROM leaderboard WHERE guild_id = ? ORDER BY member_total_exp DESC", (member.guild.id,))  # type: ignore
         all_ids = [m_id[0] for m_id in result]
         try:
             rank = all_ids.index(member.id) + 1
@@ -1665,7 +1665,7 @@ class LevelingSystem:
         - member_name
         - member_level
         - member_xp
-        - member_total_xp
+        - member_total_exp
 
         Parameters
         ----------
@@ -1788,7 +1788,7 @@ class LevelingSystem:
                     if isinstance(self.level_up_announcement, Sequence)
                     else self.level_up_announcement
                 )
-                lua._total_xp = md.total_xp
+                lua._total_exp = md.total_exp
                 lua._level = md.level
                 lua._rank = md.rank
                 announcement_message = lua._parse_message(lua.message, self._message_author)  # type: ignore
@@ -1970,7 +1970,7 @@ class LevelingSystem:
                         # update the database with the new amount
                         query = """
                             UPDATE leaderboard
-                            SET member_xp = member_xp + ?, member_total_xp = member_total_xp + ?
+                            SET member_xp = member_xp + ?, member_total_exp = member_total_exp + ?
                             WHERE member_id = ? AND guild_id = ?
                         """
                         await cursor.execute(query, (amount, amount, member.id, member.guild.id))  # type: ignore
