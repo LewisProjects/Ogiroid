@@ -223,10 +223,10 @@ class LevelsController:
                 return result
 
             def roundify(im, rad):
-                circle = Image.new('L', (rad * 2, rad * 2), 0)
+                circle = Image.new("L", (rad * 2, rad * 2), 0)
                 draw = ImageDraw.Draw(circle)
                 draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
-                alpha = Image.new('L', im.size, 255)
+                alpha = Image.new("L", im.size, 255)
                 w, h = im.size
                 alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
                 alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
@@ -234,6 +234,7 @@ class LevelsController:
                 alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
                 im.putalpha(alpha)
                 return im
+
             # makes the avatar ROUND
             avatar_img = mask_circle_transparent(avatar_img.resize((189, 189)), blur_radius=1, offset=0)
 
