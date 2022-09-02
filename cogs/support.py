@@ -1,5 +1,5 @@
 import disnake
-from disnake import TextInputStyle, Option
+from disnake import TextInputStyle, Option, ApplicationCommandInteraction
 from disnake.ext import commands
 
 from utils.bot import OGIROID
