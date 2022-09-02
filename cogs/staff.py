@@ -1,8 +1,8 @@
 import asyncio
 import datetime as dt
-
+from typing import Optional
 import disnake
-from disnake import TextInputStyle, PartialEmoji
+from disnake import TextInputStyle, PartialEmoji, Color, ApplicationCommandInteraction, Option
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
 
@@ -222,6 +222,34 @@ class Staff(commands.Cog):
             return await QuickEmb(inter, "User has no warnings!").send()
 
         await warnings_embed(inter, member=member, warnings=warnings)
+
+    @commands.slash_command()
+    @commands.has_role("Staff")
+    async def punishments(self,  inter: ApplicationCommandInteraction ):
+        """Shows the punishments"""
+        return await inter.send('https://media.discordapp.net/attachments/905182869410955356/985264301591916594/unknown-18.png?width=521&height=683', ephemeral=True)
+
+    @commands.slash_command(description="Steals an emoji from a different server.")
+    @commands.guild_only()
+    @commands.has_permissions(manage_emojis=True)
+    async def stealemoji(self, inter: ApplicationCommandInteraction, emoji: disnake.PartialEmoji, name = Option(name='name', required=False, description="Name of the emoji")):
+        """This clones a specified emoji that optionally only specified roles
+        are allowed to use.
+        """
+        # fetch the emoji asset and read it as bytes.
+        # the key parameter here is `roles`, which controls
+        # what roles are able to use the emoji.
+        try:
+            emoji_bytes = await emoji.read()
+            await inter.guild.create_custom_emoji(
+                name=name if name else emoji.name,
+                image=emoji_bytes,
+                reason=f'Emoji yoinked by {inter.author} VIA {inter.guild.me.name}')
+            await inter.send(
+                embed=disnake.Embed(description=f'emoji successfully stolen', color=Color.random()).set_image(
+                    url=emoji.url))
+        except Exception as e:
+            await inter.send(str(e))
 
     @commands.slash_command(name="faq")
     @commands.guild_only()
