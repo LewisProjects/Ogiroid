@@ -57,7 +57,6 @@ class LevelsController:
     async def on_cooldown(self, message) -> bool:
         bucket = self._cooldown.get_bucket(message)
         on_cooldown = bucket.update_rate_limit()  # type: ignore
-        print(f"{on_cooldown=} {bucket=}")
         if on_cooldown is not None:
             return True
         return False
@@ -90,7 +89,6 @@ class LevelsController:
     async def _update_record(
         self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int, **kwargs
     ) -> None:
-        print(f"{member=} {level=} {xp=} {total_exp=} {guild_id=} {kwargs=}")
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
             await self.db.execute(
                 "UPDATE levels SET level = ?, xp = ?, total_exp = ? WHERE user_id = ? AND guild_id = ?",
