@@ -345,6 +345,7 @@ class Level(commands.Cog):
         return
 
     @role_reward.sub_command()
+    @commands.has_permissions(manage_roles=True)
     async def add(
         self,
         inter: ApplicationCommandInteraction,
@@ -354,12 +355,16 @@ class Level(commands.Cog):
         """adds a role to the reward list"""
         if level_needed not in self.levels:
             return await errorEmb(inter, text=f"Level must be within 1-{MAX_LEVEL} found")
-        sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
-        await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
-        await self.bot.db.commit()
-        await sucEmb(inter, f"Added {role.name} to the role reward list for level {level_needed}")
+
+        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
+            sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
+            await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
+            await self.bot.db.commit()
+            return await sucEmb(inter, f"Added {role.mention} to the role reward list for level {level_needed}")
+        return await errorEmb(inter, text=f"{role.mention} is already in the role reward list")
 
     @role_reward.sub_command()
+    @commands.has_permissions(manage_roles=True)
     async def remove(
         self, inter: ApplicationCommandInteraction, role: Role = Option(type=Role, name="role", description="what role to give")
     ):
