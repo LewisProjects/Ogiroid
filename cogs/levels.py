@@ -88,7 +88,7 @@ class LevelsController:
         return bool((await record.fetchone())[0])
 
     async def _update_record(
-            self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int, **kwargs
+        self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int, **kwargs
     ) -> None:
         print(f"{member=} {level=} {xp=} {total_exp=} {guild_id=} {kwargs=}")
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
@@ -161,12 +161,12 @@ class LevelsController:
 
     async def handle_message(self, message: Message):
         if any(
-                [
-                    message.guild is None,
-                    message.author.bot,
-                    message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
-                    message.content.__len__() < 5,
-                ]
+            [
+                message.guild is None,
+                message.author.bot,
+                message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
+                message.content.__len__() < 5,
+            ]
         ):
             return
         if not random.randrange(0, 3) == 2:
@@ -178,7 +178,11 @@ class LevelsController:
 
     async def get_user(self, user: Member) -> User:  # todo cache this
         record = await self.db.execute(
-            "SELECT * FROM levels WHERE user_id = ? AND guild_id = ?", (user.id, user.guild.id,),
+            "SELECT * FROM levels WHERE user_id = ? AND guild_id = ?",
+            (
+                user.id,
+                user.guild.id,
+            ),
         )
         raw = await record.fetchone()
         if raw is None:
@@ -234,7 +238,7 @@ class LevelsController:
             # level
             d.text((115, 96), lvl, font=fnt, fill=(0, 0, 0, 255))
             # Rank
-            d.text((113, 130), f'#{rank}', font=fnt, fill=(0, 0, 0, 255))
+            d.text((113, 130), f"#{rank}", font=fnt, fill=(0, 0, 0, 255))
             d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
             txt.paste(avatar_img, (489, 23))
 
@@ -296,7 +300,7 @@ class Level(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.controller = LevelsController(self.bot, self.bot.db)
-        print('[Level] Ready')
+        print("[Level] Ready")
 
     @commands.slash_command()
     @commands.guild_only()
@@ -310,13 +314,11 @@ class Level(commands.Cog):
         except UserNotFound:
             return await errorEmb(inter, text="User has never spoke!")
         if not user_record:
-            print('[Level] User not found')
+            print("[Level] User not found")
             await self.controller.add_user(user, inter.guild)
             return await self.rank(inter, user)
         rank = await self.controller.get_rank(user_record)
-        image = await self.controller.generate_image_card(user,
-                                                          rank, user_record.xp,
-                                                          user_record.lvl)
+        image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
         await inter.send(file=image)
 
     @staticmethod

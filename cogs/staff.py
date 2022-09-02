@@ -225,14 +225,22 @@ class Staff(commands.Cog):
 
     @commands.slash_command()
     @commands.has_role("Staff")
-    async def punishments(self,  inter: ApplicationCommandInteraction ):
+    async def punishments(self, inter: ApplicationCommandInteraction):
         """Shows the punishments"""
-        return await inter.send('https://media.discordapp.net/attachments/905182869410955356/985264301591916594/unknown-18.png?width=521&height=683', ephemeral=True)
+        return await inter.send(
+            "https://media.discordapp.net/attachments/905182869410955356/985264301591916594/unknown-18.png?width=521&height=683",
+            ephemeral=True,
+        )
 
     @commands.slash_command(description="Steals an emoji from a different server.")
     @commands.guild_only()
     @commands.has_permissions(manage_emojis=True)
-    async def stealemoji(self, inter: ApplicationCommandInteraction, emoji: disnake.PartialEmoji, name = Option(name='name', required=False, description="Name of the emoji")):
+    async def stealemoji(
+        self,
+        inter: ApplicationCommandInteraction,
+        emoji: disnake.PartialEmoji,
+        name=Option(name="name", required=False, description="Name of the emoji"),
+    ):
         """This clones a specified emoji that optionally only specified roles
         are allowed to use.
         """
@@ -244,10 +252,11 @@ class Staff(commands.Cog):
             await inter.guild.create_custom_emoji(
                 name=name if name else emoji.name,
                 image=emoji_bytes,
-                reason=f'Emoji yoinked by {inter.author} VIA {inter.guild.me.name}')
+                reason=f"Emoji yoinked by {inter.author} VIA {inter.guild.me.name}",
+            )
             await inter.send(
-                embed=disnake.Embed(description=f'emoji successfully stolen', color=Color.random()).set_image(
-                    url=emoji.url))
+                embed=disnake.Embed(description=f"emoji successfully stolen", color=Color.random()).set_image(url=emoji.url)
+            )
         except Exception as e:
             await inter.send(str(e))
 

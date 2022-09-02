@@ -443,7 +443,11 @@ class Fun(commands.Cog):
         pass
 
     @pokemon.sub_command(name="info", description="Get information about a Pokémon.")
-    async def info(self, inter: ApplicationCommandInteraction, pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon")):
+    async def info(
+        self,
+        inter: ApplicationCommandInteraction,
+        pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon"),
+    ):
         response = await self.bot.session.get(f"https://pokeapi.co/api/v2/pokemon/{pokem}")
         poke_data = await response.json()
 
