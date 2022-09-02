@@ -70,5 +70,5 @@ IF NOT EXISTS levels
     user_id INTEGER,
     level INTEGER DEFAULT 0,
     xp INTEGER DEFAULT 0,
-    total_xp INTEGER DEFAULT 0
+    total_exp INTEGER DEFAULT 0
 );
