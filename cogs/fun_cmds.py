@@ -4,16 +4,15 @@ import os
 import random
 import time
 from datetime import datetime, timezone
-from urllib import request
 
 import akinator as ak
 import disnake
+import requests
 from discord_together import DiscordTogether
 from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
 from dotenv import load_dotenv
-import requests
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar

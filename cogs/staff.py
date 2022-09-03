@@ -1,6 +1,6 @@
 import asyncio
 import datetime as dt
-from typing import Optional
+
 import disnake
 from disnake import TextInputStyle, PartialEmoji, Color, ApplicationCommandInteraction, Option
 from disnake.ext import commands

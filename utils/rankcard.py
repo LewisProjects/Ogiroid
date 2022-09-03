@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from io import BytesIO
+from typing import Union, Tuple, Dict
+
+import disnake
 from PIL import Image
 from PIL import ImageDraw
-from io import BytesIO
-import disnake
-from typing import Union, Tuple, Dict
 
 from utils.http import session
 
