@@ -243,11 +243,11 @@ class LevelsController:
             # get a drawing context
             d = ImageDraw.Draw(txt)
             # username
-            d.text((179, 32), user.name, font=fnt, fill=(0, 0, 0, 255))
+            d.text((179, 32), str(user.name), font=fnt, fill=(0, 0, 0, 255))
             # xp
             d.text((185, 65), f"{xp}/{next_xp}", font=fnt, fill=(0, 0, 0, 255))
             # level
-            d.text((115, 96), lvl, font=fnt, fill=(0, 0, 0, 255))
+            d.text((115, 96), str(lvl), font=fnt, fill=(0, 0, 0, 255))
             # Rank
             d.text((113, 130), f"#{rank}", font=fnt, fill=(0, 0, 0, 255))
             d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
