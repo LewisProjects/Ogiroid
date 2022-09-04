@@ -28,6 +28,7 @@ class Trivia(commands.Cog, name="Trivia"):
 
     @commands.slash_command(name="flagquiz", description="Guess the flags.")
     async def guess_the_flag(self, inter):
+        await inter.response.defer()
         await QuickEmb(inter, "Starting the quiz..").send()
         channel = inter.channel
         country_list = list(self.countries.items())
@@ -35,6 +36,13 @@ class Trivia(commands.Cog, name="Trivia"):
         countries = dict(country_list)
         correct = 0
         tries = 0
+        try:
+            user = await self.flag_quiz.get_user(inter.author.id)
+        except UserNotFound:
+            await self.flag_quiz.add_user(inter.author.id)
+            user = await self.flag_quiz.get_user(inter.author.id)
+
+
 
         def check(m):
             return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
@@ -43,6 +51,7 @@ class Trivia(commands.Cog, name="Trivia"):
             tries += 1
             retry = True
             while retry:
+                user = await self.flag_quiz.add_data(user_id=inter.author.id, user=user, correct=correct, tries=tries)
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
@@ -55,7 +64,7 @@ class Trivia(commands.Cog, name="Trivia"):
                     guess = await self.bot.wait_for("message", check=check, timeout=60.0)
                 except asyncio.exceptions.TimeoutError:
                     await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
-                    await self.flag_quiz.add_data(inter.author.id, tries - 1, correct)
+                    await self.flag_quiz.add_data(inter.author.id, tries - 1, correct, user=user)
                     return
 
                 # Checks if the guess is similar to the actual name to account typos
@@ -73,14 +82,14 @@ class Trivia(commands.Cog, name="Trivia"):
                     elif guess.content.lower() == "skip":
                         await QuickEmb(channel, f"The country was {country}").send()
                         retry = False
-                    elif guess.content.lower() == "give up":
+                    elif guess.content.casefold() == "give up":
                         await guess.reply("Are you sure you want to quit? Type yes to confirm.")
                         try:
                             response = await self.bot.wait_for("message", check=check, timeout=60.0)
                         except asyncio.exceptions.TimeoutError:
                             await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                         else:
-                            if response.content.lower() not in [
+                            if response.content.casefold() not in [
                                 "yes",
                                 "y",
                                 "yeah",
@@ -93,12 +102,12 @@ class Trivia(commands.Cog, name="Trivia"):
                             ]:
                                 continue
                         await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
-                        await self.flag_quiz.add_data(guess.author.id, tries - 1, correct)
+                        await self.flag_quiz.add_data(guess.author.id, tries - 1, correct, user=user)
                         return
                     else:
                         await errorEmb(inter, "Incorrect")
 
-        await self.flag_quiz.add_data(inter.author.id, tries, correct)
+        await self.flag_quiz.add_data(inter.author.id, tries, correct, user=user)
         await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
 
     @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
@@ -255,6 +264,7 @@ class Trivia(commands.Cog, name="Trivia"):
                 user_inter = await self.bot.wait_for("button_click", check=check, timeout=60.0)
             except asyncio.exceptions.TimeoutError:
                 return await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
+
 
             user_answer = answers[int(user_inter.component.custom_id)]
             questions += 1

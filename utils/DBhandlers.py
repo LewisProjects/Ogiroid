@@ -16,7 +16,7 @@ class FlagQuizHandler:
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
 
-    async def get_user(self, user_id: int):
+    async def get_user(self, user_id: int) -> FlagQuizUser:
         user = await self.cache.get(str(user_id))
         if user is not None:
             return user
@@ -45,12 +45,14 @@ class FlagQuizHandler:
                 raise UsersNotFound
             return leaderboard
 
-    async def add_data(self, user_id: int, tries: int, correct: int):
-        try:
-            user = await self.get_user(user_id)
-        except UserNotFound:
-            await self.add_user(user_id, tries, correct)
-            return
+    async def add_data(self, user_id: int, tries: int, correct: int, user: Optional[FlagQuizUser] = None) -> FlagQuizUser:
+        print(user)
+        if user is not None:
+            try:
+                user = await self.get_user(user_id)
+            except UserNotFound:
+                await self.add_user(user_id, tries, correct)
+                return
 
         if correct == 199:
             completed = user.completed + 1
@@ -59,12 +61,15 @@ class FlagQuizHandler:
         tries += user.tries
         correct += user.correct
 
+
         async with self.db.execute(
             f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
         ):
             await self.db.commit()
+        return FlagQuizUser(user_id, tries, correct, completed)
 
-    async def add_user(self, user_id: int, tries: int, correct: int):
+
+    async def add_user(self, user_id: int, tries: int = 0, correct: int = 0):
         if correct == 199:
             completed = 1
         else:

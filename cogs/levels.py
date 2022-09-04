@@ -5,7 +5,7 @@ import io
 import random
 from collections import namedtuple
 from io import BytesIO
-from typing import Union
+from typing import Union, Optional
 
 import disnake
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -316,8 +316,12 @@ class Level(commands.Cog):
 
     @commands.slash_command()
     @commands.guild_only()
-    async def rank(self, inter: ApplicationCommandInteraction, user: Member):
-        user = user or inter.author
+    async def rank(self, inter: ApplicationCommandInteraction, user: Optional[Member] = None):
+        """
+        Get the rank of a user in the server or yourself if no user is specified
+
+        """
+        user = user if user is not None else inter.author
         await inter.response.defer()
         if user.bot:
             return await errorEmb(inter, text="Bots can't rank up!")
