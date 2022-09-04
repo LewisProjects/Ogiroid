@@ -13,7 +13,6 @@ from disnake.ext.commands import ParamInfo
 from utils import checks
 from utils.DBhandlers import RolesHandler, WarningHandler
 from utils.bot import OGIROID
-from utils.checks import is_dev
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
 from utils.shortcuts import sucEmb, errorEmb, warning_embed, QuickEmb, warnings_embed
 

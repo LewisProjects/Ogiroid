@@ -1,4 +1,5 @@
 import disnake
+from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 from disnake.ext.commands import Cog
 
@@ -23,13 +24,13 @@ class Utilities(commands.Cog):
         self.edit_snipes[after.channel] = (before, after)
 
     @commands.slash_command(name="snipe", description="Get the most recently deleted message in a channel")
-    async def snipe_group(self, ctx):
+    async def snipe_group(self, inter: ApplicationCommandInteraction):
         """Get the most recently deleted message in a channel"""
 
         try:
-            sniped_message = self.delete_snipes[ctx.channel]
+            sniped_message = self.delete_snipes[inter.channel]
         except KeyError:
-            await ctx.send("There are no deleted messages in this channel to snipe!")
+            await inter.send("There are no deleted messages in this channel to snipe!")
         else:
             result = disnake.Embed(
                 color=disnake.Color.red(),
@@ -41,27 +42,34 @@ class Utilities(commands.Cog):
                 icon_url=sniped_message.author.avatar.url,
             )
             try:
-                result.set_image(url=self.delete_snipes_attachments[ctx.channel][0].url)
+                result.set_image(url=self.delete_snipes_attachments[inter.channel][0].url)
             except:
                 pass
-            await ctx.send(embed=result)
+            is_staff = disnake.utils.find(lambda r: r.name.lower() == 'staff', inter.guild.roles)
+            if is_staff in inter.author.roles:
+                await inter.send(embed=result)
+            else:
+                await inter.send(embed=result, delete_after=15)
 
     @commands.slash_command(
         name="editsnipe",
         description="Get the most recently edited message in the channel, before and after.",
     )
-    async def editsnipe(self, ctx):
+    async def editsnipe(self, inter: ApplicationCommandInteraction):
         try:
-            before, after = self.edit_snipes[ctx.channel]
+            before, after = self.edit_snipes[inter.channel]
         except KeyError:
-            await ctx.send("There are no message edits in this channel to snipe!")
+            await inter.send("There are no message edits in this channel to snipe!")
         else:
             result = disnake.Embed(color=disnake.Color.red(), timestamp=after.edited_at)
             result.add_field(name="Before", value=before.content, inline=False)
             result.add_field(name="After", value=after.content, inline=False)
             result.set_author(name=after.author.display_name, icon_url=after.author.avatar.url)
-            await ctx.send(embed=result)
-
+            is_staff = disnake.utils.find(lambda r: r.name.lower() == 'staff', inter.guild.roles)
+            if is_staff in inter.author.roles:
+                await inter.send(embed=result)
+            else:
+                await inter.send(embed=result, delete_after=15)
 
 def setup(bot: commands.Bot):
     bot.add_cog(Utilities(bot))
