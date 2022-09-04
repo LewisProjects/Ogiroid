@@ -42,20 +42,7 @@ class Log(Cog):
 
             await log_channel.send(embed=embed)
 
-        if before.avatar.url != after.avatar.url:
-            embed = Embed(
-                title="Avatar change",
-                description="New image is below, old to the right.",
-                colour=log_channel.guild.get_member(after.id).colour,
-                timestamp=datetime.utcnow(),
-            )
-
-            embed.set_thumbnail(url=before.avatar.url)
-            embed.set_image(url=after.avatar.url)
-            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
-            await log_channel.send(embed=embed)
-
-        if before.avatar.url is None:
+        if before.display_avatar.url != after.display_avatar.url:
             embed = Embed(
                 title="Avatar change",
                 description="New image is below, old to the right.",
@@ -64,10 +51,23 @@ class Log(Cog):
             )
 
             embed.set_thumbnail(url=before.display_avatar.url)
-            embed.set_image(url=after.avatar.url if after.avatar.url else after.display_avatar.url)
+            embed.set_image(url=after.display_avatar.url)
+            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.display_avatar.url)
+            await log_channel.send(embed=embed)
+
+        if before.display_avatar.url is None:
+            embed = Embed(
+                title="Avatar change",
+                description="New image is below, old to the right.",
+                colour=log_channel.guild.get_member(after.id).colour,
+                timestamp=datetime.utcnow(),
+            )
+
+            embed.set_thumbnail(url=before.display_avatar.url)
+            embed.set_image(url=after.display_avatar.url)
             embed.set_footer(
                 text=f"{after.name}#{after.discriminator}",
-                icon_url=after.avatar.url if after.avatar.url else after.display_avatar.url,
+                icon_url=after.display_avatar.url,
             )
             await log_channel.send(embed=embed)
 
@@ -88,7 +88,7 @@ class Log(Cog):
 
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
-            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.avatar.url)
+            embed.set_footer(text=f"{after.name}#{after.discriminator}", icon_url=after.display_avatar.url)
             await log_channel.send(embed=embed)
 
         elif before.roles != after.roles:
@@ -107,7 +107,7 @@ class Log(Cog):
                 embed.add_field(name=name, value=value, inline=inline)
             embed.set_footer(
                 text=f"{after.name}#{after.discriminator}",
-                icon_url=after.avatar,
+                icon_url=after.display_avatar.url,
             )
             await log_channel.send(embed=embed)
 
