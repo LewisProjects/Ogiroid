@@ -46,7 +46,6 @@ class FlagQuizHandler:
             return leaderboard
 
     async def add_data(self, user_id: int, tries: int, correct: int, user: Optional[FlagQuizUser] = None) -> FlagQuizUser:
-        print(user)
         if user is not None:
             try:
                 user = await self.get_user(user_id)
