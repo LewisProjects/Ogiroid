@@ -127,9 +127,7 @@ class LevelsController:
     async def _update_record(self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int) -> None:
         self.remove_cached(member if isinstance(member, Member) else self.bot.get_user(member))
 
-        print("yo here")
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
-            print("in db")
             await self.db.execute(
                 "UPDATE levels SET level = ?, xp = ?, total_exp = ? WHERE user_id = ? AND guild_id = ?",
                 (level, xp, total_exp, member.id if isinstance(member, (Member, ClientUser)) else member, guild_id),
