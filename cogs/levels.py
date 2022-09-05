@@ -75,7 +75,7 @@ class LevelsController:
         Returns the total amount of XP needed for the specified level. Levels go from 0-100
         """
         try:
-            return LEVELS_AND_XP[str(level)]
+            return LEVELS_AND_XP[level]
         except KeyError:
             raise ValueError(f"Levels only go from 0-{MAX_LEVEL}, {level} is not a valid level")
 
@@ -118,7 +118,7 @@ class LevelsController:
                 member=member,
                 level=level,
                 xp=0,
-                total_exp=LEVELS_AND_XP[str(level)],
+                total_exp=LEVELS_AND_XP[level],
                 guild_id=member.guild.id,
             )  # type: ignore
         else:
@@ -135,7 +135,7 @@ class LevelsController:
         else:
             await self.db.execute(
                 "INSERT INTO levels (user_id, guild_id, level, xp, total_exp) VALUES (?, ?, ?, ?, ?)",
-                (guild_id, member.id if isinstance(member, Member) else member, level, xp, total_exp),
+                (member.id if isinstance(member, Member) else member, guild_id, level, xp, total_exp),
             )
         await self.db.commit()
 
@@ -219,13 +219,7 @@ class LevelsController:
         """generates an image card for the user"""
         avatar: disnake.Asset = user.display_avatar.with_size(512)
         # this for loop finds the closest level to the xp and defines the values accordingly
-        x = 999999 * 9999999
-        next_xp = 100
-        for key, value in LEVELS_AND_XP.items():
-            if (x > value - xp > 0) and not (xp - value == xp):
-                x = value - xp
-                next_xp = value
-                lvl = key
+        next_xp = LEVELS_AND_XP[int(lvl) + 1]
         with Image.open("utils/data/images/rankcard.png").convert("RGBA") as base:
 
             # make a blank image for the text, initialized to transparent text color
@@ -264,9 +258,12 @@ class LevelsController:
             # makes the avatar ROUND
             avatar_img = mask_circle_transparent(avatar_img.resize((189, 189)), blur_radius=1, offset=0)
 
-            previous_xp = LEVELS_AND_XP[str(int(lvl) - 1)]
-
-            width = round(((xp - previous_xp) / (next_xp - previous_xp)) * 418, 2)
+            previous_xp = LEVELS_AND_XP[int(lvl)]
+            print(f'{previous_xp=}')
+            print(f'{next_xp=}') # FIXME remove these and fix width
+            print(f'{xp=}')
+            width = abs(round(((xp - previous_xp) / (next_xp - previous_xp)) * 418, 2))
+            print(f'{width=}')
             fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
             # get a drawing context
             d = ImageDraw.Draw(txt)
@@ -416,7 +413,7 @@ class Level(commands.Cog):
         level_needed=Option(name="level_needed", type=int, description="The level needed to get the role"),
     ):
         """adds a role to the reward list"""
-        if level_needed not in self.levels:
+        if int(level_needed) not in self.levels:
             return await errorEmb(inter, text=f"Level must be within 1-{MAX_LEVEL} found")
 
         if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
