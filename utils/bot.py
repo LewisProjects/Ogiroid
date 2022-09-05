@@ -43,6 +43,7 @@ class OGIROID(commands.Bot):
         self.commands_ran = {}
         self.total_commands_ran = 0
         self.db = None
+        self.conn = None
         self.blacklist: BlacklistHandler = None
         self.add_check(self.blacklist_check, call_once=True)
         self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
