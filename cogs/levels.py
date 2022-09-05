@@ -5,11 +5,12 @@ import io
 import random
 from collections import namedtuple
 from io import BytesIO
-from typing import Union, Optional
-
+from typing import Union, Optional, Tuple
 import disnake
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Option, Embed
+from cachetools import TTLCache
+from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Option, \
+    Embed
 from disnake.ext import commands
 from disnake.ext.commands import CooldownMapping, BucketType, Cog
 
@@ -21,7 +22,6 @@ from utils.shortcuts import errorEmb, sucEmb
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
-
 class LevelsController:
     def __init__(self, bot: OGIROID, db):
         self.bot = bot
@@ -30,6 +30,10 @@ class LevelsController:
         self.__rate = 2
         self.__per = 60
         self._cooldown = CooldownMapping.from_cooldown(self.__rate, self.__per, BucketType.member)
+        self.cache = TTLCache(maxsize=100_000, ttl=3600)
+
+    def remove_cached(self, user: Member) -> None:
+        self.cache.pop(f"levels_{user.id}_{user.guild.id}", None)
 
     @Cog.listener()
     async def on_error(self, inter, error):
@@ -38,7 +42,27 @@ class LevelsController:
         else:
             raise error
 
+    async def get_leaderboard(self, guild: Guild, limit: int = 10, user_range: Optional[Tuple[int, int]] = None) -> list[User]:
+        """get a list of users
+        optionally you can specify a range of users to get from the leaderboard e.g. 200, 230
+        """
+        if user_range is not None:
+            if user_range[0] < user_range[1]:
+                raise LevelingSystemError("range[0] must be greater than range[1]")
+            start, end = user_range
+            records = await self.db.execute(
+                "SELECT * FROM levels WHERE guild_id = ? ORDER BY total_exp DESC LIMIT ? OFFSET ?",
+                (guild.id, (start - end), start),
+            )
+        else:
+            records = await self.db.execute(
+                "SELECT * FROM levels WHERE guild_id = ? ORDER BY total_exp DESC LIMIT ?",
+                (guild.id, limit),
+            )
+        return [User(*record) for record in await records.fetchall()]
+
     async def add_user(self, user: Member, guild: Guild):
+        self.remove_cached(user)
         await self.db.execute(
             "INSERT INTO levels (user_id, guild_id, level, xp, total_exp) VALUES (?, ?, ?, ?, ?)",
             (user.id, guild.id, 0, 0, 0),
@@ -86,10 +110,27 @@ class LevelsController:
         )
         return bool((await record.fetchone())[0])
 
+    async def set_level(self, member: Member, level: int) -> None:
+        if 0 <= level <= MAX_LEVEL:
+            print("set level")
+            await self._update_record(
+                member=member,
+                level=level,
+                xp=0,
+                total_exp=LEVELS_AND_XP[str(level)],
+                guild_id=member.guild.id,
+            )  # type: ignore
+        else:
+            raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
+
     async def _update_record(
-        self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int, **kwargs
+            self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int
     ) -> None:
+        self.remove_cached(member if isinstance(member, Member) else self.bot.get_user(member))
+
+        print('yo here')
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
+            print('in db')
             await self.db.execute(
                 "UPDATE levels SET level = ?, xp = ?, total_exp = ? WHERE user_id = ? AND guild_id = ?",
                 (level, xp, total_exp, member.id if isinstance(member, (Member, ClientUser)) else member, guild_id),
@@ -100,19 +141,6 @@ class LevelsController:
                 (guild_id, member.id if isinstance(member, Member) else member, level, xp, total_exp),
             )
         await self.db.commit()
-
-    async def set_level(self, member: Member, level: int) -> None:
-        if 0 <= level <= MAX_LEVEL:
-            await self._update_record(
-                member=member,
-                level=level,
-                xp=0,
-                total_exp=LEVELS_AND_XP[str(level)],
-                guild_id=member.guild.id,
-                maybe_new_record=True,
-            )
-        else:
-            raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
 
     @staticmethod
     async def random_xp():
@@ -135,8 +163,7 @@ class LevelsController:
                 xp=user.xp,
                 total_exp=user.total_exp,
                 guild_id=message.guild.id,
-                maybe_new_record=False,
-            )
+            )  # type: ignore
 
             self.bot.dispatch("level_up", message.author)
 
@@ -146,8 +173,7 @@ class LevelsController:
             xp=user.xp,
             total_exp=user.total_exp,
             guild_id=message.guild.id,
-            maybe_new_record=True,
-        )
+        )  # type: ignore
 
     async def grant_xp(self, message):
         try:
@@ -159,12 +185,12 @@ class LevelsController:
 
     async def handle_message(self, message: Message):
         if any(
-            [
-                message.guild is None,
-                message.author.bot,
-                message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
-                message.content.__len__() < 5,
-            ]
+                [
+                    message.guild is None,
+                    message.author.bot,
+                    message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
+                    message.content.__len__() < 5,
+                ]
         ):
             return
         if not random.randrange(0, 3) == 2:
@@ -174,7 +200,11 @@ class LevelsController:
 
         await self.grant_xp(message)
 
-    async def get_user(self, user: Member) -> User:  # todo cache this
+    async def get_user(self, user: Member) -> User:
+        if user.id in self.cache:
+            return self.cache[user.id]
+
+        print("getting user")
         record = await self.db.execute(
             "SELECT * FROM levels WHERE user_id = ? AND guild_id = ?",
             (
@@ -185,6 +215,7 @@ class LevelsController:
         raw = await record.fetchone()
         if raw is None:
             raise UserNotFound
+        self.cache[user.id] = (User(*raw))
         return User(*raw)
 
     async def generate_image_card(self, user: Member | User, rank: str, xp: int, lvl: int) -> Image:
@@ -343,6 +374,37 @@ class Level(commands.Cog):
 
     @commands.slash_command()
     @commands.guild_only()
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def leaderboard(self, inter: ApplicationCommandInteraction):
+        """
+        Get the leaderboard of the server
+        """
+        await inter.response.defer()
+        records = await self.controller.get_leaderboard(inter.guild)
+        if not records:
+            return await errorEmb(inter, text="No records found!")
+        embed = Embed(title="Leaderboard", color=0x00FF00)
+        for i, record in enumerate(records):
+            user = await self.bot.fetch_user(record.user_id)
+            embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nXP: {record.total_exp}", inline=False)
+        await inter.send(embed=embed)
+
+    @commands.slash_command()
+    @commands.guild_only()
+    @commands.has_any_role("Staff", "staff")
+    async def set_rank(self, inter: ApplicationCommandInteraction, user: Member, level: int):
+        """
+        Set a user's level
+        """
+        if not level >= 0 and level < MAX_LEVEL:
+            return await errorEmb(inter, text=f"Level must be between 0 and {MAX_LEVEL}")
+        if user.bot:
+            return await errorEmb(inter, text="Bots can't rank up!")
+        await self.controller.set_level(user, level)
+        await sucEmb(inter, text=f"Set {user.mention}'s level to {level}", ephemeral=False)
+
+    @commands.slash_command()
+    @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def role_reward(self, inter: ApplicationCommandInteraction):
 
@@ -351,16 +413,17 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def add(
-        self,
-        inter: ApplicationCommandInteraction,
-        role: Role = Option(type=Role, name="role", description="what role to give"),
-        level_needed=Option(name="level_needed", type=int, description="The level needed to get the role"),
+            self,
+            inter: ApplicationCommandInteraction,
+            role: Role = Option(type=Role, name="role", description="what role to give"),
+            level_needed=Option(name="level_needed", type=int, description="The level needed to get the role"),
     ):
         """adds a role to the reward list"""
         if level_needed not in self.levels:
             return await errorEmb(inter, text=f"Level must be within 1-{MAX_LEVEL} found")
 
-        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
+        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
+                                     (inter.guild.id, role.id)):
             sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
             await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
             await self.bot.db.commit()
@@ -370,10 +433,12 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def remove(
-        self, inter: ApplicationCommandInteraction, role: Role = Option(type=Role, name="role", description="what role to give")
+            self, inter: ApplicationCommandInteraction,
+            role: Role = Option(type=Role, name="role", description="what role to give")
     ):
         """remove a role reward"""
-        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
+        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
+                                     (inter.guild.id, role.id)):
             sql = "DELETE FROM role_rewards WHERE guild_id = ? AND role_id = ?"
             await self.bot.db.execute(sql, (inter.guild.id, role.id))
             await self.bot.db.commit()
@@ -393,9 +458,11 @@ class Level(commands.Cog):
         for record in records:
             record = RoleReward(*record)
             embed.add_field(
-                name=f"Level {record.required_lvl}", value=f"{inter.guild.get_role(record.role_id).mention}", inline=False
+                name=f"Level {record.required_lvl}", value=f"{inter.guild.get_role(record.role_id).mention}",
+                inline=False
             )
-        await inter.send(embed=embed, allowed_mentions=disnake.AllowedMentions(everyone=False, roles=False, users=False))
+        await inter.send(embed=embed,
+                         allowed_mentions=disnake.AllowedMentions(everyone=False, roles=False, users=False))
 
 
 def setup(bot: OGIROID):
