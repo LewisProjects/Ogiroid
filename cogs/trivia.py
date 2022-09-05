@@ -42,8 +42,6 @@ class Trivia(commands.Cog, name="Trivia"):
             await self.flag_quiz.add_user(inter.author.id)
             user = await self.flag_quiz.get_user(inter.author.id)
 
-
-
         def check(m):
             return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
 
@@ -264,7 +262,6 @@ class Trivia(commands.Cog, name="Trivia"):
                 user_inter = await self.bot.wait_for("button_click", check=check, timeout=60.0)
             except asyncio.exceptions.TimeoutError:
                 return await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
-
 
             user_answer = answers[int(user_inter.component.custom_id)]
             questions += 1

@@ -60,13 +60,11 @@ class FlagQuizHandler:
         tries += user.tries
         correct += user.correct
 
-
         async with self.db.execute(
             f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
         ):
             await self.db.commit()
         return FlagQuizUser(user_id, tries, correct, completed)
-
 
     async def add_user(self, user_id: int, tries: int = 0, correct: int = 0):
         if correct == 199:

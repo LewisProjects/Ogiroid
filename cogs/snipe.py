@@ -45,7 +45,7 @@ class Utilities(commands.Cog):
                 result.set_image(url=self.delete_snipes_attachments[inter.channel][0].url)
             except:
                 pass
-            is_staff = disnake.utils.find(lambda r: r.name.lower() == 'staff', inter.guild.roles)
+            is_staff = disnake.utils.find(lambda r: r.name.lower() == "staff", inter.guild.roles)
             if is_staff in inter.author.roles:
                 await inter.send(embed=result)
             else:
@@ -65,11 +65,12 @@ class Utilities(commands.Cog):
             result.add_field(name="Before", value=before.content, inline=False)
             result.add_field(name="After", value=after.content, inline=False)
             result.set_author(name=after.author.display_name, icon_url=after.author.avatar.url)
-            is_staff = disnake.utils.find(lambda r: r.name.lower() == 'staff', inter.guild.roles)
+            is_staff = disnake.utils.find(lambda r: r.name.lower() == "staff", inter.guild.roles)
             if is_staff in inter.author.roles:
                 await inter.send(embed=result)
             else:
                 await inter.send(embed=result, delete_after=15)
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(Utilities(bot))

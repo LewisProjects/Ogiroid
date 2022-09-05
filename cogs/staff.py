@@ -78,11 +78,11 @@ class Staff(commands.Cog):
     def cleanup_code(self, content):
         """Automatically removes code blocks from the code."""
         # remove ```py\n```
-        if content.startswith('```') and content.endswith('```'):
-            return '\n'.join(content.split('\n')[1:-1])
+        if content.startswith("```") and content.endswith("```"):
+            return "\n".join(content.split("\n")[1:-1])
 
         # remove `foo`
-        return content.strip('` \n')
+        return content.strip("` \n")
 
     @commands.slash_command()
     @checks.is_dev()
@@ -90,13 +90,13 @@ class Staff(commands.Cog):
         """Evaluates a code"""
         await inter.response.defer()
         env = {
-            'bot': self.bot,
-            'inter': inter,
-            'channel': inter.channel,
-            'author': inter.author,
-            'guild': inter.guild,
-            'message': await inter.original_message(),
-            '_': self._last_result
+            "bot": self.bot,
+            "inter": inter,
+            "channel": inter.channel,
+            "author": inter.author,
+            "guild": inter.guild,
+            "message": await inter.original_message(),
+            "_": self._last_result,
         }
 
         env.update(globals())
@@ -109,28 +109,28 @@ class Staff(commands.Cog):
         try:
             exec(to_compile, env)
         except Exception as e:
-            return await inter.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+            return await inter.send(f"```py\n{e.__class__.__name__}: {e}\n```")
 
-        func = env['func']
+        func = env["func"]
         try:
             with redirect_stdout(stdout):
                 ret = await func()
         except Exception as e:
             value = stdout.getvalue()
-            await inter.send(f'```py\n{value}{traceback.format_exc()}\n```')
+            await inter.send(f"```py\n{value}{traceback.format_exc()}\n```")
         else:
             value = stdout.getvalue()
             try:
-                await (await inter.original_message()).add_reaction('\u2705')
+                await (await inter.original_message()).add_reaction("\u2705")
             except:
                 pass
 
             if ret is None:
                 if value:
-                    await inter.send(f'```py\n{value}\n```')
+                    await inter.send(f"```py\n{value}\n```")
             else:
                 self._last_result = ret
-                await inter.send(f'```py\n{value}{ret}\n```')
+                await inter.send(f"```py\n{value}{ret}\n```")
 
     @commands.slash_command(name="ban", description="Bans a user from the server.")
     @commands.has_permissions(ban_members=True)
