@@ -22,18 +22,17 @@ class User:
     user_id: int
     lvl: int = 0
     xp: int = 0
-    total_exp: int = 0
 
     @property
     def xp_needed(self):
         return self.get_exp(self.lvl) - self.xp
 
     def get_exp(self, level):
-        return LEVELS_AND_XP[level] #5 * (level ^ 2) + (50 * level) + 100
+        return LEVELS_AND_XP[level]
 
     @property
-    def TotalExp(self):
-        return [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1] + [self.xp]
+    def total_exp(self):
+        return sum([exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1] + [self.xp])
 
 
 

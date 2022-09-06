@@ -52,24 +52,24 @@ class LevelsController:
                 raise LevelingSystemError("range[0] must be greater than range[1]")
             start, end = user_range
             records = await self.db.execute(
-                "SELECT * FROM levels WHERE guild_id = ? ORDER BY total_exp DESC LIMIT ? OFFSET ?",
+                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC LIMIT ? OFFSET ?",
                 (guild.id, (start - end), start),
             )
         else:
             records = await self.db.execute(
-                "SELECT * FROM levels WHERE guild_id = ? ORDER BY total_exp DESC LIMIT ?",
+                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC LIMIT ?",
                 (guild.id, limit),
             )
-        return [User(*record) for record in await records.fetchall()]
+        users = sorted([User(*record) for record in await records.fetchall()], key=lambda x: x.total_exp, reverse=True)
+        return users
 
     async def add_user(self, user: Member, guild: Guild):
         self.remove_cached(user)
         await self.db.execute(
-            "INSERT INTO levels (user_id, guild_id, level, xp, total_exp) VALUES (?, ?, ?, ?, ?)",
-            (user.id, guild.id, 0, 0, 0),
+            "INSERT INTO levels (user_id, guild_id, level, xp) VALUES (?, ?, ?, ?)",
+            (user.id, guild.id, 0, 0),
         )
         await self.db.commit()
-
 
     def get_total_xp_for_level(self, level: int) -> int:
         """
@@ -115,29 +115,27 @@ class LevelsController:
 
     async def set_level(self, member: Member, level: int) -> None:
         if 0 <= level <= MAX_LEVEL:
-            total_exp = self.get_total_xp_for_level(level)
             await self._update_record(
                 member=member,
                 level=level,
                 xp=0,
-                total_exp=total_exp,
                 guild_id=member.guild.id,
             )  # type: ignore
         else:
             raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
 
-    async def _update_record(self, member: Union[Member, int], level: int, xp: int, total_exp: int, guild_id: int) -> None:
+    async def _update_record(self, member: Union[Member, int], level: int, xp: int, guild_id: int) -> None:
         self.remove_cached(member if isinstance(member, Member) else self.bot.get_user(member))
 
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
             await self.db.execute(
-                "UPDATE levels SET level = ?, xp = ?, total_exp = ? WHERE user_id = ? AND guild_id = ?",
-                (level, xp, total_exp, member.id if isinstance(member, (Member, ClientUser)) else member, guild_id),
+                "UPDATE levels SET level = ?, xp = ? WHERE user_id = ? AND guild_id = ?",
+                (level, xp, member.id if isinstance(member, (Member, ClientUser)) else member, guild_id),
             )
         else:
             await self.db.execute(
-                "INSERT INTO levels (user_id, guild_id, level, xp, total_exp) VALUES (?, ?, ?, ?, ?)",
-                (member.id if isinstance(member, Member) else member, guild_id, level, xp, total_exp),
+                "INSERT INTO levels (user_id, guild_id, level, xp) VALUES (?, ?, ?, ?)",
+                (member.id if isinstance(member, Member) else member, guild_id, level, xp),
             )
         await self.db.commit()
 
@@ -151,7 +149,6 @@ class LevelsController:
             await self.set_level(message.author, 0)
         user = await self.get_user(message.author)
         user.xp += xp
-        user.total_exp += xp
         if user.xp >= user.xp_needed:
             extra_xp = user.xp - user.xp_needed
             user.lvl += 1
@@ -160,17 +157,15 @@ class LevelsController:
                 member=message.author,
                 level=user.lvl,
                 xp=user.xp,
-                total_exp=user.total_exp,
                 guild_id=message.guild.id,
             )  # type: ignore
 
-            self.bot.dispatch("level_up", message.author)
+            self.bot.dispatch("level_up", message, user.lvl)
 
         await self._update_record(
             member=message.author,
             level=user.lvl,
             xp=user.xp,
-            total_exp=user.total_exp,
             guild_id=message.guild.id,
         )  # type: ignore
 
@@ -192,7 +187,7 @@ class LevelsController:
             ]
         ):
             return
-        if not random.randrange(0, 3) == 2:
+        if not random.randrange(1, 3) == 1:
             return
         elif await self.on_cooldown(message):
             return
@@ -202,8 +197,6 @@ class LevelsController:
     async def get_user(self, user: Member) -> User:
         if user.id in self.cache:
             return self.cache[user.id]
-
-        print("getting user")
         record = await self.db.execute(
             "SELECT * FROM levels WHERE user_id = ? AND guild_id = ?",
             (
@@ -260,12 +253,7 @@ class LevelsController:
             # makes the avatar ROUND
             avatar_img = mask_circle_transparent(avatar_img.resize((189, 189)), blur_radius=1, offset=0)
 
-            previous_xp = LEVELS_AND_XP[int(lvl)]
-            print(f'{previous_xp=}')
-            print(f'{next_xp=}') # FIXME remove these and fix width
-            print(f'{xp=}')
-            width = abs(round(((xp) / (next_xp)) * 418, 2))
-            print(f'{width=}')
+            width = abs(round((xp / next_xp) * 418, 2))
             fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
             # get a drawing context
             d = ImageDraw.Draw(txt)
@@ -297,9 +285,9 @@ class LevelsController:
 
     async def get_rank(self, user_record) -> int:
         user_xp = user_record.total_exp
-        sql = "SELECT * FROM levels WHERE total_exp >= ? ORDER BY total_exp DESC"
+        sql = "SELECT * FROM levels WHERE level >= ? ORDER BY level DESC"
         records_raw = await self.db.execute(sql, (user_xp,))
-        records = await records_raw.fetchall()
+        records = [await records_raw.fetchall()].sort(key=lambda x: x.total_exp, reverse=True)
         rank = 1
 
         for record in records:
@@ -320,11 +308,23 @@ class Level(commands.Cog):
         pass
 
     @commands.Cog.listener()
-    async def on_rankup(self, msg: Message, level: int):
+    async def on_level_up(self, msg: Message, level: int):
         """
         Called when a user reaches a certain level
         """
         await self.controller.send_levelup(msg, level)
+        if await self.is_role_reward(msg.guild, level):
+            role = await self.get_role_reward(msg.guild, level)
+            await msg.author.add_roles(role, reason=f"Level up to level {level}")
+
+    async def is_role_reward(self, guild: Guild, level: int) -> bool:
+        query = await self.bot.db.execute("SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = ? AND required_lvl = ?)", (guild.id, level))
+        return await query.fetchone() is not None
+
+    async def get_role_reward(self, guild: Guild, level: int) -> Role:
+        query = await self.bot.db.execute("SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?", (guild.id, level))
+        role_id = (await query.fetchone())[0]
+        return guild.get_role(role_id)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -361,7 +361,6 @@ class Level(commands.Cog):
             await self.controller.add_user(user, inter.guild)
             return await self.rank(inter, user)
         rank = await self.controller.get_rank(user_record)
-        print(user_record.TotalExp, user_record.total_exp, 'hi')
         image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
         await inter.send(file=image)
 

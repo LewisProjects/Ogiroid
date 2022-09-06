@@ -69,8 +69,7 @@ IF NOT EXISTS levels
     guild_id INTEGER,
     user_id INTEGER,
     level INTEGER DEFAULT 0,
-    xp INTEGER DEFAULT 0,
-    total_exp INTEGER DEFAULT 0
+    xp INTEGER DEFAULT 0
 );
 
 CREATE TABLE
