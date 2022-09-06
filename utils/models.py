@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
+from utils.CONSTANTS import LEVELS_AND_XP
 from utils.shortcuts import get_expiry
 
 """careful moving the order of the below dataclasses as it will break the corresponding calls to them"""
@@ -28,11 +29,12 @@ class User:
         return self.get_exp(self.lvl) - self.xp
 
     def get_exp(self, level):
-        return 5 * (level ^ 2) + (50 * level) + 100
+        return LEVELS_AND_XP[level] #5 * (level ^ 2) + (50 * level) + 100
 
     @property
     def TotalExp(self):
         return [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1] + [self.xp]
+
 
 
 @dataclass
