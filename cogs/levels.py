@@ -359,7 +359,7 @@ class Level(commands.Cog):
             await self.controller.add_user(user, inter.guild)
             return await self.rank(inter, user)
         rank = await self.controller.get_rank(user_record)
-        image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
+        image = await self.controller.generate_image_card(user, rank, sum(user_record.TotalExp), user_record.lvl)
         await inter.send(file=image)
 
     @staticmethod
