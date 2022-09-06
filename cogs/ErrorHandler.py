@@ -51,6 +51,8 @@ class ErrorHandler(Cog):
                 return await self.send_traceback(inter, error)
             elif isinstance(error, MissingPermissions):
                 return await permsEmb(inter, permissions=f"{', '.join(error.missing_permissions)}")
+            elif isinstance(error, MissingRole):
+                return await permsEmb(inter, permissions=f"Role: {error.missing_role}")
             elif isinstance(error, MaxConcurrencyReached):
                 return await errorEmb(
                     inter, "You've reached max capacity of command usage at once, please finish the previous one..."
