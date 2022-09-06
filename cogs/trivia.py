@@ -72,38 +72,42 @@ class Trivia(commands.Cog, name="Trivia"):
                             await QuickEmb(channel, f"Correct. The country indeed was {country[0]}").success().send()
                             correct += 1
                             retry = False
-                else:
-                    if textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.7:
-                        await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
-                        correct += 1
-                        retry = False
-                    elif guess.content.lower() == "skip":
-                        await QuickEmb(channel, f"The country was {country}").send()
-                        retry = False
-                    elif guess.content.casefold() == "give up":
-                        await guess.reply("Are you sure you want to quit? Type yes to confirm.")
-                        try:
-                            response = await self.bot.wait_for("message", check=check, timeout=60.0)
-                        except asyncio.exceptions.TimeoutError:
-                            await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
-                        else:
-                            if response.content.casefold() not in [
-                                "yes",
-                                "y",
-                                "yeah",
-                                "yeah",
-                                "yep",
-                                "yup",
-                                "sure",
-                                "ok",
-                                "ye",
-                            ]:
-                                continue
-                        await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
-                        await self.flag_quiz.add_data(guess.author.id, tries - 1, correct, user=user)
-                        return
+                            break
+                elif textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.7:
+                    await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
+                    correct += 1
+                    retry = False
+
+                if guess.content.lower() == "skip":
+                    if type(country) == list:
+                        country = country[0]
+                    await QuickEmb(channel, f"The country was {country}").send()
+                    retry = False
+                elif guess.content.casefold() == "give up":
+                    await guess.reply("Are you sure you want to quit? Type yes to confirm.")
+                    try:
+                        response = await self.bot.wait_for("message", check=check, timeout=60.0)
+                    except asyncio.exceptions.TimeoutError:
+                        await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                     else:
-                        await errorEmb(inter, "Incorrect")
+                        if response.content.casefold() not in [
+                            "yes",
+                            "y",
+                            "yeah",
+                            "yeah",
+                            "yep",
+                            "yup",
+                            "sure",
+                            "ok",
+                            "ye",
+                        ]:
+                            continue
+                    await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
+                    await self.flag_quiz.add_data(guess.author.id, tries - 1, correct, user=user)
+                    return
+                #If retry is still True (not changed) then the guess was incorrect
+                elif retry:
+                    await errorEmb(inter, "Incorrect")
 
         await self.flag_quiz.add_data(inter.author.id, tries, correct, user=user)
         await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
