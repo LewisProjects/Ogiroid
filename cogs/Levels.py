@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from cachetools import TTLCache
 from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Option, Embed
 from disnake.ext import commands
-from disnake.ext.commands import CooldownMapping, BucketType, Cog
+from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param
 
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
 from utils.bot import OGIROID
@@ -284,14 +284,12 @@ class LevelsController:
         await message.channel.send(msg)
 
     async def get_rank(self, user_record) -> int:
-        user_xp = user_record.total_exp
         sql = "SELECT * FROM levels WHERE level >= ? ORDER BY level DESC"
-        records_raw = await self.db.execute(sql, (user_xp,))
-        records = [await records_raw.fetchall()].sort(key=lambda x: x.total_exp, reverse=True)
+        records_raw = await self.db.execute(sql, (user_record.lvl,))
+        records = await records_raw.fetchall()
+        user_records = sorted([User(*record) for record in records], key=lambda x: x.total_exp, reverse=True)
         rank = 1
-
-        for record in records:
-            record = User(*record)
+        for record in user_records:
             if record.user_id == user_record.user_id:
                 return rank
             rank += 1
@@ -354,15 +352,15 @@ class Level(commands.Cog):
             return await errorEmb(inter, text="Bots can't rank up!")
         try:
             user_record = await self.controller.get_user(user)
+            if not user_record:
+                print("[Level] User not found")
+                await self.controller.add_user(user, inter.guild)
+                return await self.rank(inter, user)
+            rank = await self.controller.get_rank(user_record)
+            image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
+            await inter.send(file=image)
         except UserNotFound:
             return await errorEmb(inter, text="User has never spoke!")
-        if not user_record:
-            print("[Level] User not found")
-            await self.controller.add_user(user, inter.guild)
-            return await self.rank(inter, user)
-        rank = await self.controller.get_rank(user_record)
-        image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
-        await inter.send(file=image)
 
     @staticmethod
     async def random_xp():
@@ -388,7 +386,7 @@ class Level(commands.Cog):
     @commands.slash_command()
     @commands.guild_only()
     @commands.has_any_role("Staff", "staff")
-    async def set_lvl(self, inter: ApplicationCommandInteraction, user: Member, level: int):
+    async def set_lvl(self, inter: ApplicationCommandInteraction, user: Member, level: int = Param(description="The level to set the user to", le=0, ge=100)):
         """
         Set a user's level
         """
@@ -396,7 +394,10 @@ class Level(commands.Cog):
             return await errorEmb(inter, text=f"Level must be between 0 and {MAX_LEVEL}")
         if user.bot:
             return await errorEmb(inter, text="Bots can't rank up!")
-        await self.controller.set_level(user, level)
+        try:
+            await self.controller.set_level(user, level)
+        except LevelingSystemError:
+            return await errorEmb(inter, text="Invalid mofo")
         await sucEmb(inter, text=f"Set {user.mention}'s level to {level}", ephemeral=False)
 
     @commands.slash_command()
