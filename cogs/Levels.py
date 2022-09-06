@@ -70,12 +70,14 @@ class LevelsController:
         )
         await self.db.commit()
 
-    def get_xp_for_level(self, level: int) -> int:
+
+    def get_total_xp_for_level(self, level: int) -> int:
         """
         Returns the total amount of XP needed for the specified level. Levels go from 0-100
         """
+
         try:
-            return LEVELS_AND_XP[level]
+            return sum([exp for exp in [LEVELS_AND_XP[lvl] for lvl in range(1, level + 1)]][::-1])
         except KeyError:
             raise ValueError(f"Levels only go from 0-{MAX_LEVEL}, {level} is not a valid level")
 
@@ -113,12 +115,12 @@ class LevelsController:
 
     async def set_level(self, member: Member, level: int) -> None:
         if 0 <= level <= MAX_LEVEL:
-            print("set level")
+            total_exp = self.get_total_xp_for_level(level)
             await self._update_record(
                 member=member,
                 level=level,
                 xp=0,
-                total_exp=LEVELS_AND_XP[level],
+                total_exp=total_exp,
                 guild_id=member.guild.id,
             )  # type: ignore
         else:
@@ -216,7 +218,7 @@ class LevelsController:
         return User(*raw)
 
     async def generate_image_card(self, user: Member | User, rank: str, xp: int, lvl: int) -> Image:
-        """generates an image card for the user"""
+        """generates an image card for the user""" # todo check uses of xp
         avatar: disnake.Asset = user.display_avatar.with_size(512)
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
@@ -262,7 +264,7 @@ class LevelsController:
             print(f'{previous_xp=}')
             print(f'{next_xp=}') # FIXME remove these and fix width
             print(f'{xp=}')
-            width = abs(round(((xp - previous_xp) / (next_xp - previous_xp)) * 418, 2))
+            width = abs(round(((xp) / (next_xp)) * 418, 2))
             print(f'{width=}')
             fnt = ImageFont.truetype("utils/data/opensans-semibold.ttf", 24)
             # get a drawing context
@@ -359,7 +361,8 @@ class Level(commands.Cog):
             await self.controller.add_user(user, inter.guild)
             return await self.rank(inter, user)
         rank = await self.controller.get_rank(user_record)
-        image = await self.controller.generate_image_card(user, rank, sum(user_record.TotalExp), user_record.lvl)
+        print(user_record.TotalExp, user_record.total_exp, 'hi')
+        image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
         await inter.send(file=image)
 
     @staticmethod
@@ -380,13 +383,13 @@ class Level(commands.Cog):
         embed = Embed(title="Leaderboard", color=0x00FF00)
         for i, record in enumerate(records):
             user = await self.bot.fetch_user(record.user_id)
-            embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nXP: {record.total_exp}", inline=False)
+            embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
         await inter.send(embed=embed)
 
     @commands.slash_command()
     @commands.guild_only()
     @commands.has_any_role("Staff", "staff")
-    async def set_rank(self, inter: ApplicationCommandInteraction, user: Member, level: int):
+    async def set_lvl(self, inter: ApplicationCommandInteraction, user: Member, level: int):
         """
         Set a user's level
         """
