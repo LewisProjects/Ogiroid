@@ -61,6 +61,10 @@ class ErrorHandler(Cog):
                 return await errorEmb(inter, f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
             elif isinstance(error, GuildNotFound):
                 return await errorEmb(error, f"You can only use this command in a server")
+            elif isinstance(error, CheckFailure):
+                if self.bot.uptime - 10 < datetime.now():
+                    return await errorEmb(inter, "wait a few seconds before using this command again")
+                return await errorEmb(inter, "You don't have permission to use this command")
             elif self.debug_mode:
                 traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4))
                 print(traceback_nice)
