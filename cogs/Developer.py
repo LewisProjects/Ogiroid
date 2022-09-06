@@ -7,7 +7,7 @@ from contextlib import redirect_stdout
 
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
-from disnake.ext.commands import Cog
+from disnake.ext.commands import Cog, Param
 
 from utils import checks
 from utils.assorted import traceback_maker
@@ -78,6 +78,20 @@ class Dev(Cog):
                 self._last_result = ret
                 await inter.send(f"```py\n{value}{ret}\n```")
 
+    @staticmethod
+    def autocomplete(inter: ApplicationCommandInteraction, option_name: str):
+        """Autocomplete for the reload command"""
+        options = os.listdir("cogs")
+        options = [option[:-3] for option in options if option.endswith(".py")]
+        return [option for option in options if option.startswith(inter.data.options[0].value)]
+
+    @staticmethod
+    def autocomplete_util(inter: ApplicationCommandInteraction, option_name: str):
+        """Autocomplete for the reload command"""
+        options = os.listdir("utils")
+        options = [option[:-3] for option in options if option.endswith(".py")]
+        return [option for option in options if option.startswith(inter.data.options[0].value)]
+
     @commands.slash_command()
     @checks.is_dev()
     async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str):
@@ -87,7 +101,7 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def load(self, inter: ApplicationCommandInteraction, name: str):
+    async def load(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
         """ The command is used to load the Extensions into the Bot."""
         name = name.title()
         try:
@@ -98,7 +112,7 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def unload(self, inter: ApplicationCommandInteraction, name: str):
+    async def unload(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
         """ Unloads an extension. """
         name = name.title()
         try:
@@ -109,7 +123,7 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def reload(self, inter: ApplicationCommandInteraction, name: str):
+    async def reload(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
         """ Reloads an extension. """
         name = name.title()
         try:
@@ -142,9 +156,9 @@ class Dev(Cog):
 
         await inter.send("Successfully reloaded all extensions")
 
-    @commands.command(aliases=["ru"])
-    @commands.is_owner()
-    async def reloadutils(self, inter: ApplicationCommandInteraction, name: str):
+    @commands.slash_command()
+    @checks.is_dev()
+    async def reloadutils(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete_util)):
         """ Reloads a utils module. """
         name_maker = f"utils/{name}.py"
         try:
