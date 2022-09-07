@@ -17,10 +17,10 @@ class Starboard(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
-        if payload.emoji.name == self.star_emoji:
+        starboard_channel = message.guild.get_channel(self.starboard_channel_id)
+        if payload.emoji.name == self.star_emoji and not message.channel == starboard_channel:
             for reaction in message.reactions:
                 if reaction.emoji == self.star_emoji and reaction.count == self.num_of_stars:
-                    starboard_channel = message.guild.get_channel(self.starboard_channel_id)
                     embed = disnake.Embed(
                         description=f"{message.content}\n\n**[Jump to message]({message.jump_url})**",
                         color=disnake.Color.gold(),
