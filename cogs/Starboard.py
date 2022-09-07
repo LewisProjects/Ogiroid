@@ -18,7 +18,7 @@ class Starboard(commands.Cog):
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
         starboard_channel = message.guild.get_channel(self.starboard_channel_id)
-        if payload.emoji.name == self.star_emoji and not message.channel == starboard_channel:
+        if payload.emoji.name == self.star_emoji and not channel == starboard_channel:
             for reaction in message.reactions:
                 if reaction.emoji == self.star_emoji and reaction.count == self.num_of_stars:
                     embed = disnake.Embed(
