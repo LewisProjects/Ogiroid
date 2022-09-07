@@ -20,7 +20,6 @@ class Dev(Cog):
 
         self._last_result = None
 
-
     def cleanup_code(self, content):
         """Automatically removes code blocks from the code."""
         # remove ```py\n```
@@ -95,14 +94,14 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str):
-        """ says text """
+        """says text"""
         await (await inter.original_message()).delete()
-        await inter.send(f'{what_to_say}')
+        await inter.send(f"{what_to_say}")
 
     @commands.slash_command()
     @checks.is_dev()
     async def load(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
-        """ The command is used to load the Extensions into the Bot."""
+        """The command is used to load the Extensions into the Bot."""
         name = name.title()
         try:
             self.bot.load_extension(f"cogs.{name}")
@@ -113,7 +112,7 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def unload(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
-        """ Unloads an extension. """
+        """Unloads an extension."""
         name = name.title()
         try:
             self.bot.unload_extension(f"cogs.{name}")
@@ -124,7 +123,7 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def reload(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
-        """ Reloads an extension. """
+        """Reloads an extension."""
         name = name.title()
         try:
             self.bot.reload_extension(f"cogs.{name}")
@@ -135,7 +134,7 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def reloadall(self, inter: ApplicationCommandInteraction):
-        """ Reloads all extensions. """
+        """Reloads all extensions."""
         error_collection = []
         for file in os.listdir("cogs"):
             if file.endswith(".py"):
@@ -143,15 +142,12 @@ class Dev(Cog):
                 try:
                     self.bot.reload_extension(f"cogs.{name}")
                 except Exception as e:
-                    error_collection.append(
-                        [file, traceback_maker(e, advance=False)]
-                    )
+                    error_collection.append([file, traceback_maker(e, advance=False)])
 
         if error_collection:
             output = "\n".join([f"**{g[0]}** ```diff\n- {g[1]}```" for g in error_collection])
             return await inter.send(
-                f"Attempted to reload all extensions, was able to reload, "
-                f"however the following failed...\n\n{output}"
+                f"Attempted to reload all extensions, was able to reload, " f"however the following failed...\n\n{output}"
             )
 
         await inter.send("Successfully reloaded all extensions")
@@ -159,7 +155,7 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def reloadutils(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete_util)):
-        """ Reloads a utils module. """
+        """Reloads a utils module."""
         name_maker = f"utils/{name}.py"
         try:
             module_name = importlib.import_module(f"utils.{name}")
@@ -170,5 +166,7 @@ class Dev(Cog):
             error = traceback_maker(e)
             return await inter.send(f"Module **{name_maker}** returned error and was not reloaded...\n{error}")
         await inter.send(f"Reloaded module **{name_maker}**")
+
+
 def setup(bot):
     bot.add_cog(Dev(bot))

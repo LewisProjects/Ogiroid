@@ -105,7 +105,7 @@ class Trivia(commands.Cog, name="Trivia"):
                     await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
                     await self.flag_quiz.add_data(guess.author.id, tries - 1, correct, user=user)
                     return
-                #If retry is still True (not changed) then the guess was incorrect
+                # If retry is still True (not changed) then the guess was incorrect
                 elif retry:
                     await errorEmb(inter, "Incorrect")
 

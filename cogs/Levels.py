@@ -8,7 +8,7 @@ from io import BytesIO
 from typing import Union, Optional, Tuple
 
 import disnake
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 from cachetools import TTLCache
 from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Option, Embed
 from disnake.ext import commands
@@ -211,7 +211,7 @@ class LevelsController:
         return User(*raw)
 
     async def generate_image_card(self, user: Member | User, rank: str, xp: int, lvl: int) -> Image:
-        """generates an image card for the user""" # todo check uses of xp
+        """generates an image card for the user"""
         avatar: disnake.Asset = user.display_avatar.with_size(512)
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
@@ -316,12 +316,18 @@ class Level(commands.Cog):
             await msg.author.add_roles(role, reason=f"Level up to level {level}")
 
     async def is_role_reward(self, guild: Guild, level: int) -> bool:
-        query = await self.bot.db.execute("SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = ? AND required_lvl = ?)", (guild.id, level))
+        query = await self.bot.db.execute(
+            "SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = ? AND required_lvl = ?)", (guild.id, level)
+        )
         return await query.fetchone() is not None
 
     async def get_role_reward(self, guild: Guild, level: int) -> Role:
-        query = await self.bot.db.execute("SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?", (guild.id, level))
+
+        query = await self.bot.db.execute(
+            "SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?", (guild.id, level)
+        )
         role_id = (await query.fetchone())[0]
+
         return guild.get_role(role_id)
 
     @commands.Cog.listener()
@@ -386,7 +392,12 @@ class Level(commands.Cog):
     @commands.slash_command()
     @commands.guild_only()
     @commands.has_any_role("Staff", "staff")
-    async def set_lvl(self, inter: ApplicationCommandInteraction, user: Member, level: int = Param(description="The level to set the user to", le=0, ge=100)):
+    async def set_lvl(
+        self,
+        inter: ApplicationCommandInteraction,
+        user: Member,
+        level: int = Param(description="The level to set the user to", le=0, ge=100),
+    ):
         """
         Set a user's level
         """

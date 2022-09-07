@@ -98,15 +98,12 @@ class Staff(commands.Cog):
         inter: ApplicationCommandInteraction,
         member: disnake.Member,
         reason: str = None,
-        delete_messages: int = ParamInfo(
-            description="How many days of messages to delete.", default=7, choices=[0, 1, 2, 3, 4, 5, 6, 7]
-        ),
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=member, reason=reason or 'softban', delete_message_days=delete_messages)
+        await inter.guild.ban(user=member, reason=reason or "softban", delete_message_days=7)
         await sucEmb(inter, "User has been softbanned successfully!")
         await asyncio.sleep(5)
-        await inter.guild.unban(user=member, reason='softban unban')
+        await inter.guild.unban(user=member, reason="softban unban")
 
     @commands.slash_command(name="kick", description="Kicks a user from the server.")
     @commands.has_permissions(kick_members=True)
