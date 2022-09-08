@@ -42,24 +42,26 @@ class Welcome(Cog):
         else:
             pass
 
-        greetings = ["Hello", "Hi", "Greetings", "Hola", "Bonjour"]
-        chan = self.get_channel(self.bot.config.channels.welcome)
-        embed = disnake.Embed(
-            title="Welcome to the server.",
-            description=f"You are the {len(member.guild.members)}th member of the server.\nMake sure to checkout the rules {self.bot.config.emojis.rules}!\nGet yourself a custom role {self.bot.config.emojis.roles}!\nWe'd love it if you could introduce yourself!",
-            color=0xFFFFFF,
-            timestamp=datetime.utcnow(),
-        )
-        embed.set_author(
-            name=f"{random.choice(greetings)}, {member.name}",
-            icon_url=f"{member.display_avatar}",
-        )
-        embed.set_thumbnail(url=member.display_avatar)
-        await chan.send(f"{member.mention}, Welcome to Coding w/ Lewis' official Discord Server!", embed=embed)
+        greetings = ["Hello", "Hi", "Greetings", "Hola", "Bonjour", "Konnichiwa"]
+        secondary_greeting = [
+            "Welcome to Lewis Menelaws' Official Discord Server! Feel free to look around & introduce yourself.",
+            "Welcome to the server! We wish you have a great time here, make sure you tell us a little bit about yourself.",
+            "Hope you are doing well! Welcome to the server. How about start by introducing yourself?",
+            "It's great to have you here, please feel free to look around & introduce yourself.",
+            "Woohoo! You have made it, please introduce yourself.",
+            "You have arrived! Feels great to have you here, maybe look around & introduce yourself?"
+        ]
+        greeting_emojis = ["👋", "🎊", "🎉", "💻", "🙏", "🤝"]
+        chan = self.get_channel(self.bot.config.channels.general)
+
+        welcome_msg = f"{random.choice(greetings)} {member.mention}! {random.choice(secondary_greeting)}\nWe are now at: {len(member.guild.members)} members!"
+        msg = await chan.send(welcome_msg)
+        
+        await msg.add_reaction(random.choice(greeting_emojis))
 
     @Cog.listener()
     async def on_member_remove(self, member):
-        channel = self.get_channel(self.bot.config.channels.goodbye)
+        channel = self.get_channel(self.bot.config.channels.logs)
         embed = disnake.Embed(
             title="Goodbye :(",
             description=f"{member.mention} has left the server. There are now `{member.guild.member_count}` members",
