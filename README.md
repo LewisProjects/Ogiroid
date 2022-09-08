@@ -17,8 +17,9 @@ Main Contributors/Developers:
 </ul>
 The bot is currently on release: <b>1.8.0</b><br>
 License: MIT<br>
-Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/contributing.md">contribution guidelines</a>
+Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/CONTRIBUTING.md">contribution guidelines</a>
 <hr>
+
 <h3>Changelog 08-09-2022:</h3>
 <ol>
 <li>New Level System introduced 🏆🏆🏆.</li>
