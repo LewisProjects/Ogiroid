@@ -1,16 +1,11 @@
 import asyncio
 import datetime as dt
-import io
-import textwrap
-import traceback
-from contextlib import redirect_stdout
 
 import disnake
 from disnake import TextInputStyle, PartialEmoji, Color, ApplicationCommandInteraction, Option
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
 
-from utils import checks
 from utils.DBhandlers import RolesHandler, WarningHandler
 from utils.bot import OGIROID
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound

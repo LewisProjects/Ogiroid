@@ -49,12 +49,12 @@ class Channels:
 
 @dataclass
 class Guilds:
-    #Lewis server
+    # Lewis server
     main_guild: int = 897666935708352582
 
     @classmethod
     def dev(cls):
-        #Ogiroid testing server
+        # Ogiroid testing server
         cls.main_guild: int = 985234686878023730
         return cls
 

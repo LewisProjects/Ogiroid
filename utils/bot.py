@@ -1,11 +1,11 @@
 import asyncio
+import json
 from datetime import datetime
 from os import listdir
 
 import aiosqlite
 import asyncpg
 import disnake
-from asyncpg import Connection
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
 from disnake.ext.commands import when_mentioned_or
@@ -46,7 +46,7 @@ class OGIROID(commands.Bot):
         self.commands_ran = {}
         self.total_commands_ran = 0
         self.db = None
-        self.pool: asyncpg.Pool
+        self.pool: asyncpg.Pool = None
         self.blacklist: BlacklistHandler = None
         self.add_check(self.blacklist_check, call_once=True)
         self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
@@ -130,12 +130,36 @@ class OGIROID(commands.Bot):
                     with open(f"migrations/{file}", "r") as migration_sql:
                         await self.db.executescript(migration_sql.read())
 
-        ##async with asyncpg.connect('postgresql://postgres@localhost/test') as self.conn:
-        ##    await self.conn.su(SETUP_SQL)
+        self.pool: asyncpg.Pool = await self.create_pool()
         await super().start(*args, **kwargs)
 
+    async def create_pool(self) -> asyncpg.Pool:
+        def _encode_jsonb(value):
+            return json.dumps(value)
 
+        def _decode_jsonb(value):
+            return json.loads(value)
 
+        async def init(con):
+            await con.set_type_codec(
+                "jsonb",
+                schema="pg_catalog",
+                encoder=_encode_jsonb,
+                decoder=_decode_jsonb,
+                format="text",
+            )
+
+        return await asyncpg.create_pool(
+            user=self.config.Database.user,
+            password=self.config.Database.password,
+            database=self.config.Database.database,
+            host=self.config.Database.host,
+            port=self.config.Database.port,
+            init=init,
+            command_timeout=60,
+            max_size=20,
+            min_size=20,
+        )
 
     @property
     def ready_(self):

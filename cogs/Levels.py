@@ -8,9 +8,9 @@ from io import BytesIO
 from typing import Union, Optional, Tuple
 
 import disnake
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from cachetools import TTLCache
-from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Option, Embed
+from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Embed
 from disnake.ext import commands
 from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param
 

@@ -11,7 +11,6 @@ from disnake.ext.commands import Cog, Param
 
 from utils import checks
 from utils.assorted import traceback_maker
-from utils.checks import is_dev
 
 
 class Dev(Cog):
