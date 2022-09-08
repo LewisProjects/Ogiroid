@@ -103,7 +103,7 @@ class OGIROID(commands.Bot):
             await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
             print("--------------------------------------------------------------------------------")
             print("Bot is ready! Logged in as: " + self.user.name)
-            print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani | DWAA")
+            print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani")
             print(f"Bot version: {__VERSION__}")
             print("--------------------------------------------------------------------------------")
             await asyncio.sleep(5)  # Wait 5 seconds for the bot to load the database and setup
