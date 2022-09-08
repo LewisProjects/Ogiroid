@@ -23,7 +23,10 @@ Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProje
 <ol>
 <li>New Level System introduced 🏆🏆🏆.</li>
 <li>Direct Messages a user upon joining the server.</li>
+<li>Soft Ban Command!</li>
+<li>Starboard Minor Fix</li>
 <li>Minor fixes with the flag quiz leaderboard system.</li>
+<li>Eval Command for @developers.</li>
 <li>Fixed a lot of bugs 🐛🐛.</li>
 </ol>
 <hr>
