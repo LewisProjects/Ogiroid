@@ -396,7 +396,7 @@ class Level(commands.Cog):
         self,
         inter: ApplicationCommandInteraction,
         user: Member,
-        level: int = Param(description="The level to set the user to", le=0, ge=100),
+        level: int = Param(description="The level to set the user to", le=100, ge=0),
     ):
         """
         Set a user's level
