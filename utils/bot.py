@@ -1,8 +1,11 @@
 import asyncio
 from datetime import datetime
+from os import listdir
 
 import aiosqlite
+import asyncpg
 import disnake
+from asyncpg import Connection
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
 from disnake.ext.commands import when_mentioned_or
@@ -43,7 +46,7 @@ class OGIROID(commands.Bot):
         self.commands_ran = {}
         self.total_commands_ran = 0
         self.db = None
-        self.conn = None
+        self.pool: asyncpg.Pool
         self.blacklist: BlacklistHandler = None
         self.add_check(self.blacklist_check, call_once=True)
         self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
@@ -121,7 +124,18 @@ class OGIROID(commands.Bot):
     async def start(self, *args, **kwargs):
         async with aiosqlite.connect("data.db") as self.db:
             await self.db.executescript(SETUP_SQL)
-            await super().start(*args, **kwargs)
+            # run the db migrations in /migrations
+            for file in listdir("migrations"):
+                if file.endswith(".sql"):
+                    with open(f"migrations/{file}", "r") as migration_sql:
+                        await self.db.executescript(migration_sql.read())
+
+        ##async with asyncpg.connect('postgresql://postgres@localhost/test') as self.conn:
+        ##    await self.conn.su(SETUP_SQL)
+        await super().start(*args, **kwargs)
+
+
+
 
     @property
     def ready_(self):
