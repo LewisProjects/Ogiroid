@@ -11,7 +11,7 @@ class Starboard(commands.Cog):
         self.bot = bot
         self.starboard_channel_id = self.bot.config.channels.starboard
         self.star_emoji = "⭐"
-        self.num_of_stars = 1
+        self.num_of_stars = 4
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
