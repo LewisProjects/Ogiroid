@@ -14,8 +14,8 @@ class Tokens:
 
 @dataclass
 class Database:
-    user: str = os.getenv("POSTGRES_PASSWORD")
-    password: str = os.getenv("POSTGRES_PASS")
+    user: str = os.getenv("POSTGRES_USER")
+    password: str = os.getenv("POSTGRES_PASSWORD")
     host: str = os.getenv("POSTGRES_HOST")
     port: str = os.getenv("POSTGRES_PORT")
     database: str = "production"
