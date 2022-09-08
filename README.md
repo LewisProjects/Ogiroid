@@ -28,5 +28,6 @@ Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProje
 <li>Minor fixes with the flag quiz leaderboard system.</li>
 <li>Eval Command for @developers.</li>
 <li>Fixed a lot of bugs 🐛🐛.</li>
+<li>New welcome message scheme.</li>
 </ol>
 <hr>
