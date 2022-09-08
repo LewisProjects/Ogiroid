@@ -16,7 +16,7 @@ class Starboard(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         channel = self.bot.get_channel(payload.channel_id)
-        if channel.guild.id != self.bot.config.guilds.main_guild:
+        if channel.guild.id != self.bot.config.guilds.main_guild or channel.id == self.starboard_channel_id:
             return
         message = await channel.fetch_message(payload.message_id)
         starboard_channel = message.guild.get_channel(self.starboard_channel_id)
