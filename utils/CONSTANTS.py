@@ -48,6 +48,18 @@ class Channels:
 
 
 @dataclass
+class Guilds:
+    #Lewis server
+    main_guild: int = 897666935708352582
+
+    @classmethod
+    def dev(cls):
+        #Ogiroid testing server
+        cls.main_guild: int = 985234686878023730
+        return cls
+
+
+@dataclass
 class Roles:
     staff: int = 980700205328502794
 

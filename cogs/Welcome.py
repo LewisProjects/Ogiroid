@@ -14,6 +14,8 @@ class Welcome(Cog):
 
     @Cog.listener()
     async def on_member_join(self, member: disnake.Member):
+        if member.guild.id != self.bot.config.guilds.main_guild:
+            return
         if member.dm_channel is None:
             introduction = self.bot.get_channel(self.bot.config.channels.introduction)
             general = self.bot.get_channel(self.bot.config.channels.general)
@@ -61,6 +63,8 @@ class Welcome(Cog):
 
     @Cog.listener()
     async def on_member_remove(self, member):
+        if member.guild.id != self.bot.config.guilds.main_guild:
+            return
         channel = self.get_channel(self.bot.config.channels.logs)
         embed = disnake.Embed(
             title="Goodbye :(",

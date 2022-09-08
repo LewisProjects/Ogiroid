@@ -11,11 +11,13 @@ class Starboard(commands.Cog):
         self.bot = bot
         self.starboard_channel_id = self.bot.config.channels.starboard
         self.star_emoji = "⭐"
-        self.num_of_stars = 4
+        self.num_of_stars = 1
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         channel = self.bot.get_channel(payload.channel_id)
+        if channel.guild.id != self.bot.config.guilds.main_guild:
+            return
         message = await channel.fetch_message(payload.message_id)
         starboard_channel = message.guild.get_channel(self.starboard_channel_id)
         if payload.emoji.name == self.star_emoji and not channel == starboard_channel:

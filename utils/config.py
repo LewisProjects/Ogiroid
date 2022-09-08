@@ -23,9 +23,11 @@ class Config:
         channels = Channels.dev()
         roles = Roles.dev()
         emojis = Emojis.dev()
+        guilds = Guilds.dev()
         debug = True
     else:
         emojis = Emojis
         channels = Channels
         roles = Roles
+        guilds = Guilds
         debug = False
