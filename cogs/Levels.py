@@ -423,8 +423,8 @@ class Level(commands.Cog):
     async def add(
         self,
         inter: ApplicationCommandInteraction,
-        role: Role = Option(name="role", description="what role to give", required=True),
-        level_needed: int = Option(name="level_needed", description="The level needed to get the role", required=True),
+        role: Role = Param(name="role", description="what role to give"),
+        level_needed: int = Param(name="level_needed", description="The level needed to get the role"),
     ):
         """adds a role to the reward list"""
         if int(level_needed) not in self.levels:
@@ -440,7 +440,9 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def remove(
-        self, inter: ApplicationCommandInteraction, role: Role = Option(type=Role, name="role", description="what role to give")
+        self,
+        inter: ApplicationCommandInteraction,
+        role: Role = Param(name="role", description="what role to remove"),
     ):
         """remove a role reward"""
         if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
