@@ -423,8 +423,8 @@ class Level(commands.Cog):
     async def add(
         self,
         inter: ApplicationCommandInteraction,
-        role: Role = Option(type=Role, name="role", description="what role to give"),
-        level_needed=Option(name="level_needed", type=int, description="The level needed to get the role"),
+        role: Role = Option(name="role", description="what role to give", required=True),
+        level_needed: int = Option(name="level_needed", description="The level needed to get the role", required=True),
     ):
         """adds a role to the reward list"""
         if int(level_needed) not in self.levels:
