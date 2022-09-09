@@ -129,7 +129,7 @@ class OGIROID(commands.Bot):
                 if file.endswith(".sql"):
                     with open(f"migrations/{file}", "r") as migration_sql:
                         await self.db.executescript(migration_sql.read())
-            #self.pool: asyncpg.Pool = await self.create_pool()
+            # self.pool: asyncpg.Pool = await self.create_pool()
             await super().start(*args, **kwargs)
 
     async def create_pool(self) -> asyncpg.Pool:
