@@ -1,3 +1,1 @@
-DROP INDEX IF EXISTS levels.total_exp;
-
-
+ALTER TABLE levels DROP COLUMN total_xp;
