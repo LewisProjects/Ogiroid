@@ -320,7 +320,7 @@ class Level(commands.Cog):
         query = await self.bot.db.execute(
             "SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = ? AND required_lvl = ?)", (guild.id, level)
         )
-        return await query.fetchone() is not None
+        return bool((await query.fetchone())[0])
 
     async def get_role_reward(self, guild: Guild, level: int) -> Role:
 
