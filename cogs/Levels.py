@@ -313,7 +313,8 @@ class Level(commands.Cog):
         await self.controller.send_levelup(msg, level)
         if await self.is_role_reward(msg.guild, level):
             role = await self.get_role_reward(msg.guild, level)
-            await msg.author.add_roles(role, reason=f"Level up to level {level}")
+            if role is not None:
+                await msg.author.add_roles(role, reason=f"Level up to level {level}")
 
     async def is_role_reward(self, guild: Guild, level: int) -> bool:
         query = await self.bot.db.execute(
@@ -326,7 +327,10 @@ class Level(commands.Cog):
         query = await self.bot.db.execute(
             "SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?", (guild.id, level)
         )
-        role_id = (await query.fetchone())[0]
+        try:
+            role_id = (await query.fetchone())[0]
+        except TypeError:
+            return None
 
         return guild.get_role(role_id)
 
