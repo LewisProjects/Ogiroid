@@ -4,16 +4,15 @@ import os
 import random
 import time
 from datetime import datetime, timezone
-from urllib import request
 
 import akinator as ak
 import disnake
+import requests
 from discord_together import DiscordTogether
 from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
 from disnake.utils import utcnow
 from dotenv import load_dotenv
-import requests
 
 from utils.CONSTANTS import morse
 from utils.assorted import renderBar
@@ -91,7 +90,7 @@ class Fun(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def poll(
         self,
-        inter,
+        inter: ApplicationCommandInteraction,
         question,
         choice1,
         choice2,
@@ -146,14 +145,14 @@ class Fun(commands.Cog):
 
     @commands.slash_command()
     @commands.cooldown(1, 2, commands.BucketType.user)
-    async def joke(self, inter):
+    async def joke(self, inter: ApplicationCommandInteraction):
         """Get a random joke!"""
         response = await self.bot.session.get("https://some-random-api.ml/joke")
         data = await response.json()
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
             text=f"Command issued by: {inter.author.name}",
-            icon_url=inter.message.author.display_avatar,
+            icon_url=inter.author.display_avatar,
         )
         await inter.send(embed=embed)
 
@@ -163,7 +162,7 @@ class Fun(commands.Cog):
         description="For when you're feeling triggered.",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def triggered(self, inter, member: disnake.Member = None):
+    async def triggered(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Time to get triggered."""
         if not member:
             member = inter.author
@@ -177,7 +176,7 @@ class Fun(commands.Cog):
         description="Check if your friend is kinda ***SUS***",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def amongus(self, inter, member: disnake.Member = None):
+    async def amongus(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Check if your friends are sus or not"""
         await inter.send("Testing for sus-ness...")
         if not member:
@@ -194,7 +193,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="invert", brief="invert", description="Invert the colours of your icon")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def invert(self, inter, member: disnake.Member = None):
+    async def invert(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Invert your profile picture."""
         if not member:
             member = inter.author
@@ -204,7 +203,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="pixelate", brief="pixelate", description="Turn yourself into 144p!")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pixelate(self, inter, member: disnake.Member = None):
+    async def pixelate(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
@@ -214,7 +213,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jail(self, inter, member: disnake.Member = None):
+    async def jail(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Go to horny jail"""
         if not member:
             member = inter.author
@@ -226,7 +225,7 @@ class Fun(commands.Cog):
     @commands.slash_command(
         name="beer", description="Give someone a beer! 🍻"
     )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
-    async def beer(self, inter, user: disnake.Member = None, *, reason):
+    async def beer(self, inter: ApplicationCommandInteraction, user: disnake.Member = None, *, reason):
         """Give someone a beer! 🍻"""
         if not user or user.id == inter.author.id:
             return await inter.send(f"**{inter.author.name}**: paaaarty!🎉🍺")
@@ -275,7 +274,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="8ball", brief="8ball", description="Ask the magic 8ball a question")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def eightball(self, inter, *, question):
+    async def eightball(self, inter: ApplicationCommandInteraction, *, question):
         """Ask the magic 8ball a question"""
         responses = [
             "It is certain.",
@@ -411,7 +410,7 @@ class Fun(commands.Cog):
         pass
 
     @morse.sub_command(name="encode", description="Encodes text into morse code.")
-    async def encode(self, inter, text: str):
+    async def encode(self, inter: ApplicationCommandInteraction, text: str):
         encoded_list = []
 
         for char in text:
@@ -424,7 +423,7 @@ class Fun(commands.Cog):
         await inter.send(f"``{encoded_string}``")
 
     @morse.sub_command(name="decode", description="Decodes Morse Code into Text.")
-    async def decode(self, inter, morse_code):
+    async def decode(self, inter: ApplicationCommandInteraction, morse_code):
         decoded_list = []
         morse_list = morse_code.split()
 
@@ -443,7 +442,11 @@ class Fun(commands.Cog):
         pass
 
     @pokemon.sub_command(name="info", description="Get information about a Pokémon.")
-    async def info(self, inter, pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon")):
+    async def info(
+        self,
+        inter: ApplicationCommandInteraction,
+        pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon"),
+    ):
         response = await self.bot.session.get(f"https://pokeapi.co/api/v2/pokemon/{pokem}")
         poke_data = await response.json()
 
@@ -464,7 +467,7 @@ class Fun(commands.Cog):
         return await inter.send(embed=embed)
 
     @commands.slash_command(name="urltoqr", description="Converts a URL to a QR code.")
-    async def urltoqr(self, inter, url: str, size: int):
+    async def urltoqr(self, inter: ApplicationCommandInteraction, url: str, size: int):
         url = url.replace("http://", "").replace("https://", "")
         qr = f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
         embed = disnake.Embed(title=f"URL created for: {url}", color=0xFFFFFF)
@@ -473,7 +476,7 @@ class Fun(commands.Cog):
         return await inter.send(embed=embed)
 
     @commands.slash_command(name="urlshortner", description="Shortens a URL.")
-    async def urlshortner(self, inter, url: str):
+    async def urlshortner(self, inter: ApplicationCommandInteraction, url: str):
         # checking if url starts with http:// or https://, if it does not, adding https:// towards the start
         if not url.startswith("http://") and not url.startswith("https://"):
             url = f"https://{url}"

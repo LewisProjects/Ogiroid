@@ -1,5 +1,5 @@
 import disnake
-from disnake import TextInputStyle, Option
+from disnake import TextInputStyle, Option, ApplicationCommandInteraction
 from disnake.ext import commands
 
 from utils.bot import OGIROID
@@ -150,7 +150,7 @@ class BotSupport(commands.Cog, name="Bot Support"):
         ],
         connectors={"for": "bug_report_for"},
     )
-    async def bug(self, inter, bug_report_for: str):
+    async def bug(self, inter: ApplicationCommandInteraction, bug_report_for: str):
         await inter.response.send_modal(modal=BugModal(self.bot, bug_report_for))
 
     @commands.slash_command(

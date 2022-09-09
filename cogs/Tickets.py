@@ -1,12 +1,12 @@
-from datetime import datetime
 import asyncio
+from datetime import datetime
 
 import disnake
 from disnake.ext import commands
 
 from utils.CONSTANTS import TICKET_PERMS
 from utils.bot import OGIROID
-from utils.shortcuts import errorEmb, sucEmb, QuickEmb
+from utils.shortcuts import errorEmb, sucEmb
 
 
 class Tickets(commands.Cog):

@@ -174,7 +174,7 @@ class Commands(commands.Cog):
 
         for feature, label in all_features.items():
             if feature in features:
-                info.append(f"{inter.tick(True)}: {label}")
+                info.append(f":white_check_mark:: {label}")
 
         if info:
             e.add_field(name="Features", value="\n".join(info))

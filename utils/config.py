@@ -13,19 +13,41 @@ class Tokens:
 
 
 @dataclass
+class Database:
+    user: str = os.getenv("POSTGRES_USER")
+    password: str = os.getenv("POSTGRES_PASSWORD")
+    host: str = os.getenv("POSTGRES_HOST")
+    port: str = os.getenv("POSTGRES_PORT")
+    database: str = "production"
+
+    @classmethod
+    def dev(cls):
+        cls.user: str = os.getenv("POSTGRES_PASSWORD")
+        cls.password: str = os.getenv("POSTGRES_PASS")
+        cls.host: str = os.getenv("POSTGRES_HOST")
+        cls.port: str = os.getenv("POSTGRES_PORT")
+        cls.database = "development"
+        return cls
+
+
+@dataclass
 class Config:
     Development = False  # if true will use base server ID's else will use development server ID's
     colors = Colors
     colours = colors
     tokens = Tokens
+    Database = Database
     if Development:
         print("Using Development Config variables")
         channels = Channels.dev()
         roles = Roles.dev()
         emojis = Emojis.dev()
+        guilds = Guilds.dev()
         debug = True
+        Database = Database.dev()
     else:
         emojis = Emojis
         channels = Channels
         roles = Roles
+        guilds = Guilds
         debug = False

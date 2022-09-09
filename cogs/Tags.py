@@ -51,7 +51,7 @@ class Tags(commands.Cog, name="Tags"):
 
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
-    async def get(self, inter, name: str, embeded: bool = False):
+    async def get(self, inter: ApplicationCommandInteraction, name: str, embeded: bool = False):
         if not name:
             return await errorEmb(inter, "You need to specify a tag name")
         name = name.casefold()
@@ -78,7 +78,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="create", description="Creates a tag")
     @commands.guild_only()
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def create(self, inter, name, *, content: str = commands.Param(le=1900)):
+    async def create(self, inter: ApplicationCommandInteraction, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
         try:
             await self.tags.exists(name, TagAlreadyExists, should=False)
@@ -105,7 +105,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="edit", description="Edits the tag")
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def edit(self, inter, name, *, content: str = commands.Param(le=1900)):
+    async def edit(self, inter: ApplicationCommandInteraction, name, *, content: str = commands.Param(le=1900)):
         name = name.casefold()
         try:
             if (inter.author.id != (await self.tags.get(name)).owner) and not manage_messages_perms(inter):
@@ -122,7 +122,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="transfer", description="Transfers the tag's owner")
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def transfer(self, inter, name, new_owner: disnake.Member):
+    async def transfer(self, inter: ApplicationCommandInteraction, name, new_owner: disnake.Member):
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -138,7 +138,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="claim", description="Claims ownership of the tag if the owner isn't in the guild")
     @commands.guild_only()
     @commands.cooldown(1, 300, commands.BucketType.user)
-    async def claim(self, inter, name):
+    async def claim(self, inter: ApplicationCommandInteraction, name):
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -164,7 +164,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="delete", description="Deletes the tag")
     @commands.guild_only()
     @commands.cooldown(1, 180, commands.BucketType.user)
-    async def deltag(self, inter, name):
+    async def deltag(self, inter: ApplicationCommandInteraction, name):
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -178,7 +178,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="info", description="Gives you the tags info")
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def info(self, inter, name):
+    async def info(self, inter: ApplicationCommandInteraction, name):
         name = name.casefold()
         await self.tags.exists(name, TagNotFound, should=True)
         try:

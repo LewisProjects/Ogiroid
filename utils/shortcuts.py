@@ -32,16 +32,16 @@ async def permsEmb(inter: ApplicationCommandInteraction, *, permissions: str):
     )
 
 
-async def errorEmb(inter, text, *args, **kwargs):
+async def errorEmb(inter: ApplicationCommandInteraction, text, ephemeral=True, *args, **kwargs):
     emb = Embed(description=text, color=disnake.Color.red(), *args, **kwargs)
     await inter.send(
         embed=emb,
-        ephemeral=True,
+        ephemeral=ephemeral,
         allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
     )
 
 
-async def warning_embed(inter, user, reason):
+async def warning_embed(inter: ApplicationCommandInteraction, user, reason):
     emb = Embed(
         title=f"Warned {user}",
         description=f"{user.mention} has been warned by {inter.author.mention} for {reason if reason else 'no reason specified'}",
@@ -52,7 +52,7 @@ async def warning_embed(inter, user, reason):
     await inter.send(embed=emb)
 
 
-async def warnings_embed(inter, member, warnings):
+async def warnings_embed(inter: ApplicationCommandInteraction, member, warnings):
     embed = disnake.Embed(title=f"{member.name}'s warnings", color=0xFFFFFF)
     warning_string = ""
     i = 0
@@ -70,7 +70,7 @@ async def warnings_embed(inter, member, warnings):
     await inter.send(embed=embed)
 
 
-async def sucEmb(inter, text, ephemeral=True):
+async def sucEmb(inter: ApplicationCommandInteraction, text, ephemeral=True):
     emb = Embed(description=text, color=disnake.Color.green())
     await inter.send(
         embed=emb,
@@ -80,7 +80,7 @@ async def sucEmb(inter, text, ephemeral=True):
 
 
 class QuickEmb:
-    def __init__(self, inter, msg, color=0xFFFFFF):
+    def __init__(self, inter: ApplicationCommandInteraction, msg, color=0xFFFFFF):
         self.inter = inter
         self.msg = msg
         self.color = color
