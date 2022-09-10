@@ -99,11 +99,11 @@ class timings:
 
 def status(stat):
     statuses = {
-        "dnd": "<:dnd:879146778182692934>",
-        "online": "<:online:879146898219483176>",
-        "offline": "<:offline:879146897951035435>",
-        "idle": "<:idle:879146778388205618>",
-        "streaming": "<:streaming:879146899809128478>",
+        "dnd": "<:dnd:1018237238875783359>",
+        "online": "<:online:1018237386683068417>",
+        "offline": "<:offline:1018237478378934342>",
+        "idle": "<:idle:1018240148925857852>",
+        "streaming": "<:streaming:879146899809128478>",  # where this emoji
     }
     return statuses[stat]
 
