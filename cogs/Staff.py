@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import io
 
 import disnake
 from disnake import TextInputStyle, PartialEmoji, Color, ApplicationCommandInteraction, Option
@@ -274,6 +275,40 @@ class Staff(commands.Cog):
             )
         except Exception as e:
             await inter.send(str(e))
+
+    @commands.slash_command(description="Adds an image to the server emojis")
+    @commands.guild_only()
+    @commands.has_permissions(manage_emojis=True)
+    async def addemoji(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str,
+        input_type: str = commands.Param(choices=["file(image)", "url(image)"], description="What you will input."),
+    ):
+        """Adds an image to the server emojis"""
+        await inter.send(f"Please send the {input_type} now")
+        try:
+            msg = await self.bot.wait_for("message", check=lambda m: m.author == inter.author and m.channel == inter.channel)
+        except asyncio.TimeoutError:
+            return await inter.send("Timed out!")
+
+        if input_type == "url(image)":
+            response = await self.bot.session.get(msg.content.strip().replace("webp", "png"))
+            response_bytes = await response.read()
+            image = response_bytes
+
+        elif input_type == "file(image)":
+            image = await msg.attachments[0].read()
+
+        try:
+            await inter.guild.create_custom_emoji(
+                name=name,
+                image=image,
+                reason=f"Emoji added by {inter.author}",
+            )
+            await sucEmb(inter, "Emoji added successfully!", ephemeral=False)
+        except ValueError:
+            pass
 
     @commands.slash_command(name="faq")
     @commands.guild_only()
