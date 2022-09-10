@@ -32,7 +32,7 @@ class Database:
 
 @dataclass
 class Config:
-    Development = False  # if true will use base server ID's else will use development server ID's
+    Development = True  # if false will use base server ID's else will use development server ID's
     colors = Colors
     colours = colors
     tokens = Tokens
