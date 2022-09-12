@@ -22,17 +22,13 @@ class Database:
 
     @classmethod
     def dev(cls):
-        cls.user: str = os.getenv("POSTGRES_PASSWORD")
-        cls.password: str = os.getenv("POSTGRES_PASS")
-        cls.host: str = os.getenv("POSTGRES_HOST")
-        cls.port: str = os.getenv("POSTGRES_PORT")
         cls.database = "development"
         return cls
 
 
 @dataclass
 class Config:
-    Development = True  # if false will use base server ID's else will use development server ID's
+    Development = True  # if true will use base server ID's else will use development server ID's
     colors = Colors
     colours = colors
     tokens = Tokens
