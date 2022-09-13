@@ -135,7 +135,6 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_message_delete(self, message):
-        log_channel = self.bot.get_channel(self.bot.config.channels.logs)
         if not message.author.bot:
             embed = Embed(
                 title="Message deletion",
@@ -150,6 +149,7 @@ class Log(Cog):
                 embed.add_field(name=name, value=value, inline=inline)
 
             embed.set_footer(text=f"{message.author.name}#{message.author.discriminator}")
+            log_channel = self.bot.get_channel(self.bot.config.channels.logs)
             await log_channel.send(embed=embed)
 
 
