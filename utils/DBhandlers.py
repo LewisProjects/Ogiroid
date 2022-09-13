@@ -2,16 +2,19 @@ from __future__ import annotations, generator_stop
 
 import random
 import time
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, TYPE_CHECKING
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
 from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole, WarningModel
 
+if TYPE_CHECKING:
+    from utils.bot import OGIROID
+
 
 class FlagQuizHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot: 'OGIROID', db):
         self.bot = bot
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
@@ -203,12 +206,13 @@ class BlacklistHandler:
 
 
 class TagManager:
-    def __init__(self, bot, db):
+    def __init__(self, bot: 'OGIROID', db):
         self.bot = bot
         self.db = db
         self.session = self.bot.session
         self.names = {"tags": [], "aliases": []}
         self.cache = AsyncTTL(timings.DAY / 2)  # cache tags for 12 hrs
+        self.pool = self.bot.pool
 
     async def startup(self):
         await self.bot.wait_until_ready()
