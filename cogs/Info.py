@@ -30,14 +30,14 @@ class Info(commands.Cog):
 
         e = disnake.Embed(
             title=f"{weatherData.city}, {weatherData.country}",
-            description=f"Feels like {int(weatherData.tempFeels.celcius)}\N{DEGREE SIGN}C, {weatherData.weatherDetail}",
+            description=f"Feels like {round(weatherData.tempFeels.celcius)}\N{DEGREE SIGN}C, {weatherData.weatherDetail}",
             colour=disnake.Colour(0xEA6D4A),
         )
         e.set_author(
             name="OpenWeather",
             icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
         )
-        e.add_field(name="Temperature", value=f"{int(weatherData.temp.celcius)}\N{DEGREE SIGN}C")
+        e.add_field(name="Temperature", value=f"{round(weatherData.temp.celcius)}\N{DEGREE SIGN}C")
         e.add_field(name="Humidity", value=weatherData.humidity)
         e.add_field(name="Wind", value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
