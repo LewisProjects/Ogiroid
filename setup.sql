@@ -3,8 +3,8 @@ IF NOT EXISTS tags
 (
     tag_id TEXT,
     content TEXT,
-    owner INTEGER,
-    created_at INTEGER,
+    owner BIGINT,
+    created_at BIGINT,
     views INTEGER
 );
 
@@ -18,18 +18,18 @@ IF NOT EXISTS tag_relations
 CREATE TABLE
 IF NOT EXISTS blacklist
 (
-    user_id INTEGER,
+    user_id BIGINT,
     reason TEXT,
     bot BOOLEAN,
     tickets BOOLEAN,
     tags BOOLEAN,
-    expires INTEGER
+    expires BIGINT
 );
 
 CREATE TABLE
 IF NOT EXISTS flag_quizz
 (
-    user_id INTEGER,
+    user_id BIGINT,
     tries INTEGER,
     correct INTEGER,
     completed INTEGER
@@ -38,7 +38,7 @@ IF NOT EXISTS flag_quizz
 CREATE TABLE
 IF NOT EXISTS trivia
 (
-    id INTEGER,
+    id BIGINT,
     correct INTEGER,
     incorrect INTEGER,
     streak INTEGER,
@@ -48,8 +48,8 @@ IF NOT EXISTS trivia
 CREATE TABLE
 IF NOT EXISTS reaction_roles
 (
-    message_id INTEGER,
-    role_id INTEGER,
+    message_id BIGINT,
+    role_id BIGINT,
     emoji TEXT,
     roles_given INTEGER DEFAULT 0
 );
@@ -57,17 +57,17 @@ IF NOT EXISTS reaction_roles
 CREATE TABLE
 IF NOT EXISTS warnings
 (
-    warning_id  SERIAL PRIMARY KEY,
-    user_id INTEGER,
-    moderator_id INTEGER,
+    warning_id SERIAL PRIMARY KEY,
+    user_id BIGINT,
+    moderator_id BIGINT,
     reason TEXT
 );
 
 CREATE TABLE
 IF NOT EXISTS levels
 (
-    guild_id INTEGER,
-    user_id INTEGER,
+    guild_id BIGINT,
+    user_id BIGINT,
     level INTEGER DEFAULT 0,
     xp INTEGER DEFAULT 0
 );
@@ -75,7 +75,7 @@ IF NOT EXISTS levels
 CREATE TABLE
 IF NOT EXISTS role_rewards
 (
-    guild_id INTEGER,
-    role_id INTEGER,
+    guild_id BIGINT,
+    role_id BIGINT,
     required_lvl INTEGER DEFAULT 0
 )
