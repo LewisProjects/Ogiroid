@@ -9,11 +9,21 @@ class Search(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
-    @commands.slash_command(description="Returns a google search for your query")
-    async def google(self, inter, query):
-        """Googles the keyword entered"""
+    @commands.slash_command(description="Returns a search for your query")
+    async def search(
+        self,
+        inter,
+        engine: str = commands.Param(description="Wich Search engine to use", choices=["google", "duckduckgo", "bing"]),
+        query: str = commands.Param(description="The query to search for"),
+    ):
+        """Searches the keyword entered"""
         query = query.rstrip().replace(" ", "+")
-        await inter.send(f"https://www.google.com/search?q={query}")
+        if engine == "google":
+            await inter.send(f"https://google.com/search?q={query}")
+        elif engine == "duckduckgo":
+            await inter.send(f"https://duckduckgo.com/?q={query}")
+        elif engine == "bing":
+            await inter.send(f"https://bing.com/search?q={query}")
 
     @commands.slash_command(name="feeling-lucky", description="Returns the first google result for your query")
     async def lucky(self, inter, query):
