@@ -57,7 +57,7 @@ IF NOT EXISTS reaction_roles
 CREATE TABLE
 IF NOT EXISTS warnings
 (
-    warning_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    warning_id  SERIAL PRIMARY KEY,
     user_id INTEGER,
     moderator_id INTEGER,
     reason TEXT
