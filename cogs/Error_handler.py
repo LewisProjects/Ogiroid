@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import traceback
 from datetime import datetime
+import datetime as dt
 
 import disnake
 from disnake import Embed, ApplicationCommandInteraction, HTTPException
@@ -62,7 +63,7 @@ class ErrorHandler(Cog):
             elif isinstance(error, GuildNotFound):
                 return await errorEmb(error, f"You can only use this command in a server")
             elif isinstance(error, CheckFailure):
-                if self.bot.uptime - 10 < datetime.now():
+                if self.bot.uptime - dt.timedelta(seconds=10) < datetime.now():
                     return await errorEmb(inter, "wait a few seconds before using this command again")
                 return await errorEmb(inter, "You don't have permission to use this command")
             elif self.debug_mode:
