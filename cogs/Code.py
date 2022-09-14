@@ -52,23 +52,24 @@ class CodeModal(disnake.ui.Modal):
 
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
-        if not self._check_valid_lang(inter.text_values["language"]):
-            embed = disnake.Embed(title=f"{inter.text_values['language']} is not a valid language", colour=Color.red())
+        language = inter.text_values["language"].strip()
+        if not self._check_valid_lang(language):
+            embed = disnake.Embed(title=f"{language} is not a valid language", colour=Color.red())
             return await inter.response.send_message(embed=embed)
 
         embed = disnake.Embed(title="Running Code")
         embed.add_field(
             name="Language",
-            value=inter.text_values["language"].capitalize(),
+            value=language.capitalize(),
             inline=False,
         )
         embed.add_field(
             name="Code",
-            value=f"```{inter.text_values['language']}\n" f"{inter.text_values['code'][:999]}\n" f"```",
+            value=f"```{language}\n" f"{inter.text_values['code'][:999]}\n" f"```",
             inline=False,
         )
         await inter.response.send_message(embed=embed)
-        result = await self.run_code(lang=inter.text_values["language"], code=inter.text_values["code"])
+        result = await self.run_code(lang=language, code=inter.text_values["code"])
         await self._send_result(inter, result)
 
     @staticmethod
