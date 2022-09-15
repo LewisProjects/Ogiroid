@@ -335,19 +335,25 @@ class Staff(commands.Cog):
     @commands.slash_command(name="channellock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channellock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel):
+    async def channellock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None):
         """Lock a channel"""
         # Lock's a channel by not letting anyone send messages to it
-        await channel.set_permissions(inter.guild.default_role, send_messages=False)
+        if channel is None:
+            channel = inter.channel
+        await channel.set_permissions(inter.guild.default_role, send_messages=False, create_public_threads=False,
+                                      create_private_threads=False, send_messages_in_threads=False)
         await inter.send(f"🔒 Locked {channel.mention} successfully!")
 
     @commands.slash_command(name="channelunlock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channelunlock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel):
+    async def channelunlock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None):
         """Unlock a channel"""
         # Unlock's a channel by letting everyone send messages to it
-        await channel.set_permissions(inter.guild.default_role, send_messages=True)
+        if channel is None:
+            channel = inter.channel
+        await channel.set_permissions(inter.guild.default_role, send_messages=True, create_public_threads=True,
+                                      create_private_threads=True, send_messages_in_threads=True)
         await inter.send(f"🔓 Unlocked {channel.mention} successfully!")
 
     # Reaction Roles with buttons:
