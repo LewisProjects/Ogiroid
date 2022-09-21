@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class FlagQuizHandler:
-    def __init__(self, bot: 'OGIROID', db):
+    def __init__(self, bot: "OGIROID", db):
         self.bot = bot
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
@@ -159,9 +159,7 @@ class BlacklistHandler:
         if await self.cache.exists(user_id):
             return True
         elif any(user.id == user_id for user in self.blacklist):
-            await self.cache.add(
-                user_id, self.get_user(user_id)
-            )
+            await self.cache.add(user_id, self.get_user(user_id))
             return True
         else:
             return False
@@ -206,13 +204,13 @@ class BlacklistHandler:
 
 
 class TagManager:
-    def __init__(self, bot: 'OGIROID', db):
+    def __init__(self, bot: "OGIROID", db):
         self.bot = bot
         self.db = db
         self.session = self.bot.session
         self.names = {"tags": [], "aliases": []}
         self.cache = AsyncTTL(timings.DAY / 2)  # cache tags for 12 hrs
-        #self.pool = self.bot.pool todo re-add
+        # self.pool = self.bot.pool todo re-add
 
     async def startup(self):
         await self.bot.wait_until_ready()

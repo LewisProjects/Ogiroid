@@ -176,7 +176,7 @@ class Dev(Cog):
 
         for n in range(0, len(self.bot.global_slash_commands), 10):
             embed = disnake.Embed(title="Commands", color=self.bot.config.colors.white)
-            cmds = self.bot.global_slash_commands[n:n+10]
+            cmds = self.bot.global_slash_commands[n : n + 10]
 
             value = ""
             for cmd in cmds:
