@@ -189,7 +189,7 @@ class LevelsController:
                 ]
         ):
             return
-        if not random.randrange(1, 3) == 1:
+        if not random.randrange(1, 4) == 1:
             return
         elif await self.on_cooldown(message):
             return
