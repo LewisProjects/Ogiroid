@@ -151,7 +151,7 @@ class BlacklistHandler:
         """Removes a user from the blacklist"""
         await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
         await self.db.commit()
-            self.blacklist.remove(await self.get_user(user_id))
+        self.blacklist.remove(await self.get_user(user_id))
         await self.cache.remove(user_id)
 
     async def blacklisted(self, user_id: int) -> bool:
