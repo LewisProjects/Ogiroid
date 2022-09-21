@@ -35,19 +35,14 @@ class Blacklist(Cog):
     @tasks.loop(minutes=59)
     async def check_blacklist(self):
         await asyncio.sleep(5)  # ample time for other blacklist module to load
-        remove_que = []
         for user in self.bot.blacklist.blacklist:
-            able_to_remove = await self.check_user_removal(user)
-            if able_to_remove:
-                remove_que.append(user.id)
-        for user_id in remove_que:
-            await self.blacklist.remove(user_id)
+            await self.check_user_removal(user)
 
     async def check_user_removal(self, user: BlacklistedUser):
         if user.id in self.del_que:
             return  # already being removed
         elif user.is_expired():
-            return True
+            await self.blacklist.remove(user.id)
         elif int(time.time()) <= user.expires <= (int(time.time()) + timings.HOUR):
             self.del_que.append(user.id)
             await self.run_at(user.expires, self.blacklist.remove, user.id)

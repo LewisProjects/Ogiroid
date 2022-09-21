@@ -151,7 +151,7 @@ class BlacklistHandler:
         """Removes a user from the blacklist"""
         await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
         await self.db.commit()
-        self.blacklist.remove(self.get_user(user_id))
+            self.blacklist.remove(await self.get_user(user_id))
         await self.cache.remove(user_id)
 
     async def blacklisted(self, user_id: int) -> bool:
@@ -160,8 +160,8 @@ class BlacklistHandler:
             return True
         elif any(user.id == user_id for user in self.blacklist):
             await self.cache.add(
-                user_id, self.get_user(user_id), expires=timings.MINUTE * 30
-            )  # only cache for 30 minutes because this is called on every cmd
+                user_id, self.get_user(user_id)
+            )
             return True
         else:
             return False
