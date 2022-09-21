@@ -2,16 +2,19 @@ from __future__ import annotations, generator_stop
 
 import random
 import time
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, TYPE_CHECKING
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
 from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole, WarningModel
 
+if TYPE_CHECKING:
+    from utils.bot import OGIROID
+
 
 class FlagQuizHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot: "OGIROID", db):
         self.bot = bot
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
@@ -148,7 +151,7 @@ class BlacklistHandler:
         """Removes a user from the blacklist"""
         await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
         await self.db.commit()
-        self.blacklist.remove(self.get_user(user_id))
+        self.blacklist.remove(await self.get_user(user_id))
         await self.cache.remove(user_id)
 
     async def blacklisted(self, user_id: int) -> bool:
@@ -156,9 +159,7 @@ class BlacklistHandler:
         if await self.cache.exists(user_id):
             return True
         elif any(user.id == user_id for user in self.blacklist):
-            await self.cache.add(
-                user_id, self.get_user(user_id), expires=timings.MINUTE * 30
-            )  # only cache for 30 minutes because this is called on every cmd
+            await self.cache.add(user_id, self.get_user(user_id))
             return True
         else:
             return False
@@ -203,12 +204,13 @@ class BlacklistHandler:
 
 
 class TagManager:
-    def __init__(self, bot, db):
+    def __init__(self, bot: "OGIROID", db):
         self.bot = bot
         self.db = db
         self.session = self.bot.session
         self.names = {"tags": [], "aliases": []}
         self.cache = AsyncTTL(timings.DAY / 2)  # cache tags for 12 hrs
+        # self.pool = self.bot.pool todo re-add
 
     async def startup(self):
         await self.bot.wait_until_ready()

@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import io
 
 import disnake
 from disnake import TextInputStyle, PartialEmoji, Color, ApplicationCommandInteraction, Option
@@ -275,6 +276,40 @@ class Staff(commands.Cog):
         except Exception as e:
             await inter.send(str(e))
 
+    @commands.slash_command(description="Adds an image to the server emojis")
+    @commands.guild_only()
+    @commands.has_permissions(manage_emojis=True)
+    async def addemoji(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str,
+        input_type: str = commands.Param(choices=["file(image)", "url(image)"], description="What you will input."),
+    ):
+        """Adds an image to the server emojis"""
+        await inter.send(f"Please send the {input_type} now")
+        try:
+            msg = await self.bot.wait_for("message", check=lambda m: m.author == inter.author and m.channel == inter.channel)
+        except asyncio.TimeoutError:
+            return await inter.send("Timed out!")
+
+        if input_type == "url(image)":
+            response = await self.bot.session.get(msg.content.strip().replace("webp", "png"))
+            response_bytes = await response.read()
+            image = response_bytes
+
+        elif input_type == "file(image)":
+            image = await msg.attachments[0].read()
+
+        try:
+            await inter.guild.create_custom_emoji(
+                name=name,
+                image=image,
+                reason=f"Emoji added by {inter.author}",
+            )
+            await sucEmb(inter, "Emoji added successfully!", ephemeral=False)
+        except ValueError:
+            pass
+
     @commands.slash_command(name="faq")
     @commands.guild_only()
     @commands.has_role("Staff")
@@ -300,19 +335,35 @@ class Staff(commands.Cog):
     @commands.slash_command(name="channellock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channellock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel):
+    async def channellock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None):
         """Lock a channel"""
         # Lock's a channel by not letting anyone send messages to it
-        await channel.set_permissions(inter.guild.default_role, send_messages=False)
+        if channel is None:
+            channel = inter.channel
+        await channel.set_permissions(
+            inter.guild.default_role,
+            send_messages=False,
+            create_public_threads=False,
+            create_private_threads=False,
+            send_messages_in_threads=False,
+        )
         await inter.send(f"🔒 Locked {channel.mention} successfully!")
 
     @commands.slash_command(name="channelunlock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channelunlock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel):
+    async def channelunlock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None):
         """Unlock a channel"""
         # Unlock's a channel by letting everyone send messages to it
-        await channel.set_permissions(inter.guild.default_role, send_messages=True)
+        if channel is None:
+            channel = inter.channel
+        await channel.set_permissions(
+            inter.guild.default_role,
+            send_messages=True,
+            create_public_threads=True,
+            create_private_threads=True,
+            send_messages_in_threads=True,
+        )
         await inter.send(f"🔓 Unlocked {channel.mention} successfully!")
 
     # Reaction Roles with buttons:

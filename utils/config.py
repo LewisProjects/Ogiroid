@@ -22,10 +22,6 @@ class Database:
 
     @classmethod
     def dev(cls):
-        cls.user: str = os.getenv("POSTGRES_PASSWORD")
-        cls.password: str = os.getenv("POSTGRES_PASS")
-        cls.host: str = os.getenv("POSTGRES_HOST")
-        cls.port: str = os.getenv("POSTGRES_PORT")
         cls.database = "development"
         return cls
 

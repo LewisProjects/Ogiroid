@@ -121,6 +121,17 @@ class OGIROID(commands.Bot):
         self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
         await self.blacklist.startup()
 
+    async def ensure_db_uri_can_run(self) -> bool:
+        connection: asyncpg.Connection = await asyncpg.connect(
+            user=self.config.Database.user,
+            password=self.config.Database.password,
+            database=self.config.Database.database,
+            host=self.config.Database.host,
+            port=self.config.Database.port,
+        )
+        await connection.close()
+        return True
+
     async def start(self, *args, **kwargs):
         async with aiosqlite.connect("data.db") as self.db:
             await self.db.executescript(SETUP_SQL)
@@ -129,7 +140,7 @@ class OGIROID(commands.Bot):
                 if file.endswith(".sql"):
                     with open(f"migrations/{file}", "r") as migration_sql:
                         await self.db.executescript(migration_sql.read())
-            # self.pool: asyncpg.Pool = await self.create_pool()
+            # self.pool: asyncpg.Pool = await self.create_pool() todo re-add
             await super().start(*args, **kwargs)
 
     async def create_pool(self) -> asyncpg.Pool:

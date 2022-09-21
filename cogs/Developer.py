@@ -5,16 +5,19 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout
 
+import disnake
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 from disnake.ext.commands import Cog, Param
 
 from utils import checks
+from utils.bot import OGIROID
 from utils.assorted import traceback_maker
+from utils.pagination import CreatePaginator
 
 
 class Dev(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: OGIROID):
         self.bot = bot
 
         self._last_result = None
@@ -166,6 +169,28 @@ class Dev(Cog):
             return await inter.send(f"Module **{name_maker}** returned error and was not reloaded...\n{error}")
         await inter.send(f"Reloaded module **{name_maker}**")
 
+    @checks.is_dev()
+    @commands.slash_command(description="Command ID help")
+    async def dev_help(self, inter):
+        embeds = []
 
-def setup(bot):
+        for n in range(0, len(self.bot.global_slash_commands), 10):
+            embed = disnake.Embed(title="Commands", color=self.bot.config.colors.white)
+            cmds = self.bot.global_slash_commands[n : n + 10]
+
+            value = ""
+            for cmd in cmds:
+                value += f"`/{cmd.name}` - `{cmd.id}`\n"
+
+            if value == "":
+                continue
+
+            embed.description = f"{value}"
+            embeds.append(embed)
+
+        paginator = CreatePaginator(embeds, inter.author.id, timeout=300.0)
+        await inter.send(embed=embeds[0], view=paginator)
+
+
+def setup(bot: OGIROID):
     bot.add_cog(Dev(bot))

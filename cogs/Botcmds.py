@@ -88,12 +88,12 @@ class Commands(commands.Cog):
         )
         embed.add_field(
             name="**Bot Developers: **",
-            value=f"__Owners:__\n`>` **[FreebieII](https://github.com/FreebieII) (<@744998591365513227>)** \n"
-            f"`>` **[HarryDaDev](https://github.com/ImmaHarry) (<@963860161976467498>) **\n\n"
-            f"__Contributors:__\n**`>`[JasonLovesDoggo](https://github.com/JasonLovesDoggo) (<@511724576674414600>)\n"
-            f"`>`[DWAA1660](https://github.com/DWAA1660) (<@491266830674034699>) \n"
-            f"`>`[LevaniVashadze](https://github.com/LevaniVashadze) (<@662656158129192961>)\n"
-            f"`>`[CordlessCoder](https://github.com/CordlessCoder) (<@577885109894512659>)**",
+            value=f"`>`[**FreebieII**](https://github.com/FreebieII) (<@744998591365513227>)\n"
+            f"`>`[**HarryDaDev**](https://github.com/ImmaHarry) (<@963860161976467498>)\n"
+            f"`>`[**JasonLovesDoggo**](https://github.com/JasonLovesDoggo) (<@511724576674414600>)\n"
+            f"`>`[**DWAA1660**](https://github.com/DWAA1660) (<@491266830674034699>)\n"
+            f"`>`[**LevaniVashadze**](https://github.com/LevaniVashadze) (<@662656158129192961>)\n"
+            f"`>`[**CordlessCoder**](https://github.com/CordlessCoder) (<@577885109894512659>)",
             inline=False,
         )
         embed.set_thumbnail(
