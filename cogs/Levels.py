@@ -359,8 +359,10 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.controller = LevelsController(self.bot, self.bot.db)
-        print("[Level] Ready")
+        if self.controller is None:
+            self.controller = LevelsController(self.bot, self.bot.db)
+        if not self.bot.ready_:
+            print("[Levels] Ready")
 
     @commands.slash_command()
     @commands.guild_only()
@@ -376,7 +378,7 @@ class Level(commands.Cog):
         try:
             user_record = await self.controller.get_user(user)
             if not user_record:
-                print("[Level] User not found")
+                print("[Levels] User not found")
                 await self.controller.add_user(user, inter.guild)
                 return await self.rank(inter, user)
             rank = await self.controller.get_rank(inter.guild.id, user_record)
