@@ -43,22 +43,21 @@ class LevelsController:
         else:
             raise error
 
-    async def get_leaderboard(self, guild: Guild, limit: int = 10, user_range: Optional[Tuple[int, int]] = None) -> \
+    async def get_leaderboard(self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None) -> \
     list[User]:
         """get a list of users
         optionally you can specify a range of users to get from the leaderboard e.g. 200, 230
         """
-        if user_range is not None:
-            if user_range[0] < user_range[1]:
-                raise LevelingSystemError("range[0] must be greater than range[1]")
-            start, end = user_range
+        if offset is not None:
+            if offset < 0:
+                raise LevelingSystemError("the offset must be greater than 0")
             records = await self.db.execute(
-                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC LIMIT ? OFFSET ?",
-                (guild.id, (start - end), start),
+                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC, xp DESC LIMIT ? OFFSET ?",
+                (guild.id, limit, offset),
             )
         else:
             records = await self.db.execute(
-                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC LIMIT ?",
+                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC, xp DESC LIMIT ?",
                 (guild.id, limit),
             )
         users = sorted([User(*record) for record in await records.fetchall()], key=lambda x: x.total_exp, reverse=True)
