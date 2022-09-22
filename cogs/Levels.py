@@ -293,19 +293,21 @@ class LevelsController:
         #3. get the index of the user
         #4. add 1 to the index
         """
-        records = await self.db.execute(
-            "SELECT * FROM levels WHERE guild_id = ? AND level >= ? ORDER BY xp DESC",
+        db_records = await self.db.execute(
+            "SELECT * FROM levels WHERE guild_id = ? AND level >= ?",
             (
                 guild_id,
                 user_record.lvl,
             ),
         )
-        records = await records.fetchall()
-        if records is None:
+        raw_records = await db_records.fetchall()
+        if raw_records is None:
             raise UserNotFound
-        records = [User(*record) for record in records]
-        records = sorted(records, key=lambda x: x.xp, reverse=True)
-        return records.index(user_record) + 1
+        records = [User(*record) for record in raw_records]
+        sorted_once = sorted(records, key=lambda x: x.xp, reverse=True)
+        sorted_twice = sorted(sorted_once, key=lambda x: x.lvl, reverse=True)
+        rank = sorted_twice.index(user_record) + 1
+        return rank
 
 
 class Level(commands.Cog):
@@ -359,8 +361,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        if self.controller is None:
-            self.controller = LevelsController(self.bot, self.bot.db)
+        self.controller = LevelsController(self.bot, self.bot.db)
         if not self.bot.ready_:
             print("[Levels] Ready")
 
