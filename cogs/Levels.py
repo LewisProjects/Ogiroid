@@ -189,7 +189,7 @@ class LevelsController:
                 ]
         ):
             return
-        if not random.randrange(1, 3) == 1:
+        if not random.randint(1, 3) == 1:
             return
         elif await self.on_cooldown(message):
             return
@@ -285,17 +285,27 @@ class LevelsController:
         """
         await message.channel.send(msg)
 
-    async def get_rank(self, user_record) -> int:
-        sql = "SELECT * FROM levels WHERE level >= ? ORDER BY level DESC"
-        records_raw = await self.db.execute(sql, (user_record.lvl,))
-        records = await records_raw.fetchall()
-        user_records = sorted([User(*record) for record in records], key=lambda x: x.total_exp, reverse=True)
-        rank = 1
-        for record in user_records:
-            if record.user_id == user_record.user_id:
-                return rank
-            rank += 1
-        raise UserNotFound
+    async def get_rank(self, guild_id, user_record) -> int:
+        """
+        what to do
+        #1. eliminate all the users that have a lower level than the user
+        #2. sort the users by xp
+        #3. get the index of the user
+        #4. add 1 to the index
+        """
+        records = await self.db.execute(
+            "SELECT * FROM levels WHERE guild_id = ? AND level >= ? ORDER BY xp DESC",
+            (
+                guild_id,
+                user_record.lvl,
+            ),
+        )
+        records = await records.fetchall()
+        if records is None:
+            raise UserNotFound
+        records = [User(*record) for record in records]
+        records = sorted(records, key=lambda x: x.xp, reverse=True)
+        return records.index(user_record) + 1
 
 
 class Level(commands.Cog):
@@ -349,8 +359,10 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.controller = LevelsController(self.bot, self.bot.db)
-        print("[Level] Ready")
+        if self.controller is None:
+            self.controller = LevelsController(self.bot, self.bot.db)
+        if not self.bot.ready_:
+            print("[Levels] Ready")
 
     @commands.slash_command()
     @commands.guild_only()
@@ -366,10 +378,10 @@ class Level(commands.Cog):
         try:
             user_record = await self.controller.get_user(user)
             if not user_record:
-                print("[Level] User not found")
+                print("[Levels] User not found")
                 await self.controller.add_user(user, inter.guild)
                 return await self.rank(inter, user)
-            rank = await self.controller.get_rank(user_record)
+            rank = await self.controller.get_rank(inter.guild.id, user_record)
             image = await self.controller.generate_image_card(user, rank, user_record.xp, user_record.lvl)
             await inter.send(file=image)
         except UserNotFound:
