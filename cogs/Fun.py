@@ -517,8 +517,8 @@ class Fun(commands.Cog):
         """Generates an image with a quote and random background"""
         await inter.response.defer()
         # Use api.quotable.io/random to get a random quote
-        main = requests.get("https://api.quotable.io/random")
-        data = main.json()
+        main = await self.bot.session.get("https://api.quotable.io/random")
+        data = await main.json()
         quote = data["content"]
         author = data["author"]
 
