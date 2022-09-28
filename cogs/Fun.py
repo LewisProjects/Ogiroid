@@ -496,7 +496,6 @@ class Fun(commands.Cog):
         else:
             return await errorEmb(inter, "An unexpected error occurred! Please try again later.")
 
-
     @staticmethod
     def draw_multiple_line_text(image, text, font, text_color, text_start_height):
         draw = ImageDraw.Draw(image)
