@@ -514,7 +514,7 @@ class Fun(commands.Cog):
 
     # Command to get information about a Quote user
     @commands.slash_command(name="quote", description="Generates an image with a quote and random background")
-    async def quote(self, inter, category: str):
+    async def quote(self, inter):
         """Generates an image with a quote and random background"""
         await inter.response.defer()
         # Use api.quotable.io/random to get a random quote
@@ -525,12 +525,13 @@ class Fun(commands.Cog):
 
         # Use unsplash.com to get a random image
         resolution = "1080x1080"
-        image = Image.open(requests.get(f"https://source.unsplash.com/random/{resolution}?{category}", stream=True).raw)
-        image = Image.open(requests.get(f"https://source.unsplash.com/random/{resolution}?{category}", stream=True).raw)
+        response = await self.bot.session.get(f"https://source.unsplash.com/random/{resolution}")
+        image_bytes = io.BytesIO(await response.read())
+        image = Image.open(image_bytes)
 
         draw = ImageDraw.Draw(image)
-        font = ImageFont.truetype("utils/data/Roboto-Italic.ttf", 150)
-        font2 = ImageFont.truetype("utils/data/Roboto-Bold.ttf", 150)
+        font = ImageFont.truetype("utils/data/Roboto-Italic.ttf", 50)
+        font2 = ImageFont.truetype("utils/data/Roboto-Bold.ttf", 50)
         if len(quote) > 350:
             text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 500
         elif len(quote) > 250:
