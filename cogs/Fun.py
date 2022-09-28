@@ -20,6 +20,10 @@ from utils.bot import OGIROID
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
 
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
+import textwrap
+
 load_dotenv("../secrets.env")
 
 
@@ -491,6 +495,59 @@ class Fun(commands.Cog):
             return await inter.send(embed=embed)
         else:
             return await errorEmb(inter, "An unexpected error occurred! Please try again later.")
+
+    @staticmethod
+    def draw_multiple_line_text(image, text, font, text_color, text_start_height):
+        draw = ImageDraw.Draw(image)
+        image_width, image_height = image.size
+        y_text = text_start_height
+        lines = textwrap.wrap(text, width=45)
+        for line in lines:
+            nothing1, nothing2, line_width, line_height = font.getbbox(line)
+            # draw shadow on text
+            draw.text(((image_width - line_width) / 2 + 2, y_text + 2), line, font=font, fill=(0, 0, 0))
+            draw.text(((image_width - line_width) / 2, y_text), line, font=font, fill=text_color)
+            y_text += line_height
+        # Return the bottom pixel of the text
+        return y_text
+
+    # Command to get information about a Quote user
+    @commands.slash_command(name="quote", description="Generates an image with a quote and random background")
+    async def quote(self, inter):
+        """Generates an image with a quote and random background"""
+        await inter.response.defer()
+        # Use api.quotable.io/random to get a random quote
+        main = await self.bot.session.get("https://api.quotable.io/random")
+        data = await main.json()
+        quote = data["content"]
+        author = data["author"]
+
+        # Use unsplash.com to get a random image
+        resolution = "1080x1080"
+        response = await self.bot.session.get(f"https://source.unsplash.com/random/{resolution}")
+        image_bytes = io.BytesIO(await response.read())
+        image = Image.open(image_bytes)
+
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype("utils/data/Roboto-Italic.ttf", 50)
+        font2 = ImageFont.truetype("utils/data/Roboto-Bold.ttf", 50)
+        if len(quote) > 350:
+            text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 500
+        elif len(quote) > 250:
+            text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 200
+        elif len(quote) > 150:
+            text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 50
+        else:
+            text_start_height = (image.height - font.getbbox(quote)[3]) / 2
+        end = self.draw_multiple_line_text(image, quote, font, text_color=(255, 255, 255), text_start_height=text_start_height)
+        # Draw the author shadow
+        draw.text(((image.width - font2.getbbox(author)[2]) / 2 + 2, end + 50), author, font=font2, fill=(0, 0, 0))
+        # Draw the author
+        draw.text(((image.width - font2.getbbox(author)[2]) / 2, end + 50), author, font=font2, fill=(255, 255, 255))
+        with BytesIO() as image_binary:
+            image.save(image_binary, "PNG")
+            image_binary.seek(0)
+            await inter.send(file=disnake.File(fp=image_binary, filename="image.png"))
 
 
 def setup(bot):
