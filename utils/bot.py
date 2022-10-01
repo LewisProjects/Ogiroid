@@ -22,20 +22,12 @@ with open("setup.sql", "r") as sql_file:
     SETUP_SQL = sql_file.read()
 
 
-async def get_prefix(bot, message):
-    prefix = "!!"
-    return when_mentioned_or(prefix)(bot, message)
-
-
-class OGIROID(commands.Bot):
+class OGIROID(commands.InteractionBot):
     def __init__(self, *args, **kwargs):
 
         super().__init__(
-            command_prefix=get_prefix,
             intents=disnake.Intents.all(),
-            help_command=None,
             sync_commands_debug=True,
-            case_insensitive=True,
             *args,
             **kwargs,
         )
@@ -48,7 +40,6 @@ class OGIROID(commands.Bot):
         self.db = None
         self.pool: asyncpg.Pool = None
         self.blacklist: BlacklistHandler = None
-        self.add_check(self.blacklist_check, call_once=True)
         self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
 
     async def blacklist_check(self, ctx):
