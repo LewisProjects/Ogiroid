@@ -4,6 +4,7 @@ import asyncio
 import io
 import random
 from collections import namedtuple
+import datetime as dt
 from io import BytesIO
 from typing import Union, Optional, Tuple
 
@@ -397,14 +398,34 @@ class Level(commands.Cog):
         """
         Get the leaderboard of the server
         """
+
+        # embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
         await inter.response.defer()
-        records = await self.controller.get_leaderboard(inter.guild)
+        records = await self.controller.get_leaderboard(inter.guild, limit=10)
         if not records:
             return await errorEmb(inter, text="No records found!")
         embed = Embed(title="Leaderboard", color=0x00FF00)
+
         for i, record in enumerate(records):
             user = await self.bot.fetch_user(record.user_id)
             embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
+
+        user = await self.controller.get_user(inter.author)
+        if user:
+            try:
+                rank = await self.controller.get_rank(inter.guild.id, user)
+                if rank > 10:
+                    embed.add_field(
+                        name=f"{rank}. You",
+                        value=f"Level: {user.lvl}\nTotal XP: {user.xp:,}",
+                        inline=False,
+                    )
+            except ValueError:
+                pass
+
+        embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
+        embed.timestamp = dt.datetime.utcnow()
+
         await inter.send(embed=embed)
 
     @commands.slash_command()
