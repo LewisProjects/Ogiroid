@@ -113,7 +113,9 @@ class Fun(commands.Cog):
 
         embed = disnake.Embed(title=question, description=choices_str, colour=0xFFFFFF)
 
-        embed.set_footer(text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+        if inter.author:
+            embed.set_footer(text=f"Poll by {inter.author}")
+        embed.timestamp = datetime.now()
 
         await inter.response.send_message(embed=embed)
         poll = await inter.original_message()  # Gets the message wich got sent
@@ -130,7 +132,7 @@ class Fun(commands.Cog):
                 title="YouTube",
                 description=f"Click __[here]({link})__ to start the YouTube together session.",
                 color=0xFF0000,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
             embed.set_footer(
                 text=f"Command issued by: {inter.author.name}",

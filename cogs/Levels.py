@@ -424,7 +424,7 @@ class Level(commands.Cog):
                 pass
 
         embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
-        embed.timestamp = dt.datetime.utcnow()
+        embed.timestamp = dt.datetime.now()
 
         await inter.send(embed=embed)
 

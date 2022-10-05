@@ -26,7 +26,7 @@ class Starboard(commands.Cog):
                     embed = disnake.Embed(
                         description=f"{message.content}\n\n**[Jump to message]({message.jump_url})**",
                         color=disnake.Color.gold(),
-                        timestamp=datetime.utcnow(),
+                        timestamp=datetime.now(),
                     )
                     embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
                     await starboard_channel.send(embed=embed)

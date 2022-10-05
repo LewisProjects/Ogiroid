@@ -70,7 +70,7 @@ class Welcome(Cog):
             title="Goodbye :(",
             description=f"{member.mention} has left the server. There are now `{member.guild.member_count}` members",
             color=0xFF0000,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
         )
         embed.set_author(
             name="Member Left!",

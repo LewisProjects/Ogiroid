@@ -48,7 +48,8 @@ async def warning_embed(inter: ApplicationCommandInteraction, user, reason):
         color=disnake.Color.red(),
     )
     emb.set_thumbnail(url=user.display_avatar)
-    emb.set_footer(text=f'Warned by {inter.author} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+    emb.set_footer(text=f'Warned by {inter.author}')
+    emb.timestamp = datetime.now()
     await inter.send(embed=emb)
 
 
@@ -66,7 +67,8 @@ async def warnings_embed(inter: ApplicationCommandInteraction, member, warnings)
     embed.description = warning_string
     embed.set_thumbnail(url=member.display_avatar)
     embed.add_field(name="Total Warnings", value=len(warnings))
-    embed.set_footer(text=f'Called by {inter.author} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+    embed.set_footer(text=f'Called by {inter.author}')
+    embed.timestamp = datetime.now()
     await inter.send(embed=embed)
 
 
