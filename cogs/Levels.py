@@ -282,7 +282,8 @@ class LevelsController:
         msg = f"""{user.mention}, you have leveled up to level {level}!
         """
         await message.channel.send(msg)
-        await poll.add_reaction(":partying_face:")
+        addemoji = await inter.original_message()
+        await addemoji.add_reaction(":partying_face:")
 
     async def get_rank(self, guild_id, user_record) -> int:
         """
