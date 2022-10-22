@@ -6,7 +6,7 @@ import random
 from collections import namedtuple
 import datetime as dt
 from io import BytesIO
-from typing import Union, Optional, Tuple
+from typing import Union, Optional
 
 import disnake
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -19,6 +19,7 @@ from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
 from utils.bot import OGIROID
 from utils.exceptions import LevelingSystemError, UserNotFound
 from utils.models import User, RoleReward
+from utils.pagination import LeaderboardView
 from utils.shortcuts import errorEmb, sucEmb
 
 FakeGuild = namedtuple("FakeGuild", "id")
@@ -43,6 +44,10 @@ class LevelsController:
             await self.add_user(inter.author, inter.guild)
         else:
             raise error
+
+    async def get_count(self, guild: Guild) -> int:
+        record = await self.db.execute("SELECT COUNT(*) FROM levels WHERE guild_id = ?", (guild.id,))
+        return (await record.fetchone())[0]
 
     async def get_leaderboard(self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None) -> list[User]:
         """get a list of users
@@ -180,12 +185,12 @@ class LevelsController:
 
     async def handle_message(self, message: Message):
         if any(
-            [
-                message.guild is None,
-                message.author.bot,
-                message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
-                message.content.__len__() < 5,
-            ]
+                [
+                    message.guild is None,
+                    message.author.bot,
+                    message.type not in [MessageType.default, MessageType.reply, MessageType.thread_starter_message],
+                    message.content.__len__() < 5,
+                ]
         ):
             return
         if not random.randint(1, 3) == 1:
@@ -280,10 +285,9 @@ class LevelsController:
         user = message.author
         if level in [0, 1, 2, 3]:
             return
-        msg = f"""{user.mention}, you have leveled up to level {level}!
+        msg = f"""{user.mention}, you have leveled up to level {level}! 🥳
         """
-        addemoji = await message.channel.send(msg)
-        await addemoji.add_reaction("🥳")
+        await message.channel.send(msg)
 
     async def get_rank(self, guild_id, user_record) -> int:
         """
@@ -400,43 +404,49 @@ class Level(commands.Cog):
         Get the leaderboard of the server
         """
 
-        # embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
         await inter.response.defer()
-        records = await self.controller.get_leaderboard(inter.guild, limit=10)
+        limit = 10
+        set_user = False
+        records = await self.controller.get_leaderboard(inter.guild, limit=limit)
+        try:
+            cmd_user = await self.controller.get_user(inter.author)
+        except UserNotFound:
+            cmd_user = None
+
         if not records:
             return await errorEmb(inter, text="No records found!")
         embed = Embed(title="Leaderboard", color=0x00FF00)
 
         for i, record in enumerate(records):
             user = await self.bot.fetch_user(record.user_id)
-            embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
-
-        user = await self.controller.get_user(inter.author)
-        if user:
-            try:
-                rank = await self.controller.get_rank(inter.guild.id, user)
-                if rank > 10:
-                    embed.add_field(
-                        name=f"{rank}. You",
-                        value=f"Level: {user.lvl}\nTotal XP: {user.xp:,}",
-                        inline=False,
-                    )
-            except ValueError:
-                pass
+            if record.user_id == inter.author.id:
+                embed.add_field(name=f"{i + 1}. {user} ~ You ",
+                                value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
+                set_user = True
+            else:
+                embed.add_field(name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
+                                inline=False)
+        if not set_user:
+            rank = await self.controller.get_rank(inter.guild.id, cmd_user)
+            embed.add_field(
+                name=f"{rank}. You",
+                value=f"Level: {cmd_user.lvl}\nTotal XP: {cmd_user.xp:,}",
+                inline=False,
+            )
 
         embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
         embed.timestamp = dt.datetime.now()
 
-        await inter.send(embed=embed)
+        await inter.send(embed=embed, view=LeaderboardView(inter, self.controller, embed, inter.author.id))
 
     @commands.slash_command()
     @commands.guild_only()
     @commands.has_any_role("Staff", "staff")
     async def set_lvl(
-        self,
-        inter: ApplicationCommandInteraction,
-        user: Member,
-        level: int = Param(description="The level to set the user to", le=100, ge=0),
+            self,
+            inter: ApplicationCommandInteraction,
+            user: Member,
+            level: int = Param(description="The level to set the user to", le=100, ge=0),
     ):
         """
         Set a user's level
@@ -461,16 +471,17 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def add(
-        self,
-        inter: ApplicationCommandInteraction,
-        role: Role = Param(name="role", description="what role to give"),
-        level_needed: int = Param(name="level_needed", description="The level needed to get the role"),
+            self,
+            inter: ApplicationCommandInteraction,
+            role: Role = Param(name="role", description="what role to give"),
+            level_needed: int = Param(name="level_needed", description="The level needed to get the role"),
     ):
         """adds a role to the reward list"""
         if int(level_needed) not in self.levels:
             return await errorEmb(inter, text=f"Level must be within 1-{MAX_LEVEL} found")
 
-        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
+        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
+                                     (inter.guild.id, role.id)):
             sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
             await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
             await self.bot.db.commit()
@@ -480,12 +491,13 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def remove(
-        self,
-        inter: ApplicationCommandInteraction,
-        role: Role = Param(name="role", description="what role to remove"),
+            self,
+            inter: ApplicationCommandInteraction,
+            role: Role = Param(name="role", description="what role to remove"),
     ):
         """remove a role reward"""
-        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?", (inter.guild.id, role.id)):
+        if await self.bot.db.execute("SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
+                                     (inter.guild.id, role.id)):
             sql = "DELETE FROM role_rewards WHERE guild_id = ? AND role_id = ?"
             await self.bot.db.execute(sql, (inter.guild.id, role.id))
             await self.bot.db.commit()
@@ -505,9 +517,11 @@ class Level(commands.Cog):
         for record in records:
             record = RoleReward(*record)
             embed.add_field(
-                name=f"Level {record.required_lvl}", value=f"{inter.guild.get_role(record.role_id).mention}", inline=False
+                name=f"Level {record.required_lvl}", value=f"{inter.guild.get_role(record.role_id).mention}",
+                inline=False
             )
-        await inter.send(embed=embed, allowed_mentions=disnake.AllowedMentions(everyone=False, roles=False, users=False))
+        await inter.send(embed=embed,
+                         allowed_mentions=disnake.AllowedMentions(everyone=False, roles=False, users=False))
 
 
 def setup(bot: OGIROID):
