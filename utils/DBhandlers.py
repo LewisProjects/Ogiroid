@@ -200,7 +200,7 @@ class BlacklistHandler:
 
     def get_user_index(self, user_id) -> int:
         """Returns the index of the user in the blacklist"""
-        return self.blacklist.index(self.get_user(user_id))
+        return self.blacklist.index(await self.get_user(user_id))
 
 
 class TagManager:
