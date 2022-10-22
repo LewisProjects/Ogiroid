@@ -83,7 +83,7 @@ class Staff(commands.Cog):
         ),
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=member, reason=reason, delete_message_days=delete_messages)
+        await inter.guild.ban(user=member, reason=reason, clean_history_duration=dt.timedelta(days=delete_messages))
         await sucEmb(inter, "User has been banned successfully!")
 
     @commands.slash_command(name="softban", description="Softbans a user from the server.")
@@ -96,7 +96,7 @@ class Staff(commands.Cog):
         reason: str = None,
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=member, reason=reason or "softban", delete_message_days=7)
+        await inter.guild.ban(user=member, reason=reason or "softban", clean_history_duration=dt.timedelta(days=7))
         await sucEmb(inter, "User has been softbanned successfully!")
         await asyncio.sleep(5)
         await inter.guild.unban(user=member, reason="softban unban")

@@ -15,7 +15,7 @@ class Log(Cog):
             embed = Embed(
                 title="Username change",
                 colour=after.colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             fields = [("Before", before.name, False), ("After", after.name, False)]
@@ -29,7 +29,7 @@ class Log(Cog):
             embed = Embed(
                 title="User discriminator changed",
                 colour=after.colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             fields = [
@@ -47,7 +47,7 @@ class Log(Cog):
                 title="Avatar change",
                 description="New image is below, old to the right.",
                 colour=log_channel.guild.get_member(after.id).colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             embed.set_thumbnail(url=before.display_avatar.url)
@@ -60,7 +60,7 @@ class Log(Cog):
                 title="Avatar change",
                 description="New image is below, old to the right.",
                 colour=log_channel.guild.get_member(after.id).colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             embed.set_thumbnail(url=before.display_avatar.url)
@@ -78,7 +78,7 @@ class Log(Cog):
             embed = Embed(
                 title="Nickname change",
                 colour=after.colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             fields = [
@@ -95,7 +95,7 @@ class Log(Cog):
             embed = Embed(
                 title=f"Role updates for {after.name}",
                 colour=after.colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             fields = [
@@ -120,7 +120,7 @@ class Log(Cog):
                     title="Message edit",
                     description=f"Edit by {after.author.name}.",
                     colour=after.author.colour,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(),
                 )
 
                 fields = [
@@ -140,7 +140,7 @@ class Log(Cog):
                 title="Message deletion",
                 description=f"Action by {message.author.name}.",
                 colour=message.author.colour,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             fields = [("Content", message.content, False)]

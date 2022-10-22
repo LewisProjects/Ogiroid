@@ -44,7 +44,7 @@ class Memes(commands.Cog):
             title=f'{r[0]["data"]["children"][0]["data"]["title"]}',
             description=f'{r[0]["data"]["children"][0]["data"]["selftext"]}',
             colour=0x00B8FF,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
             url=f"https://www.reddit.com{r[0]['data']['children'][0]['data']['permalink']}",
         )
         embed.set_image(url=r[0]["data"]["children"][0]["data"]["url"])

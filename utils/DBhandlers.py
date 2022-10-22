@@ -170,7 +170,7 @@ class BlacklistHandler:
             f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
         )
         await self.db.commit()
-        indx = self.get_user_index(user_id)
+        indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
         user.bot = bot
         user.tickets = tickets
@@ -182,7 +182,7 @@ class BlacklistHandler:
         """Edits the blacklist reason of a user"""
         await self.db.execute(f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id])
         await self.db.commit()
-        indx = self.get_user_index(user_id)
+        indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
         user.reason = reason
         self.blacklist[indx] = user
@@ -192,15 +192,15 @@ class BlacklistHandler:
         """Edits when the blacklist expires of a user"""
         await self.db.execute(f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id])
         await self.db.commit()
-        indx = self.get_user_index(user_id)
+        indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
         user.expires = expires
         self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
-    def get_user_index(self, user_id) -> int:
+    async def get_user_index(self, user_id) -> int:
         """Returns the index of the user in the blacklist"""
-        return self.blacklist.index(self.get_user(user_id))
+        return self.blacklist.index(await self.get_user(user_id))
 
 
 class TagManager:

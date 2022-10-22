@@ -1,5 +1,4 @@
 import asyncio
-import io
 import os
 import random
 import time
@@ -114,10 +113,12 @@ class Fun(commands.Cog):
 
         embed = disnake.Embed(title=question, description=choices_str, colour=0xFFFFFF)
 
-        embed.set_footer(text=f'{f"Poll by {inter.author}" if inter.author else ""} • {datetime.utcnow().strftime("%m/%d/%Y")}')
+        if inter.author:
+            embed.set_footer(text=f"Poll by {inter.author}")
+        embed.timestamp = datetime.now()
 
         await inter.response.send_message(embed=embed)
-        poll = await inter.original_message()  # Gets the message wich got sent
+        poll = await inter.original_message()  # Gets the message which got sent
         for emoji in emojis:
             await poll.add_reaction(emoji)
 
@@ -131,7 +132,7 @@ class Fun(commands.Cog):
                 title="YouTube",
                 description=f"Click __[here]({link})__ to start the YouTube together session.",
                 color=0xFF0000,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
             embed.set_footer(
                 text=f"Command issued by: {inter.author.name}",
@@ -155,72 +156,6 @@ class Fun(commands.Cog):
             icon_url=inter.author.display_avatar,
         )
         await inter.send(embed=embed)
-
-    @commands.slash_command(
-        name="trigger",
-        brief="Trigger",
-        description="For when you're feeling triggered.",
-    )
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def triggered(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
-        """Time to get triggered."""
-        if not member:
-            member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}")
-        imageData = io.BytesIO(await trigImg.read())
-        await inter.send(file=disnake.File(imageData, "triggered.gif"))
-
-    @commands.slash_command(
-        name="sus",
-        brief="Sus-Inator4200",
-        description="Check if your friend is kinda ***SUS***",
-    )
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def amongus(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
-        """Check if your friends are sus or not"""
-        await inter.send("Testing for sus-ness...")
-        if not member:
-            member = inter.author
-        impostor = random.choice(["true", "false"])
-        apikey = os.getenv("SRA_API_KEY")
-        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
-        resp = await self.bot.session.get(uri)
-        if 300 > resp.status >= 200:
-            fp = io.BytesIO(await resp.read())
-            await inter.send(file=disnake.File(fp, "amogus.gif"))
-        else:
-            await inter.send("Couldnt get image :(")
-
-    @commands.slash_command(name="invert", brief="invert", description="Invert the colours of your icon")
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def invert(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
-        """Invert your profile picture."""
-        if not member:
-            member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}")
-        imageData = io.BytesIO(await trigImg.read())
-        await inter.send(file=disnake.File(imageData, "invert.png"))
-
-    @commands.slash_command(name="pixelate", brief="pixelate", description="Turn yourself into 144p!")
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pixelate(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
-        """Turn yourself into pixels"""
-        if not member:
-            member = inter.author
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}")
-        imageData = io.BytesIO(await trigImg.read())
-        await inter.send(file=disnake.File(imageData, "pixelate.png"))
-
-    @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jail(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
-        """Go to horny jail"""
-        if not member:
-            member = inter.author
-
-        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}")
-        imageData = io.BytesIO(await trigImg.read())
-        await inter.send(file=disnake.File(imageData, "jail.png"))
 
     @commands.slash_command(
         name="beer", description="Give someone a beer! 🍻"
@@ -464,15 +399,6 @@ class Fun(commands.Cog):
             )
         except KeyError as key:
             return await errorEmb(inter, f"{key}")
-        return await inter.send(embed=embed)
-
-    @commands.slash_command(name="urltoqr", description="Converts a URL to a QR code.")
-    async def urltoqr(self, inter: ApplicationCommandInteraction, url: str, size: int):
-        url = url.replace("http://", "").replace("https://", "")
-        qr = f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
-        embed = disnake.Embed(title=f"URL created for: {url}", color=0xFFFFFF)
-        embed.set_image(url=qr)
-        embed.set_footer(text=f"Requested by: {inter.author.name}")
         return await inter.send(embed=embed)
 
     @commands.slash_command(name="urlshortner", description="Shortens a URL.")

@@ -86,7 +86,7 @@ class ErrorHandler(Cog):
             e_embed = disnake.Embed(
                 title="Error Traceback",
                 description=f"See below!\n\n{e_traceback}",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(),
             )
 
             await error_channel.send(embed=e_embed)
@@ -109,7 +109,7 @@ class ErrorHandler(Cog):
         error_embed = disnake.Embed(
             title="Error Traceback",
             description=f"See below!\n\n{bot_errors}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
         )
         await error_channel.send(embed=error_embed)
         traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace("```", "```")
@@ -128,7 +128,7 @@ class ErrorHandler(Cog):
             title=f"❌An error occurred while executing: ``/{inter.application_command.qualified_name}``",
             description=f"{error}",
             colour=disnake.Color.blurple(),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
         )
         embed.add_field(
             name="Something not right?",
