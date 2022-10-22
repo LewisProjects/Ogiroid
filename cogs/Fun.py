@@ -118,7 +118,7 @@ class Fun(commands.Cog):
         embed.timestamp = datetime.now()
 
         await inter.response.send_message(embed=embed)
-        poll = await inter.original_message()  # Gets the message wich got sent
+        poll = await inter.original_message()  # Gets the message which got sent
         for emoji in emojis:
             await poll.add_reaction(emoji)
 
