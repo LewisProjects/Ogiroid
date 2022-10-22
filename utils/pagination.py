@@ -5,8 +5,10 @@ from disnake import ui, ButtonStyle, Embed
 from utils.exceptions import UserNotFound
 from utils.shortcuts import errorEmb
 import datetime as dt
+
 if TYPE_CHECKING:
     from cogs.Levels import LevelsController
+
 
 class CreatePaginator(ui.View):
     """
@@ -97,14 +99,19 @@ class LeaderboardView(ui.View):
     UserPicked: bool
         If True, the user has already been shown and no need to add an extra field
     """
-    def __init__(self, controller: "LevelsController", firstemb: Embed, author: int = 123, set_user: bool = False, timeout: float = None):
+
+    def __init__(
+        self, controller: "LevelsController", firstemb: Embed, author: int = 123, set_user: bool = False, timeout: float = None
+    ):
 
         self.controller = controller
         self.author = author
         self.CurrentEmbed = 0
         self.firstemb = firstemb
         self.user_set = set_user
-        super().__init__(timeout=timeout if timeout else 180,)
+        super().__init__(
+            timeout=timeout if timeout else 180,
+        )
 
     async def at_last_page(self, inter):
         records = await self.controller.get_count(inter.guild.id)
@@ -113,13 +120,11 @@ class LeaderboardView(ui.View):
         else:
             return False
 
-
-
     async def create_page(self, inter, page_num) -> Embed:
         if page_num == 0:
             return self.firstemb
         else:
-            records = await self.controller.get_leaderboard(inter.guild, limit=10, offset=page_num*10)
+            records = await self.controller.get_leaderboard(inter.guild, limit=10, offset=page_num * 10)
             try:
                 cmd_user = await self.controller.get_user(inter.author)
             except UserNotFound:
@@ -132,13 +137,14 @@ class LeaderboardView(ui.View):
             for i, record in enumerate(records):
                 user = await inter.bot.fetch_user(record.user_id)
                 if record.user_id == inter.author.id:
-                    embed.add_field(name=f"{i + 1}. {user} ~ You ",
-                                    value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False)
+                    embed.add_field(
+                        name=f"{i + 1}. {user} ~ You ", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False
+                    )
                     self.user_set = True
                 else:
-                    embed.add_field(name=f"{i + 1}. {user}",
-                                    value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
-                                    inline=False)
+                    embed.add_field(
+                        name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False
+                    )
             if not self.user_set:
                 rank = await self.controller.get_rank(inter.guild.id, cmd_user)
                 embed.add_field(
