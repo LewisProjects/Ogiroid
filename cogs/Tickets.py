@@ -101,7 +101,7 @@ class Tickets(commands.Cog):
             description=f"{message_content}",
             color=0x26FF00,
         )
-        em.set_footer(text=f'{user}')
+        em.set_footer(text=f"{user}")
         em.timestamp = datetime.now()
         await ticket.send(embed=em)
         await inter.send(f"Created Ticket. Your ticket: {ticket.mention}", ephemeral=True)

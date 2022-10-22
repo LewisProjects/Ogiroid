@@ -32,7 +32,7 @@ class GitHub(commands.Cog):
         embed.add_field(name="Company 🏢: ", value=f"{person['company']}", inline=True)
         embed.add_field(name="Followers 👥: ", value=f"{person['followers']}", inline=True)
         embed.add_field(name="Website 🖥️: ", value=f"{person['blog']}", inline=True)
-        button = disnake.ui.Button(label="Link", style=disnake.ButtonStyle.url, url=person['html_url'])
+        button = disnake.ui.Button(label="Link", style=disnake.ButtonStyle.url, url=person["html_url"])
         await inter.send(embed=embed, components=button)
 
     # Command to get search for GitHub repositories:
@@ -71,7 +71,7 @@ class GitHub(commands.Cog):
             )
         else:
             embed.add_field(name="License name 📃:", value=f"This Repo doesn't have a license", inline=True)
-        button = disnake.ui.Button(label="Link", style=disnake.ButtonStyle.url, url=repo['html_url'])
+        button = disnake.ui.Button(label="Link", style=disnake.ButtonStyle.url, url=repo["html_url"])
         await inter.send(embed=embed, components=button)
 
 

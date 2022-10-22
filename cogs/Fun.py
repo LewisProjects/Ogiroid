@@ -157,8 +157,6 @@ class Fun(commands.Cog):
         )
         await inter.send(embed=embed)
 
-
-
     @commands.slash_command(
         name="beer", description="Give someone a beer! 🍻"
     )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
