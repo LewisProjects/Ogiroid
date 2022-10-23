@@ -54,7 +54,7 @@ class Welcome(Cog):
             "You have arrived! Feels great to have you here, maybe look around & introduce yourself?",
         ]
         greeting_emojis = ["👋", "🎊", "🎉", "💻", "🙏", "🤝"]
-        chan = self.get_channel(self.bot.config.channels.general)
+        chan = self.get_channel(self.bot.config.channels.welcome)
 
         welcome_msg = f"{random.choice(greetings)} {member.mention}! {random.choice(secondary_greeting)}\nWe are now at: {len(member.guild.members)} members!"
         msg = await chan.send(welcome_msg)
