@@ -19,8 +19,9 @@ class AI(commands.Cog):
         images = r["images"]
         for i in images:
             image = BytesIO(base64.decodebytes(i.encode("utf-8")))
-            await inter.delete_original_response()
-            return await inter.send("Have fun...", file=disnake.File(image, "image.png"), ephemeral=True)
+            await inter.send("Have fun...", file=disnake.File(image, "image.png"), ephemeral=True)
+
+        return await inter.delete_original_response()
 
 
 def setup(bot):
