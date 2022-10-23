@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-__VERSION__ = "1.8.5"
+__VERSION__ = "1.8.6"
 
 from typing import Final
 
