@@ -28,7 +28,7 @@ class Database:
 
 @dataclass
 class Config:
-    Development = False
+    Development = True
     colors = Colors
     colours = colors
     tokens = Tokens
