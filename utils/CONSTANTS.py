@@ -26,7 +26,7 @@ class Channels:
     general: int = 897666935708352587
     roles: int = 933102052173828136
     rules: int = 905182869410955355
-    uploads: int = 1013853473172893837  # TODO needs changing
+    uploads: int = 1033712950252408884
 
     @classmethod
     def dev(cls):
