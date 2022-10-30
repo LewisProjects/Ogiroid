@@ -76,14 +76,14 @@ class Staff(commands.Cog):
     async def ban(
         self,
         inter: ApplicationCommandInteraction,
-        member: disnake.Member,
+        user: disnake.User,
         reason: str = None,
         delete_messages: int = ParamInfo(
             description="How many days of messages to delete.", default=0, choices=[0, 1, 2, 3, 4, 5, 6, 7]
         ),
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=member, reason=reason, clean_history_duration=dt.timedelta(days=delete_messages))
+        await inter.guild.ban(user=user, reason=reason, clean_history_duration=dt.timedelta(days=delete_messages))
         await sucEmb(inter, "User has been banned successfully!")
 
     @commands.slash_command(name="softban", description="Softbans a user from the server.")
@@ -92,14 +92,14 @@ class Staff(commands.Cog):
     async def softban(
         self,
         inter: ApplicationCommandInteraction,
-        member: disnake.Member,
+        user: disnake.User,
         reason: str = None,
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=member, reason=reason or "softban", clean_history_duration=dt.timedelta(days=7))
+        await inter.guild.ban(user=user, reason=reason or "softban", clean_history_duration=dt.timedelta(days=7))
         await sucEmb(inter, "User has been softbanned successfully!")
         await asyncio.sleep(5)
-        await inter.guild.unban(user=member, reason="softban unban")
+        await inter.guild.unban(user=user, reason="softban unban")
 
     @commands.slash_command(name="kick", description="Kicks a user from the server.")
     @commands.has_permissions(kick_members=True)

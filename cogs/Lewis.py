@@ -6,7 +6,6 @@ from utils.bot import OGIROID
 
 
 class Lewis(commands.Cog, name="Lewis"):
-
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.upload_check.start()
@@ -47,6 +46,7 @@ class Lewis(commands.Cog, name="Lewis"):
             return await channel.send(f"Hey, Lewis posted a new video! <@&{self.bot.config.roles.yt_announcements}>\n{video_url}")
         else:
             return
+
 
 def setup(bot):
     bot.add_cog(Lewis(bot))
