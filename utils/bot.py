@@ -8,7 +8,6 @@ import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
-from disnake.ext.commands import when_mentioned_or
 
 from utils.CONSTANTS import __VERSION__
 from utils.DBhandlers import BlacklistHandler
@@ -27,7 +26,7 @@ class OGIROID(commands.InteractionBot):
 
         super().__init__(
             intents=disnake.Intents.all(),
-            sync_commands_debug=True,
+            command_sync_flags=commands.CommandSyncFlags(sync_commands_debug=True),
             *args,
             **kwargs,
         )
