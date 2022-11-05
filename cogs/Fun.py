@@ -86,7 +86,6 @@ class Fun(commands.Cog):
         await inter.send(embed=e)
 
     @commands.slash_command(name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
-    @commands.has_permissions(manage_messages=True)
     async def poll(
         self,
         inter: ApplicationCommandInteraction,
