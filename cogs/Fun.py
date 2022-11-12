@@ -86,7 +86,7 @@ class Fun(commands.Cog):
         await inter.send(embed=e)
 
     @commands.slash_command(name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
-    @commands.cooldown(1, 60, commands.BucketType.user)
+    @commands.cooldown(1, 90, commands.BucketType.user)
     async def poll(
         self,
         inter: ApplicationCommandInteraction,
