@@ -29,7 +29,7 @@ class Database:
 
 @dataclass
 class Config:
-    Development = True
+    Development = False
     colors = Colors
     colours = colors
     tokens = Tokens
