@@ -87,6 +87,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="poll", description="Make a Poll enter a question atleast 2 options and upto 6 options.")
     @commands.cooldown(1, 90, commands.BucketType.user)
+    @commands.cooldown(1, 30, commands.BucketType.channel)
     async def poll(
         self,
         inter: ApplicationCommandInteraction,
