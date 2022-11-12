@@ -19,7 +19,7 @@ class AI(commands.Cog):
         raw_images = r["images"]
         images = [disnake.File(BytesIO(base64.decodebytes(i.encode("utf-8"))), "image.png") for i in raw_images]
 
-        return await inter.edit_original_response(files=images, content="Here you go!")
+        await inter.edit_original_response(files=images, content="Here you go!")
 
 
 def setup(bot):
