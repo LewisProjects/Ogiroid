@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-__VERSION__ = "1.8.6"
+__VERSION__ = "1.9"
 
 from typing import Final
 
@@ -26,6 +26,7 @@ class Channels:
     general: int = 897666935708352587
     roles: int = 933102052173828136
     rules: int = 905182869410955355
+    uploads: int = 1033712950252408884
 
     @classmethod
     def dev(cls):
@@ -44,6 +45,7 @@ class Channels:
         cls.general: int = 985729550732394536
         cls.roles: int = 1013853473172893837
         cls.rules: int = 1013853473172893837
+        cls.uploads: int = 1013853473172893837
         return cls
 
 
@@ -62,10 +64,12 @@ class Guilds:
 @dataclass
 class Roles:
     staff: int = 980700205328502794
+    yt_announcements: int = 1010237178036633670
 
     @classmethod
     def dev(cls):
         cls.staff: int = 985943266115584010
+        cls.yt_announcements: int = 1007202835957563412
         return cls
 
 
