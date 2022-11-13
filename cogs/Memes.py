@@ -18,6 +18,12 @@ class Memes(commands.Cog):
         await inter.send(
             "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg"
         )
+    @commands.slash_command(name="boners with lewis", description="Boners with lewis")
+    async def onlyfans(self, inter):
+        """Boners with lewis"""
+        await inter.send(
+            "https://pbs.twimg.com/media/FhDemilXEAI_CNx.jpg"
+        )
 
     @commands.slash_command(name="meme", aliases=["dankmeme"], description="Random meme from r/memes")
     async def meme(self, inter):
