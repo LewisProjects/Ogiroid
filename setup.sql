@@ -78,4 +78,12 @@ IF NOT EXISTS role_rewards
     guild_id BIGINT,
     role_id BIGINT,
     required_lvl INTEGER DEFAULT 0
-)
+);
+
+CREATE TABLE
+IF NOT EXISTS birthday
+(
+    user_id BIGINT,
+    birthday TEXT DEFAULT NULL,
+    birthday_last_changed BIGINT DEFAULT NULL
+);
