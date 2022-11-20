@@ -405,7 +405,7 @@ class Fun(commands.Cog):
     @commands.slash_command(name="urlshortner", description="Shortens a URL.")
     async def urlshortner(self, inter: ApplicationCommandInteraction, url: str):
         # checking if url starts with http:// or https://, if it does not, adding https:// towards the start
-        if not (url.startswith("http://") and url.startswith("https://")):
+        if not (url.startswith("http://") or url.startswith("https://")):
             url = f"https://{url}"
         response = requests.post("https://roman.vm.net.ua/s", url)
         if response.status_code == 201:
