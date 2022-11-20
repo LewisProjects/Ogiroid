@@ -29,12 +29,7 @@ class Database:
 
 @dataclass
 class Config:
-    if os.getenv("DEVELOPMENT").lower() == "true":
-        Development: bool = True
-    elif os.getenv("DEVELOPMENT").lower() == "false":
-        Development: bool = False
-    else:
-        raise ValueError("DEVELOPMENT in secrets.env must be set to true or false")
+    Development = False
     colors = Colors
     colours = colors
     tokens = Tokens
