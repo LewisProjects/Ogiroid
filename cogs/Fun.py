@@ -410,9 +410,8 @@ class Fun(commands.Cog):
         response = requests.post("https://roman.vm.net.ua/s", url)
         if response.status_code == 201:
             embed = disnake.Embed(
-                title=f"URL created for: {url.replace('http://', '').replace('https://', '')}",
                 color=0xFFFFFF,
-                description=f"Your shortend URL is: {response.json()['short_url']}, or click [here]({response.json()['short_url']}) to visit it.",
+                description=f"Your shortend URL is: {response.text}, or click [here]({response.text}) to visit it.",
             )
             embed.set_footer(text=f"Requested by: {inter.author.name}")
             return await inter.send(embed=embed)
