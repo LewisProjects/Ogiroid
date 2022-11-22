@@ -436,7 +436,7 @@ class Level(commands.Cog):
                 inline=False,
             )
 
-        embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
+        embed.set_footer(text=f"{inter.author}", icon_url=inter.author.display_avatar.url)
         embed.timestamp = dt.datetime.now()
 
         await inter.send(embed=embed, view=LeaderboardView(inter, self.controller, embed, inter.author.id))
