@@ -1,9 +1,12 @@
+import time
+
 import disnake
 import datetime as dt
 from disnake.ext import commands, tasks
 from utils.DBhandlers import BirthdayHandler
 from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
+from utils.CONSTANTS import months
 
 from utils.bot import OGIROID
 
@@ -25,28 +28,15 @@ class Birthday(commands.Cog):
     async def birthday(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
-    @birthday.sub_command(name="set", description="Set your birthday")
+    @birthday.sub_command(name="set", description="Set your birthday. Cant be removed without Staff.")
     async def set(
         self,
         inter,
-        day: int = commands.Param(name="day", ge=1, le=31, description="The day of your birthday"),
+        day: int = commands.Param(name="day", ge=1, le=31, description="The day of your birthday. Select carefully."),
         month: str = commands.Param(
             name="month",
-            description="The month of your birthday",
-            choices={
-                "January": "01",
-                "February": "02",
-                "March": "03",
-                "April": "04",
-                "May": "05",
-                "June": "06",
-                "July": "07",
-                "August": "08",
-                "September": "09",
-                "October": "10",
-                "November": "11",
-                "December": "12",
-            },
+            description="The month of your birthday. Select carefully.",
+            choices=months,
         ),
     ):
         if month is None or day is None:
@@ -62,14 +52,38 @@ class Birthday(commands.Cog):
 
         await sucEmb(inter, f"Your birthday has been set to {birth_date}")
 
-    @birthday.sub_command(name="remove", description="Remove your birthday")
-    async def remove(self, inter):
+    @commands.has_permissions(manage_roles=True)
+    @birthday.sub_command(name="edit", description="Edit a users birthday. Can only be done by Staff.")
+    async def edit(
+        self,
+        inter,
+        day: int = commands.Param(name="day", ge=1, le=31, description="The day of the birthday."),
+        month: str = commands.Param(
+            name="month",
+            description="The month of the birthday.",
+            choices=months,
+        ),
+        user: disnake.User = commands.Param(name="user", description="User to edit the birthday of."),
+    ):
         try:
-            await self.birthday.delete_user(inter.author.id)
+            await self.birthday.update_user(user.id, f"{day}/{month}")
+            return await sucEmb(inter, f"Birthday has been updated to {day}/{month}")
         except UserNotFound:
-            return await errorEmb(inter, "You don't have a birthday set")
+            return await errorEmb(inter, "The User doesn't have a birthday set")
 
-        await sucEmb(inter, "Your birthday has been removed")
+    @commands.has_permissions(manage_roles=True)
+    @birthday.sub_command(name="remove", description="Remove a birthday. Can only be done by Staff.")
+    async def remove(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        user: disnake.User = commands.Param(name="user", description="Removes the birthday of this user"),
+    ):
+        try:
+            await self.birthday.delete_user(user.id)
+        except UserNotFound:
+            return await errorEmb(inter, "This user doesn't have a birthday set")
+
+        await sucEmb(inter, "The birthday has been removed")
 
     @birthday.sub_command(name="get", description="Get the birthday of a user")
     async def get(self, inter, user: disnake.User = commands.Param(name="user", default=None)):
