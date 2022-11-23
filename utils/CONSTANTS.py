@@ -27,6 +27,7 @@ class Channels:
     roles: int = 933102052173828136
     rules: int = 905182869410955355
     uploads: int = 1033712950252408884
+    birthdays: int = 1044886735588429864
 
     @classmethod
     def dev(cls):
@@ -46,6 +47,7 @@ class Channels:
         cls.roles: int = 1013853473172893837
         cls.rules: int = 1013853473172893837
         cls.uploads: int = 1013853473172893837
+        cls.birthdays: int = 1013853473172893837  # dummy channel
         return cls
 
 
@@ -65,11 +67,13 @@ class Guilds:
 class Roles:
     staff: int = 980700205328502794
     yt_announcements: int = 1010237178036633670
+    birthday: int = 1044883332548280360
 
     @classmethod
     def dev(cls):
         cls.staff: int = 985943266115584010
-        cls.yt_announcements: int = 1007202835957563412
+        cls.yt_announcements: int = 1007202835957563412  # dummy role
+        cls.birthday: int = 1007202835957563412  # dummy role
         return cls
 
 
@@ -111,6 +115,9 @@ def status(stat):
     }
     return statuses[stat]
 
+
+congrats_messages = ["Happy Birthday", "Today is the Birthday of", "It's the birthday of",
+                     "It's party time, because its the Birthday of"]
 
 xp_probability = [
     10,

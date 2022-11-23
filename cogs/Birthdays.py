@@ -1,13 +1,12 @@
-import time
-
 import disnake
 import datetime as dt
 from disnake.ext import commands, tasks
+import random
+
 from utils.DBhandlers import BirthdayHandler
 from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
-from utils.CONSTANTS import months
-
+from utils.CONSTANTS import months, congrats_messages
 from utils.bot import OGIROID
 
 
@@ -15,6 +14,7 @@ class Birthday(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.birthday: BirthdayHandler = None
+        self.birthday_check.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -97,19 +97,32 @@ class Birthday(commands.Cog):
             return await errorEmb(inter, "This user doesn't have a birthday set")
         await QuickEmb(inter, f"{user.mention}'s birthday is {birthday.birthday}").send()
 
-    @tasks.loop(time=[dt.time(12, 0, 0)])
+    # @tasks.loop(time=[dt.time(dt.datetime.utcnow().hour, dt.datetime.utcnow().minute, dt.datetime.utcnow().second + 10)])
+    # ^ use this when testing birthdays
+    @tasks.loop(time=[dt.time(8, 0, 0)])
+    # loops every day at 8:00 UTC time
     async def birthday_check(self):
         channel = self.bot.get_channel(self.bot.config.channels.birthdays)
         guild = self.bot.get_guild(self.bot.config.guilds.main_guild)
         if channel is None:
             return
         today = dt.datetime.utcnow().strftime("%d/%m")
+        # Gets all users from the db
         users = await self.birthday.get_users()
         for user in users:
-            if user.birthday.split("/") == today:
-                member = await guild.fetch_member(user.user_id)
-                if member is not None:
-                    await channel.send(f"Happy birthday {member.mention}!")
+            member = await guild.fetch_member(user.user_id)
+            # if the member is None, the user is not in the server anymore
+            if member is None:
+                continue
+
+            # if the birthday is today, congratulate the user
+            if user.birthday == today:
+                await member.add_roles(guild.get_role(self.bot.config.roles.birthday))
+                congrats_msg = await channel.send(f"{random.choice(congrats_messages)} {member.mention}! 🎂")
+                await congrats_msg.add_reaction("🥳")
+            # If the birthday isn't today and the user still has the birthday role, remove it
+            elif user.birthday != today and member.get_role(self.bot.config.roles.birthday) is not None:
+                await member.remove_roles(guild.get_role(self.bot.config.roles.birthday))
 
 
 def setup(bot):
