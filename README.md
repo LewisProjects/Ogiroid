@@ -15,7 +15,7 @@ Main Contributors/Developers:
 <li><a href="https://github.com/JasonLovesDoggo">JasonLovesDoggo</a></li>
 <li><a href="https://github.com/LevaniVashadze">Levani Vashadze</a></li>
 </ul>
-The bot is currently on release: <b>1.8.0</b><br>
+The bot is currently on release: <b>2.0</b><br>
 License: MIT<br>
 Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/CONTRIBUTING.md">contribution guidelines</a>
 <hr>
