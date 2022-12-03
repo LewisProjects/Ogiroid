@@ -87,3 +87,11 @@ IF NOT EXISTS birthday
     birthday TEXT DEFAULT NULL,
     birthday_last_changed BIGINT DEFAULT NULL
 );
+
+CREATE TABLE
+IF NOT EXISTS timezone
+(
+    user_id BIGINT,
+    timezone TEXT DEFAULT NULL,
+    timezone_last_changed BIGINT DEFAULT NULL
+);

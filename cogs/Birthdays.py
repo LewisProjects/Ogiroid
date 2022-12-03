@@ -1,3 +1,5 @@
+import datetime
+
 import disnake
 import datetime as dt
 from disnake.ext import commands, tasks
@@ -95,7 +97,15 @@ class Birthday(commands.Cog):
         birthday = await self.birthday.get_user(user.id)
         if birthday is None:
             return await errorEmb(inter, "This user doesn't have a birthday set")
-        await QuickEmb(inter, f"{user.mention}'s birthday is {birthday.birthday}").send()
+
+        next_birthday = datetime.datetime.strptime(birthday.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y")
+        if next_birthday < datetime.datetime.now():
+            next_birthday = datetime.datetime.strptime(birthday.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y")
+        await QuickEmb(
+            inter,
+            f"{user.mention}'s birthday is in {(next_birthday - datetime.datetime.now()).days} Days."
+            f" <t:{str(next_birthday.timestamp()).split('.')[0]}:D>",
+        ).send()
 
     # @tasks.loop(time=[dt.time(dt.datetime.utcnow().hour, dt.datetime.utcnow().minute, dt.datetime.utcnow().second + 10)])
     # ^ use this when testing birthdays
