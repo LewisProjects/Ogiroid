@@ -72,9 +72,9 @@ IF NOT EXISTS levels
     xp INTEGER DEFAULT 0
 );
 
-ALTER TABLE levels ADD COLUMN IF NOT EXISTS xp_boost INTEGER DEFAULT 1;
-ALTER TABLE levels ADD COLUMN IF NOT EXISTS xp_boost_expiry BIGINT;
-
+-- ALTER TABLE levels ADD COLUMN IF NOT EXISTS xp_boost INTEGER DEFAULT 1;
+-- ALTER TABLE levels ADD COLUMN IF NOT EXISTS xp_boost_expiry BIGINT;
+-- BUG sqlite3.OperationalError: near "EXISTS": syntax error
 
 CREATE TABLE
 IF NOT EXISTS role_rewards
