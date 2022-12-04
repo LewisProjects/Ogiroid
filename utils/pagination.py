@@ -1,3 +1,4 @@
+import math
 from typing import TYPE_CHECKING
 
 from disnake import ui, ButtonStyle, Embed
@@ -101,7 +102,8 @@ class LeaderboardView(ui.View):
     """
 
     def __init__(
-        self, controller: "LevelsController", firstemb: Embed, author: int = 123, set_user: bool = False, timeout: float = None
+            self, controller: "LevelsController", firstemb: Embed, author: int = 123, set_user: bool = False,
+            timeout: float = None
     ):
 
         self.controller = controller
@@ -114,8 +116,12 @@ class LeaderboardView(ui.View):
         )
 
     async def at_last_page(self, inter):
-        records = await self.controller.get_count(inter.guild)
-        if records % 10 <= 0:
+        records = await self.controller.get_count(inter.guild.id)
+        if records % 10 == 0:
+            last_page = records // 10 - 1
+        else:
+            last_page = records // 10
+        if self.CurrentEmbed == last_page:
             return True
         else:
             return False
@@ -124,7 +130,8 @@ class LeaderboardView(ui.View):
         if page_num == 0:
             return self.firstemb
         else:
-            records = await self.controller.get_leaderboard(inter.guild, limit=10, offset=page_num * 10)
+            offset = page_num * 10
+            records = await self.controller.get_leaderboard(inter.guild, limit=10, offset=offset)
             try:
                 cmd_user = await self.controller.get_user(inter.author)
             except UserNotFound:
@@ -138,12 +145,14 @@ class LeaderboardView(ui.View):
                 user = await inter.bot.fetch_user(record.user_id)
                 if record.user_id == inter.author.id:
                     embed.add_field(
-                        name=f"{i + 1}. {user} ~ You ", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False
+                        name=f"{i + 1 + offset}. {user} ~ You ",
+                        value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False
                     )
                     self.user_set = True
                 else:
                     embed.add_field(
-                        name=f"{i + 1}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}", inline=False
+                        name=f"{i + 1 + offset}. {user}", value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
+                        inline=False
                     )
             if not self.user_set:
                 rank = await self.controller.get_rank(inter.guild.id, cmd_user)
@@ -155,6 +164,7 @@ class LeaderboardView(ui.View):
 
             embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
             embed.timestamp = dt.datetime.now()
+            return embed
 
     @ui.button(emoji="⏮️", style=ButtonStyle.grey)
     async def front(self, button, inter):
@@ -196,8 +206,7 @@ class LeaderboardView(ui.View):
                 return await inter.send("you are already at the end", ephemeral=True)
             await inter.response.edit_message(embed=await self.create_page(inter, self.CurrentEmbed + 1))
             self.CurrentEmbed += 1
-
-        except:
+        except Exception as e:
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⏭️", style=ButtonStyle.grey)
@@ -207,11 +216,11 @@ class LeaderboardView(ui.View):
                 return await inter.send("You cannot interact with these buttons.", ephemeral=True)
             elif await self.at_last_page(inter):
                 return await inter.send("you are already at the end", ephemeral=True)
-            get_last_page = await self.controller.get_count(inter.guild.id)
-            if get_last_page % 10 == 0:
-                last_page = get_last_page // 10
+            record_count = await self.controller.get_count(inter.guild.id)
+            if record_count % 10 == 0:  # if the number of records is divisible by 10 e.g. 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 etc. then we must subtract 1 from the number of records to get the last page
+                last_page = record_count // 10 - 1
             else:
-                last_page = get_last_page // 10 + 1
+                last_page = math.floor(record_count // 10) # if the number of records is not divisible by 10 e.g. 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29 etc. then we can just divide the number of records by 10 to get the last page
             await inter.response.edit_message(embed=await self.create_page(inter, last_page))
             self.CurrentEmbed = last_page
 
