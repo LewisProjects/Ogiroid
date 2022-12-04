@@ -33,6 +33,10 @@ class RoleReactionException(BotException):
     pass
 
 
+class BirthdayException(BotException):
+    pass
+
+
 class TagNotFound(TagException, KeyError):
     pass
 
@@ -92,4 +96,8 @@ class InvalidAPIKEY(BotException):
 
 
 class LevelingSystemError(BotException):
+    pass
+
+
+class UserAlreadyExists(BirthdayException):
     pass

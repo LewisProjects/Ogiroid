@@ -115,3 +115,17 @@ class WarningModel:
     user_id: int
     moderator_id: int
     reason: str
+
+
+@dataclass
+class BirthdayModel:
+    user_id: int
+    birthday: str
+    birthday_last_changed: int
+
+
+@dataclass
+class TimezoneModel:
+    user_id: int
+    timezone: str
+    timezone_last_changed: int

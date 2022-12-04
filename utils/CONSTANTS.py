@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-__VERSION__ = "1.9"
+__VERSION__ = "2.0"
 
 from typing import Final
 
@@ -27,6 +27,7 @@ class Channels:
     roles: int = 933102052173828136
     rules: int = 905182869410955355
     uploads: int = 1033712950252408884
+    birthdays: int = 1044886735588429864
 
     @classmethod
     def dev(cls):
@@ -46,6 +47,7 @@ class Channels:
         cls.roles: int = 1013853473172893837
         cls.rules: int = 1013853473172893837
         cls.uploads: int = 1013853473172893837
+        cls.birthdays: int = 1013853473172893837  # dummy channel
         return cls
 
 
@@ -65,11 +67,13 @@ class Guilds:
 class Roles:
     staff: int = 980700205328502794
     yt_announcements: int = 1010237178036633670
+    birthday: int = 1044883332548280360
 
     @classmethod
     def dev(cls):
         cls.staff: int = 985943266115584010
-        cls.yt_announcements: int = 1007202835957563412
+        cls.yt_announcements: int = 1007202835957563412  # dummy role
+        cls.birthday: int = 1007202835957563412  # dummy role
         return cls
 
 
@@ -111,6 +115,129 @@ def status(stat):
     }
     return statuses[stat]
 
+
+congrats_messages = [
+    "Happy Birthday",
+    "Today is the Birthday of",
+    "It's the birthday of",
+    "It's party time, because its the Birthday of",
+]
+
+# noinspection SpellCheckingInspection
+timezones = [
+    "Pacific/Midway",
+    "US/Samoa",
+    "US/Hawaii",
+    "US/Alaska",
+    "US/Pacific",
+    "America/Tijuana",
+    "US/Arizona",
+    "US/Mountain",
+    "America/Chihuahua",
+    "America/Mazatlan",
+    "America/Mexico_City",
+    "America/Monterrey",
+    "Canada/Saskatchewan",
+    "US/Central",
+    "US/Eastern",
+    "US/East-Indiana",
+    "America/Bogota",
+    "America/Lima",
+    "America/Caracas",
+    "Canada/Atlantic",
+    "America/La_Paz",
+    "America/Santiago",
+    "Canada/Newfoundland",
+    "America/Buenos_Aires",
+    "Greenland",
+    "Atlantic/Stanley",
+    "Atlantic/Azores",
+    "Atlantic/Cape_Verde",
+    "Africa/Casablanca",
+    "Europe/Dublin",
+    "Europe/Lisbon",
+    "Europe/London",
+    "Africa/Monrovia",
+    "Europe/Amsterdam",
+    "Europe/Belgrade",
+    "Europe/Berlin",
+    "Europe/Bratislava",
+    "Europe/Brussels",
+    "Europe/Budapest",
+    "Europe/Copenhagen",
+    "Europe/Ljubljana",
+    "Europe/Madrid",
+    "Europe/Paris",
+    "Europe/Prague",
+    "Europe/Rome",
+    "Europe/Sarajevo",
+    "Europe/Skopje",
+    "Europe/Stockholm",
+    "Europe/Vienna",
+    "Europe/Warsaw",
+    "Europe/Zagreb",
+    "Europe/Athens",
+    "Europe/Bucharest",
+    "Africa/Cairo",
+    "Africa/Harare",
+    "Europe/Helsinki",
+    "Europe/Istanbul",
+    "Asia/Jerusalem",
+    "Europe/Kiev",
+    "Europe/Minsk",
+    "Europe/Riga",
+    "Europe/Sofia",
+    "Europe/Tallinn",
+    "Europe/Vilnius",
+    "Asia/Baghdad",
+    "Asia/Kuwait",
+    "Africa/Nairobi",
+    "Asia/Riyadh",
+    "Europe/Moscow",
+    "Asia/Tehran",
+    "Asia/Baku",
+    "Europe/Volgograd",
+    "Asia/Muscat",
+    "Asia/Tbilisi",
+    "Asia/Yerevan",
+    "Asia/Kabul",
+    "Asia/Karachi",
+    "Asia/Tashkent",
+    "Asia/Kolkata",
+    "Asia/Kathmandu",
+    "Asia/Yekaterinburg",
+    "Asia/Almaty",
+    "Asia/Dhaka",
+    "Asia/Novosibirsk",
+    "Asia/Bangkok",
+    "Asia/Jakarta",
+    "Asia/Krasnoyarsk",
+    "Asia/Chongqing",
+    "Asia/Hong_Kong",
+    "Asia/Kuala_Lumpur",
+    "Australia/Perth",
+    "Asia/Singapore",
+    "Asia/Taipei",
+    "Asia/Ulaanbaatar",
+    "Asia/Urumqi",
+    "Asia/Irkutsk",
+    "Asia/Seoul",
+    "Asia/Tokyo",
+    "Australia/Adelaide",
+    "Australia/Darwin",
+    "Asia/Yakutsk",
+    "Australia/Brisbane",
+    "Australia/Canberra",
+    "Pacific/Guam",
+    "Australia/Hobart",
+    "Australia/Melbourne",
+    "Pacific/Port_Moresby",
+    "Australia/Sydney",
+    "Asia/Vladivostok",
+    "Asia/Magadan",
+    "Pacific/Auckland",
+    "Pacific/Fiji",
+]
 
 xp_probability = [
     10,
@@ -323,6 +450,21 @@ MAX_LEVEL: Final = len(LEVELS_AND_XP) - 1
 MAX_XP: Final = LEVELS_AND_XP[MAX_LEVEL]
 
 IGNORE_EXCEPTIONS = ["UserBlacklisted"]
+
+months = {
+    "January": "01",
+    "February": "02",
+    "March": "03",
+    "April": "04",
+    "May": "05",
+    "June": "06",
+    "July": "07",
+    "August": "08",
+    "September": "09",
+    "October": "10",
+    "November": "11",
+    "December": "12",
+}
 morse = {
     "0": "-----",
     "1": ".----",

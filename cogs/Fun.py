@@ -405,14 +405,13 @@ class Fun(commands.Cog):
     @commands.slash_command(name="urlshortner", description="Shortens a URL.")
     async def urlshortner(self, inter: ApplicationCommandInteraction, url: str):
         # checking if url starts with http:// or https://, if it does not, adding https:// towards the start
-        if not url.startswith("http://") and not url.startswith("https://"):
+        if not (url.startswith("http://") or url.startswith("https://")):
             url = f"https://{url}"
-        response = requests.post(f"https://u.jasoncodes.ca/add/{url}")
-        if response.status_code == 200:
+        response = requests.post("https://roman.vm.net.ua/s", url)
+        if response.status_code == 201:
             embed = disnake.Embed(
-                title=f"URL created for: {url.replace('http://', '').replace('https://', '')}",
                 color=0xFFFFFF,
-                description=f"Your shortend URL is: {response.json()['short_url']}, or click [here]({response.json()['short_url']}) to visit it.",
+                description=f"Your shortend URL is: {response.text}, or click [here]({response.text}) to visit it.",
             )
             embed.set_footer(text=f"Requested by: {inter.author.name}")
             return await inter.send(embed=embed)

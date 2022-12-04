@@ -7,7 +7,7 @@ from typing import List, Literal, Optional, TYPE_CHECKING
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.exceptions import *
-from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole, WarningModel
+from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole, WarningModel, BirthdayModel, TimezoneModel
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
@@ -522,5 +522,105 @@ class WarningHandler:
         if warning is None:
             return False
         await self.db.execute("DELETE FROM warnings WHERE warning_id = ?", [warning_id])
+        await self.db.commit()
+        return True
+
+
+class BirthdayHandler:
+    def __init__(self, bot, db):
+        self.db = db
+        self.bot = bot
+
+    async def get_user(self, user_id: int) -> Optional[BirthdayModel]:
+        async with self.db.execute("SELECT * FROM birthday WHERE user_id = ?", [user_id]) as cur:
+            content = await cur.fetchone()
+            if content is None:
+                return None
+            return BirthdayModel(*content)
+
+    async def get_users(self) -> List[BirthdayModel]:
+        users = []
+        async with self.db.execute("SELECT * FROM birthday") as cur:
+            async for row in cur:
+                users.append(BirthdayModel(*row))
+        return users
+
+    async def delete_user(self, user_id: int) -> bool:
+        user = await self.get_user(user_id)
+        if user is None:
+            raise UserNotFound
+        await self.db.execute("DELETE FROM birthday WHERE user_id = ?", [user_id])
+        await self.db.commit()
+        return True
+
+    async def create_user(self, user_id: int, birthday: str) -> bool:
+        user = await self.get_user(user_id)
+        if user is not None:
+            raise UserAlreadyExists
+        await self.db.execute(
+            "INSERT INTO birthday (user_id, birthday, birthday_last_changed) VALUES (?, ?, ?)",
+            [user_id, birthday, int(time.time())],
+        )
+        await self.db.commit()
+        return True
+
+    async def update_user(self, user_id: int, birthday: str) -> bool:
+        user = await self.get_user(user_id)
+        if user is None:
+            raise UserNotFound
+        await self.db.execute(
+            "UPDATE birthday SET birthday = ?, birthday_last_changed = ? WHERE user_id = ?",
+            [birthday, int(time.time()), user_id],
+        )
+        await self.db.commit()
+        return True
+
+
+class TimezoneHandler:
+    def __init__(self, bot, db):
+        self.db = db
+        self.bot = bot
+
+    async def get_user(self, user_id: int) -> Optional[TimezoneModel]:
+        async with self.db.execute("SELECT * FROM timezone WHERE user_id = ?", [user_id]) as cur:
+            content = await cur.fetchone()
+            if content is None:
+                return None
+            return TimezoneModel(*content)
+
+    async def get_users(self) -> List[TimezoneModel]:
+        users = []
+        async with self.db.execute("SELECT * FROM timezone") as cur:
+            async for row in cur:
+                users.append(TimezoneModel(*row))
+        return users
+
+    async def delete_user(self, user_id: int) -> bool:
+        user = await self.get_user(user_id)
+        if user is None:
+            raise UserNotFound
+        await self.db.execute("DELETE FROM timezone WHERE user_id = ?", [user_id])
+        await self.db.commit()
+        return True
+
+    async def create_user(self, user_id: int, timezone: str) -> bool:
+        user = await self.get_user(user_id)
+        if user is not None:
+            raise UserAlreadyExists
+        await self.db.execute(
+            "INSERT INTO timezone (user_id, timezone, timezone_last_changed) VALUES (?, ?, ?)",
+            [user_id, timezone, int(time.time())],
+        )
+        await self.db.commit()
+        return True
+
+    async def update_user(self, user_id: int, timezone: str) -> bool:
+        user = await self.get_user(user_id)
+        if user is None:
+            raise UserNotFound
+        await self.db.execute(
+            "UPDATE timezone SET timezone = ?, timezone_last_changed = ? WHERE user_id = ?",
+            [timezone, int(time.time()), user_id],
+        )
         await self.db.commit()
         return True

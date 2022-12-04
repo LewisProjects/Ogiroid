@@ -221,7 +221,8 @@ class LevelsController:
         avatar: disnake.Asset = user.display_avatar.with_size(512)
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
-        with Image.open("utils/data/images/rankcard.png").convert("RGBA") as base:
+        # with Image.open("utils/data/images/rankcard.png").convert("RGBA") as base: NORMAL VERSION
+        with Image.open("utils/data/images/winterrankcard.png").convert("RGBA") as base:  # WINTER VERSION
             # make a blank image for the text, initialized to transparent text color
             txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
 
@@ -436,7 +437,7 @@ class Level(commands.Cog):
                 inline=False,
             )
 
-        embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
+        embed.set_footer(text=f"{inter.author}", icon_url=inter.author.display_avatar.url)
         embed.timestamp = dt.datetime.now()
 
         await inter.send(embed=embed, view=LeaderboardView(inter, self.controller, embed, inter.author.id))

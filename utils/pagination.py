@@ -114,7 +114,7 @@ class LeaderboardView(ui.View):
         )
 
     async def at_last_page(self, inter):
-        records = await self.controller.get_count(inter.guild.id)
+        records = await self.controller.get_count(inter.guild)
         if records % 10 <= 0:
             return True
         else:
