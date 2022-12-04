@@ -45,8 +45,11 @@ class LevelsController:
         else:
             raise error
 
-    async def get_count(self, guild: Guild) -> int:
-        record = await self.db.execute("SELECT COUNT(*) FROM levels WHERE guild_id = ?", (guild.id,))
+    async def get_count(self, guild: Guild | int) -> int:
+        if isinstance(guild, Guild):
+            guild = guild.id
+
+        record = await self.db.execute("SELECT COUNT(*) FROM levels WHERE guild_id = ?", (int(guild),))
         return (await record.fetchone())[0]
 
     async def get_leaderboard(self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None) -> list[User]:
@@ -440,7 +443,7 @@ class Level(commands.Cog):
         embed.set_footer(text=f"{inter.author}", icon_url=inter.author.display_avatar.url)
         embed.timestamp = dt.datetime.now()
 
-        await inter.send(embed=embed, view=LeaderboardView(inter, self.controller, embed, inter.author.id))
+        await inter.send(embed=embed, view=LeaderboardView(controller=self.controller, firstemb=embed, author=inter.author.id))
 
     @commands.slash_command()
     @commands.guild_only()
