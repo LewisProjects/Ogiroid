@@ -11,7 +11,7 @@ from utils.bot import OGIROID
 
 
 async def autocomplete_timezones(inter, user_input: str):
-    return [tz for tz in timezones if user_input.lower() in tz.lower()]
+    return [tz for tz in timezones if user_input.lower() in tz.lower()][0:25]
 
 
 class Timezone(commands.Cog):
@@ -50,10 +50,10 @@ class Timezone(commands.Cog):
 
         await sucEmb(
             inter,
-            f"Your timezone has been set to {timezone}. Its currently <t:{str(dt.datetime.now(pytz.timezone(timezone)).timestamp()).split('.')[0]}:t> at your location.",
+            f"Your timezone has been set to {timezone}."
+            f" Its should be {dt.datetime.now(pytz.timezone(timezone)).strftime('%H:%M')} at your location.",
         )
 
-    @commands.has_permissions(manage_roles=True)
     @timezone.sub_command(name="edit", description="Edit your timezone.")
     async def edit(
         self,
@@ -70,11 +70,10 @@ class Timezone(commands.Cog):
             return await errorEmb(inter, "The timezone you provided is not valid")
         try:
             await self.db_timezone.update_user(inter.author.id, timezone)
-            return await sucEmb(
+            await sucEmb(
                 inter,
                 f"Your timezone has been set to {timezone}."
-                f" Its currently <t:{str(dt.datetime.now(pytz.timezone(timezone)).timestamp()).split('.')[0]}:t>"
-                f" at your location.",
+                f" Its should be {dt.datetime.now(pytz.timezone(timezone)).strftime('%H:%M')} at your location.",
             )
         except UserNotFound:
             return await errorEmb(inter, "The User doesn't have a timezone set")
@@ -103,7 +102,8 @@ class Timezone(commands.Cog):
             return await errorEmb(inter, "This user doesn't have a timezone set")
         await QuickEmb(
             inter,
-            f"{user.mention}'s timezone is {timezone.timezone} .Its currently <t:{str(dt.datetime.now(pytz.timezone(timezone.timezone)).timestamp()).split('.')[0]}:t> for them",
+            f"{user.mention}'s timezone is {timezone.timezone}."
+            f" Its currently {dt.datetime.now(pytz.timezone(timezone.timezone)).strftime('%H:%M')} for them",
         ).send()
 
 
