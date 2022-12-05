@@ -18,7 +18,10 @@ class CodeExec(Cog, name="Code"):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
-    @commands.slash_command(name="code", description="Run code and get results instantly. Window for code will pop up.")
+    @commands.slash_command(
+        name="code",
+        description="Run code and get results instantly. Window for code will pop up.",
+    )
     async def code(self, ctx):
         """
         Run code and get results instantly
@@ -54,7 +57,9 @@ class CodeModal(disnake.ui.Modal):
     async def callback(self, inter: disnake.ModalInteraction):
         language = inter.text_values["language"].strip()
         if not self._check_valid_lang(language):
-            embed = disnake.Embed(title=f"{language} is not a valid language", colour=Color.red())
+            embed = disnake.Embed(
+                title=f"{language} is not a valid language", colour=Color.red()
+            )
             return await inter.response.send_message(embed=embed)
 
         embed = disnake.Embed(title="Running Code")
@@ -74,7 +79,10 @@ class CodeModal(disnake.ui.Modal):
 
     @staticmethod
     async def run_code(*, lang: str, code: str):
-        code = await session.post("https://emkc.org/api/v1/piston/execute", json={"language": lang, "source": code})
+        code = await session.post(
+            "https://emkc.org/api/v1/piston/execute",
+            json={"language": lang, "source": code},
+        )
         return await code.json()
 
     @staticmethod

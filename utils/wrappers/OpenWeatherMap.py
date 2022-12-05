@@ -104,11 +104,15 @@ class OpenWeatherAPI:
         """
         self.apiKey = key
         self.session = session or aiohttp.ClientSession()
-        self.baseUrl = "https://api.openweathermap.org/data/2.5/weather?{type}={query}&appid={key}"
+        self.baseUrl = (
+            "https://api.openweathermap.org/data/2.5/weather?{type}={query}&appid={key}"
+        )
 
     async def get(self, _type, query):
         """Get weather report."""
-        async with self.session.get(self.baseUrl.format(type=_type, query=query, key=self.apiKey)) as res:
+        async with self.session.get(
+            self.baseUrl.format(type=_type, query=query, key=self.apiKey)
+        ) as res:
             weatherData = await res.json()
             if weatherData["cod"] == "404":
                 raise CityNotFound(query)

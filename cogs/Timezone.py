@@ -91,7 +91,9 @@ class Timezone(commands.Cog):
         await sucEmb(inter, "The timezone has been removed")
 
     @timezone.sub_command(name="get", description="Get the timezone of a user")
-    async def get(self, inter, user: disnake.User = commands.Param(name="user", default=None)):
+    async def get(
+        self, inter, user: disnake.User = commands.Param(name="user", default=None)
+    ):
         if user is None:
             user = inter.author
         else:

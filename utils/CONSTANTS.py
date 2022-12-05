@@ -70,7 +70,6 @@ class Roles:
     birthday: int = 1044883332548280360
     nitro: int = 970695593913647144
 
-
     @classmethod
     def dev(cls):
         cls.staff: int = 985943266115584010

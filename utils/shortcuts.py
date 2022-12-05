@@ -29,16 +29,22 @@ async def permsEmb(inter: ApplicationCommandInteraction, *, permissions: str):
     await inter.send(
         embed=emb,
         ephemeral=True,
-        allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
+        allowed_mentions=disnake.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=True
+        ),
     )
 
 
-async def errorEmb(inter: ApplicationCommandInteraction, text, ephemeral=True, *args, **kwargs):
+async def errorEmb(
+    inter: ApplicationCommandInteraction, text, ephemeral=True, *args, **kwargs
+):
     emb = Embed(description=text, color=disnake.Color.red(), *args, **kwargs)
     await inter.send(
         embed=emb,
         ephemeral=ephemeral,
-        allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
+        allowed_mentions=disnake.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=True
+        ),
     )
 
 
@@ -78,7 +84,9 @@ async def sucEmb(inter: ApplicationCommandInteraction, text, ephemeral=True):
     await inter.send(
         embed=emb,
         ephemeral=ephemeral,
-        allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
+        allowed_mentions=disnake.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=True
+        ),
     )
 
 
@@ -115,6 +123,7 @@ class Config:
     @classmethod
     def boost_expired(cls):
         from time import time
+
         now = int(time())
         if cls.xp_boost_expiry >= now:
             return True
@@ -124,9 +133,9 @@ class Config:
 async def make_config(bot, guild_id) -> Config:
     db = await bot.db.cursor()
     query = "SELECT * FROM config"
-    print('hi 2')
-    row = await db.fetchrow(query, guild_id) # fixme this line wont work
-    #print('hi 3', await db.cursor())
+    print("hi 2")
+    row = await db.fetchrow(query, guild_id)  # fixme this line wont work
+    # print('hi 3', await db.cursor())
     print(row)
     if row is None:
         query = "INSERT INTO config (guild_id) VALUES (?) RETURNING *"

@@ -39,8 +39,9 @@ class OGIROID(commands.InteractionBot):
         self.db = None
         self.pool: asyncpg.Pool = None
         self.blacklist: BlacklistHandler = None
-        self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
-
+        self.add_app_command_check(
+            self.blacklist_check, slash_commands=True, call_once=True
+        )
 
     async def blacklist_check(self, ctx):
         try:
@@ -75,7 +76,10 @@ class OGIROID(commands.InteractionBot):
                 if option.options:
                     COMMAND_STRUCT.append(option)
                     do_break = False
-                elif option.type in [OptionType.sub_command_group, OptionType.sub_command]:
+                elif option.type in [
+                    OptionType.sub_command_group,
+                    OptionType.sub_command,
+                ]:
                     COMMAND_STRUCT.append(option)
                 else:
                     do_break = True
@@ -94,13 +98,23 @@ class OGIROID(commands.InteractionBot):
         if not self._ready_:
             await self.wait_until_ready()
             await self._setup()
-            await self.change_presence(activity=disnake.Activity(type=disnake.ActivityType.listening, name="the users!"))
-            print("--------------------------------------------------------------------------------")
+            await self.change_presence(
+                activity=disnake.Activity(
+                    type=disnake.ActivityType.listening, name="the users!"
+                )
+            )
+            print(
+                "--------------------------------------------------------------------------------"
+            )
             print("Bot is ready! Logged in as: " + self.user.name)
             print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani")
             print(f"Bot version: {__VERSION__}")
-            print("--------------------------------------------------------------------------------")
-            await asyncio.sleep(5)  # Wait 5 seconds for the bot to load the database and setup
+            print(
+                "--------------------------------------------------------------------------------"
+            )
+            await asyncio.sleep(
+                5
+            )  # Wait 5 seconds for the bot to load the database and setup
             self._ready_ = True
 
         else:

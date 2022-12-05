@@ -40,10 +40,13 @@ class Lewis(commands.Cog, name="Lewis"):
         hour = video_release_time.split("T")[1].split(":")[0]
         minute = video_release_time.split("T")[1].split(":")[1]
         second = video_release_time.split("T")[1].split(":")[2].split("Z")[0]
-        time = dt.datetime(int(year), int(month), int(day), int(hour), int(minute), int(second))
+        time = dt.datetime(
+            int(year), int(month), int(day), int(hour), int(minute), int(second)
+        )
         if check_time - time < dt.timedelta(minutes=30):
             return await channel.send(
-                f"Hey, Lewis posted a new video! <@&{self.bot.config.roles.yt_announcements}>\n{video_url}")
+                f"Hey, Lewis posted a new video! <@&{self.bot.config.roles.yt_announcements}>\n{video_url}"
+            )
         else:
             return
 
