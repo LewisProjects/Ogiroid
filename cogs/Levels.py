@@ -13,14 +13,15 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from cachetools import TTLCache
 from disnake import Message, Member, MessageType, File, ApplicationCommandInteraction, ClientUser, Guild, Role, Embed
 from disnake.ext import commands
-from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param
+from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param, BadArgument
 
+from utils import timeconversions
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
 from utils.bot import OGIROID
 from utils.exceptions import LevelingSystemError, UserNotFound
 from utils.models import User, RoleReward
 from utils.pagination import LeaderboardView
-from utils.shortcuts import errorEmb, sucEmb
+from utils.shortcuts import errorEmb, sucEmb, make_config, Config, get_expiry
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
@@ -178,12 +179,28 @@ class LevelsController:
             guild_id=message.guild.id,
         )  # type: ignore
 
+    async def get_boost(self, message: Message) -> int:
+        """get the boost that the server/user will have then"""
+        boost = 1
+        print('0')
+        config: Config = await make_config(self.bot, message.guild.id)
+        print('1')
+        if message.author.roles.__contains__(message.guild.get_role(self.bot.config.roles.nitro)):
+             boost = 2
+
+        if config.xp_boost_enabled and not config.boost_expired():
+            boost *= config.xp_boost
+        return boost
+
     async def grant_xp(self, message):
+        print('granting xp')
+        boost = await self.get_boost(message)
+        print('boost', boost)
         try:
-            await self.add_xp(message, await self.random_xp())
+            await self.add_xp(message, await self.random_xp() * boost)
         except UserNotFound:
             await self.add_user(message.author, message.guild)
-            await self.add_xp(message, await self.random_xp())
+            await self.add_xp(message, await self.random_xp() * boost)
         self._cooldown.update_rate_limit(message)
 
     async def handle_message(self, message: Message):
@@ -372,6 +389,32 @@ class Level(commands.Cog):
         self.controller = LevelsController(self.bot, self.bot.db)
         if not self.bot.ready_:
             print("[Levels] Ready")
+
+    @commands.slash_command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    async def xp_boost(self, inter: ApplicationCommandInteraction):
+        return
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    @xp_boost.sub_command()
+    async def active(self, inter: ApplicationCommandInteraction, active: bool):
+        await self.bot.db.execute("UPDATE config SET xp_boost_enabled = ? WHERE guild_id = ?", (active, inter.guild.id))
+        await self.bot.db.commit()
+        await inter.response.send_message(f"XP Boost is now {'enabled' if active else 'disabled'}")
+
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    @xp_boost.sub_command()
+    async def set(self, inter: ApplicationCommandInteraction, amount: float, expires: str = 'Never'):
+        """Set the xp boost for the server and optionally set an expiration date"""
+        try:
+            expires = (await timeconversions.convert(expires)).dt.timestamp()
+        except BadArgument:
+            return await inter.response.send_message('Invalid date format: Invalid time provided, try e.g. "tomorrow" or "3 days".')
+        await self.bot.db.execute("UPDATE config SET xp_boost = ?, xp_boost_expiry = ? WHERE guild_id = ?", (amount, expires, inter.guild.id))
+        await self.bot.db.commit()
+        await inter.response.send_message(f"Successfully set the xp boost to {amount}x it will expire {get_expiry(expires)} ")
 
     @commands.slash_command()
     @commands.guild_only()

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 from datetime import datetime
 
 import disnake
@@ -102,3 +103,38 @@ class QuickEmb:
 
 def manage_messages_perms(inter):
     return inter.channel.permissions_for(inter.author).manage_messages
+
+
+@dataclass
+class Config:
+    guild: int
+    xp_boost: int | float
+    xp_boost_expiry: int
+    xp_boost_enabled: bool
+
+    @classmethod
+    def boost_expired(cls):
+        from time import time
+        now = int(time())
+        if cls.xp_boost_expiry >= now:
+            return True
+        return False
+
+
+async def make_config(bot, guild_id) -> Config:
+    db = await bot.db.cursor()
+    query = "SELECT * FROM config"
+    print('hi 2')
+    row = await db.fetchrow(query, guild_id) # fixme this line wont work
+    #print('hi 3', await db.cursor())
+    print(row)
+    if row is None:
+        query = "INSERT INTO config (guild_id) VALUES (?) RETURNING *"
+        row = await db.fetchrow(query, guild_id)
+    print(row)
+    return Config(
+        row["guild_id"],
+        row["xp_boost"],
+        row["xp_boost_expiry"],
+        row["xp_boost_enabled"],
+    )

@@ -41,6 +41,7 @@ class OGIROID(commands.InteractionBot):
         self.blacklist: BlacklistHandler = None
         self.add_app_command_check(self.blacklist_check, slash_commands=True, call_once=True)
 
+
     async def blacklist_check(self, ctx):
         try:
             await self.wait_until_ready()
