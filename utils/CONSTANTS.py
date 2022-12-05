@@ -68,6 +68,8 @@ class Roles:
     staff: int = 980700205328502794
     yt_announcements: int = 1010237178036633670
     birthday: int = 1044883332548280360
+    nitro: int = 970695593913647144
+
 
     @classmethod
     def dev(cls):
