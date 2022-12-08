@@ -416,8 +416,8 @@ class Level(commands.Cog):
         """
         Called when a user reaches a certain level
         """
-
-        await self.controller.send_levelup(msg, level)
+        
+        #await self.controller.send_levelup(msg, level) todo add back with config check
         if await self.is_role_reward(msg.guild, level):
             role = await self.get_role_reward(msg.guild, level)
             if role is not None:
