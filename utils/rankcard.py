@@ -50,11 +50,7 @@ class Rankcard:
         return USER_IMG
 
     async def create_img(
-        self,
-        user: disnake.Member | disnake.User,
-        level: int | str,
-        xp: Tuple[int, int],
-        rank: int | str,
+        self, user: disnake.Member | disnake.User, level: int | str, xp: Tuple[int, int], rank: int | str
     ) -> bytes:
         """
         args:

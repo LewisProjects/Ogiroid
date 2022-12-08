@@ -1,14 +1,13 @@
-import datetime as dt
-
 import disnake
+import datetime as dt
+from disnake.ext import commands, tasks
 import pytz
-from disnake.ext import commands
 
-from utils.CONSTANTS import timezones
 from utils.DBhandlers import TimezoneHandler
-from utils.bot import OGIROID
 from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
+from utils.CONSTANTS import months, congrats_messages, timezones
+from utils.bot import OGIROID
 
 
 async def autocomplete_timezones(inter, user_input: str):
@@ -92,9 +91,7 @@ class Timezone(commands.Cog):
         await sucEmb(inter, "The timezone has been removed")
 
     @timezone.sub_command(name="get", description="Get the timezone of a user")
-    async def get(
-        self, inter, user: disnake.User = commands.Param(name="user", default=None)
-    ):
+    async def get(self, inter, user: disnake.User = commands.Param(name="user", default=None)):
         if user is None:
             user = inter.author
         else:

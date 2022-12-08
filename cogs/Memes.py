@@ -19,9 +19,7 @@ class Memes(commands.Cog):
             "https://media.wired.com/photos/59548ac98e8cc150fa8ec379/master/w_2560%2Cc_limit/GettyImages-56196238.jpg"
         )
 
-    @commands.slash_command(
-        name="meme", aliases=["dankmeme"], description="Random meme from r/memes"
-    )
+    @commands.slash_command(name="meme", aliases=["dankmeme"], description="Random meme from r/memes")
     async def meme(self, inter):
         """Random meme from r/memes"""
         subreddit = "memes"
@@ -59,9 +57,7 @@ class Memes(commands.Cog):
     @commands.slash_command(name="freemoney", description="Get free money!")
     async def free_money(self, inter):
         """Get free money"""
-        await inter.send(
-            "Free money hack!\n[Click here for free money](<https://youtu.be/dQw4w9WgXcQ>)"
-        )
+        await inter.send("Free money hack!\n[Click here for free money](<https://youtu.be/dQw4w9WgXcQ>)")
 
 
 def setup(bot: OGIROID):

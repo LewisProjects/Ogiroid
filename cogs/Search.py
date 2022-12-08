@@ -13,10 +13,7 @@ class Search(commands.Cog):
     async def search(
         self,
         inter,
-        engine: str = commands.Param(
-            description="Wich Search engine to use",
-            choices=["google", "duckduckgo", "bing"],
-        ),
+        engine: str = commands.Param(description="Wich Search engine to use", choices=["google", "duckduckgo", "bing"]),
         query: str = commands.Param(description="The query to search for"),
     ):
         """Searches the keyword entered"""
@@ -28,10 +25,7 @@ class Search(commands.Cog):
         elif engine == "bing":
             await inter.send(f"https://bing.com/search?q={query}")
 
-    @commands.slash_command(
-        name="feeling-lucky",
-        description="Returns the first google result for your query",
-    )
+    @commands.slash_command(name="feeling-lucky", description="Returns the first google result for your query")
     async def lucky(self, inter, query):
         """Googles the keyword entered and returns the first result"""
         query = query.rstrip().replace(" ", "+")
