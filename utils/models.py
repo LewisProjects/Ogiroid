@@ -25,9 +25,12 @@ class User:
 
     @property
     def xp_needed(self):
-        return self.get_exp(self.lvl) - self.xp
+        xp = self.get_exp(self.lvl) - self.xp
+        if xp < 0:
+            return 0
+        return xp
 
-    def get_exp(self, level):
+    def get_exp(self, level: int):
         return LEVELS_AND_XP[level]
 
     @property

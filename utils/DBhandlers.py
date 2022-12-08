@@ -21,6 +21,7 @@ from utils.models import (
 if TYPE_CHECKING:
     from utils.bot import OGIROID
 
+
 class ConfigHandler:
     def __init__(self, bot: "OGIROID", db):
         self.bot = bot
@@ -28,11 +29,13 @@ class ConfigHandler:
         self.config: Dict[dict] = {}
 
     async def load_config(self, guild_id: int):
-        async with self.db.execute("SELECT * FROM config WHERE guild_id = ?", (guild_id,)) as cur:
+        async with self.db.execute(
+            "SELECT * FROM config WHERE guild_id = ?", (guild_id,)
+        ) as cur:
             config = await cur.fetchone()
             if config is None:
                 await self.create_config(guild_id)
-                print('Created config for guild', guild_id)
+                print("Created config for guild", guild_id)
                 return await self.load_config(guild_id)
             self.config[guild_id] = config
 
@@ -49,10 +52,10 @@ class ConfigHandler:
         )
         await self.db.commit()
 
-
     async def get_boost(self, guild_id: int) -> int:
         config = await self.get_config(guild_id)
         return config.xp_boost
+
 
 class FlagQuizHandler:
     def __init__(self, bot: "OGIROID", db):
@@ -91,6 +94,9 @@ class FlagQuizHandler:
                 leaderboard.append(FlagQuizUser(*row))
             if len(leaderboard) == 0:
                 raise UsersNotFound
+            leaderboard = sorted(
+                leaderboard, key=lambda x: x.correct + (x.completed * 199), reverse=True
+            )  # line might fail lol idk
             return leaderboard
 
     async def add_data(

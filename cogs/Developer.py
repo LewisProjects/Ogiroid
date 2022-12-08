@@ -11,8 +11,8 @@ from disnake.ext import commands
 from disnake.ext.commands import Cog, Param
 
 from utils import checks
-from utils.bot import OGIROID
 from utils.assorted import traceback_maker
+from utils.bot import OGIROID
 from utils.pagination import CreatePaginator
 
 

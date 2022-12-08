@@ -4,6 +4,7 @@ import os
 
 from utils.CONSTANTS import *
 
+
 @dataclass
 class GConfig:
     guild: int
@@ -11,10 +12,10 @@ class GConfig:
     xp_boost_expiry: int
     xp_boost_enabled: bool
 
-
     @property
     def boost_expired(self):
         from time import time
+
         now = int(time())
         if self.xp_boost_expiry >= now:
             return False
@@ -23,6 +24,7 @@ class GConfig:
     @property
     def boost_time_left(self):
         from time import time
+
         now = int(time())
         return self.xp_boost_expiry - now
 
@@ -32,8 +34,6 @@ class GConfig:
 
     @property
     def xp_boost_active(self) -> bool:
-        print(bool(self.xp_boost_enabled))
-        print(self.boost_expired, 'hellsapkdpa')
         return bool(self.xp_boost_enabled) and not self.boost_expired
 
 

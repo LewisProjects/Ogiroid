@@ -1,6 +1,5 @@
 import asyncio
 import datetime as dt
-import io
 
 import disnake
 from disnake import (

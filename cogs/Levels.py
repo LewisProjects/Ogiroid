@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
 import io
 import random
 from collections import namedtuple
-import datetime as dt
 from io import BytesIO
 from typing import Union, Optional
 
@@ -21,6 +21,7 @@ from disnake import (
     Guild,
     Role,
     Embed,
+    Option,
 )
 from disnake.ext import commands
 from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param, BadArgument
@@ -201,24 +202,23 @@ class LevelsController:
         return random.choice(xp_probability)
 
     async def add_xp(self, message: Message, xp: int):
-        print("adding xp", xp)
         user = await self.get_user(message.author)
         if user is None:
             await self.set_level(message.author, 0)
         user = await self.get_user(message.author)
         user.xp += xp
-        if user.xp >= user.xp_needed:
-            extra_xp = user.xp - user.xp_needed
+        while user.xp >= user.xp_needed:
+            # get the extra xp that the user has after leveling up
+            user.xp -= user.xp_needed
             user.lvl += 1
-            user.xp = extra_xp
-            await self._update_record(
-                member=message.author,
-                level=user.lvl,
-                xp=user.xp,
-                guild_id=message.guild.id,
-            )  # type: ignore
 
-            self.bot.dispatch("level_up", message, user.lvl)
+        await self._update_record(
+            member=message.author,
+            level=user.lvl,
+            xp=user.xp,
+            guild_id=message.guild.id,
+        )  # type: ignore
+        self.bot.dispatch("level_up", message, user.lvl)
 
         await self._update_record(
             member=message.author,
@@ -484,7 +484,14 @@ class Level(commands.Cog):
     async def set(
         self,
         inter: ApplicationCommandInteraction,
-        amount: float,
+        amount=Option(
+            name="amount",
+            type=Union[float, int],
+            required=True,
+            description="The amount to boost by",
+            max_value=10,
+            min_value=0.1,
+        ),
         expires: str = "Never",
     ):
         """Set the xp boost for the server and optionally set an expiration date"""

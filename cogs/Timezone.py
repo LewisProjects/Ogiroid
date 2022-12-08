@@ -1,13 +1,14 @@
-import disnake
 import datetime as dt
-from disnake.ext import commands, tasks
-import pytz
 
+import disnake
+import pytz
+from disnake.ext import commands
+
+from utils.CONSTANTS import timezones
 from utils.DBhandlers import TimezoneHandler
+from utils.bot import OGIROID
 from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
-from utils.CONSTANTS import months, congrats_messages, timezones
-from utils.bot import OGIROID
 
 
 async def autocomplete_timezones(inter, user_input: str):

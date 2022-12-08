@@ -1,15 +1,15 @@
 import io
 import os
 import random
-import disnake
+import textwrap
+from io import BytesIO
 
+import disnake
+from PIL import Image, ImageDraw, ImageFont
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
-from utils.bot import OGIROID
 
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
-import textwrap
+from utils.bot import OGIROID
 
 
 class ImageCommands(commands.Cog, name="Image"):

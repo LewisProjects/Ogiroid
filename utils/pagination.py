@@ -1,3 +1,4 @@
+import datetime as dt
 import math
 from typing import TYPE_CHECKING
 
@@ -5,7 +6,6 @@ from disnake import ui, ButtonStyle, Embed
 
 from utils.exceptions import UserNotFound
 from utils.shortcuts import errorEmb
-import datetime as dt
 
 if TYPE_CHECKING:
     from cogs.Levels import LevelsController
