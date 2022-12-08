@@ -23,9 +23,7 @@ class Utilities(commands.Cog):
     async def on_message_edit(self, before, after):
         self.edit_snipes[after.channel] = (before, after)
 
-    @commands.slash_command(
-        name="snipe", description="Get the most recently deleted message in a channel"
-    )
+    @commands.slash_command(name="snipe", description="Get the most recently deleted message in a channel")
     async def snipe_group(self, inter: ApplicationCommandInteraction):
         """Get the most recently deleted message in a channel"""
 
@@ -44,14 +42,10 @@ class Utilities(commands.Cog):
                 icon_url=sniped_message.author.avatar.url,
             )
             try:
-                result.set_image(
-                    url=self.delete_snipes_attachments[inter.channel][0].url
-                )
+                result.set_image(url=self.delete_snipes_attachments[inter.channel][0].url)
             except:
                 pass
-            is_staff = disnake.utils.find(
-                lambda r: r.name.lower() == "staff", inter.guild.roles
-            )
+            is_staff = disnake.utils.find(lambda r: r.name.lower() == "staff", inter.guild.roles)
             if is_staff in inter.author.roles:
                 await inter.send(embed=result)
             else:
@@ -70,12 +64,8 @@ class Utilities(commands.Cog):
             result = disnake.Embed(color=disnake.Color.red(), timestamp=after.edited_at)
             result.add_field(name="Before", value=before.content, inline=False)
             result.add_field(name="After", value=after.content, inline=False)
-            result.set_author(
-                name=after.author.display_name, icon_url=after.author.avatar.url
-            )
-            is_staff = disnake.utils.find(
-                lambda r: r.name.lower() == "staff", inter.guild.roles
-            )
+            result.set_author(name=after.author.display_name, icon_url=after.author.avatar.url)
+            is_staff = disnake.utils.find(lambda r: r.name.lower() == "staff", inter.guild.roles)
             if is_staff in inter.author.roles:
                 await inter.send(embed=result)
             else:

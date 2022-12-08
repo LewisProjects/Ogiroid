@@ -25,20 +25,14 @@ class User:
 
     @property
     def xp_needed(self):
-        xp = self.get_exp(self.lvl) - self.xp
-        if xp < 0:
-            return 0
-        return xp
+        return self.get_exp(self.lvl) - self.xp
 
-    def get_exp(self, level: int):
+    def get_exp(self, level):
         return LEVELS_AND_XP[level]
 
     @property
     def total_exp(self):
-        return sum(
-            [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1]
-            + [self.xp]
-        )
+        return sum([exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1] + [self.xp])
 
 
 @dataclass

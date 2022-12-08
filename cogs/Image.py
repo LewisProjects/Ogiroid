@@ -1,15 +1,15 @@
 import io
 import os
 import random
-import textwrap
-from io import BytesIO
-
 import disnake
-from PIL import Image, ImageDraw, ImageFont
+
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
-
 from utils.bot import OGIROID
+
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
+import textwrap
 
 
 class ImageCommands(commands.Cog, name="Image"):
@@ -24,15 +24,11 @@ class ImageCommands(commands.Cog, name="Image"):
         description="For when you're feeling triggered.",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def triggered(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
-    ):
+    async def triggered(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Time to get triggered."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
 
@@ -42,9 +38,7 @@ class ImageCommands(commands.Cog, name="Image"):
         description="Check if your friend is kinda ***SUS***",
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def amongus(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
-    ):
+    async def amongus(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Check if your friends are sus or not"""
         await inter.send("Testing for sus-ness...")
         if not member:
@@ -59,59 +53,41 @@ class ImageCommands(commands.Cog, name="Image"):
         else:
             await inter.send("Couldnt get image :(")
 
-    @commands.slash_command(
-        name="invert", brief="invert", description="Invert the colours of your icon"
-    )
+    @commands.slash_command(name="invert", brief="invert", description="Invert the colours of your icon")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def invert(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
-    ):
+    async def invert(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Invert your profile picture."""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
 
-    @commands.slash_command(
-        name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
-    )
+    @commands.slash_command(name="pixelate", brief="pixelate", description="Turn yourself into 144p!")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pixelate(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
-    ):
+    async def pixelate(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
     @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jail(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
-    ):
+    async def jail(self, inter: ApplicationCommandInteraction, member: disnake.Member = None):
         """Go to horny jail"""
         if not member:
             member = inter.author
 
-        trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}"
-        )
+        trigImg = await self.bot.session.get(f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}")
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
 
     @commands.slash_command(name="urltoqr", description="Converts a URL to a QR code.")
     async def urltoqr(self, inter: ApplicationCommandInteraction, url: str, size: int):
         url = url.replace("http://", "").replace("https://", "")
-        qr = (
-            f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
-        )
+        qr = f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
         embed = disnake.Embed(title=f"URL created for: {url}", color=0xFFFFFF)
         embed.set_image(url=qr)
         embed.set_footer(text=f"Requested by: {inter.author.name}")
@@ -126,27 +102,14 @@ class ImageCommands(commands.Cog, name="Image"):
         for line in lines:
             nothing1, nothing2, line_width, line_height = font.getbbox(line)
             # draw shadow on text
-            draw.text(
-                ((image_width - line_width) / 2 + 2, y_text + 2),
-                line,
-                font=font,
-                fill=(0, 0, 0),
-            )
-            draw.text(
-                ((image_width - line_width) / 2, y_text),
-                line,
-                font=font,
-                fill=text_color,
-            )
+            draw.text(((image_width - line_width) / 2 + 2, y_text + 2), line, font=font, fill=(0, 0, 0))
+            draw.text(((image_width - line_width) / 2, y_text), line, font=font, fill=text_color)
             y_text += line_height
         # Return the bottom pixel of the text
         return y_text
 
     # Command to get information about a Quote user
-    @commands.slash_command(
-        name="quote",
-        description="Generates an image with a quote and random background",
-    )
+    @commands.slash_command(name="quote", description="Generates an image with a quote and random background")
     async def quote(self, inter):
         """Generates an image with a quote and random background"""
         await inter.response.defer()
@@ -158,9 +121,7 @@ class ImageCommands(commands.Cog, name="Image"):
 
         # Use unsplash.com to get a random image
         resolution = "1080x1080"
-        response = await self.bot.session.get(
-            f"https://source.unsplash.com/random/{resolution}"
-        )
+        response = await self.bot.session.get(f"https://source.unsplash.com/random/{resolution}")
         image_bytes = io.BytesIO(await response.read())
         image = Image.open(image_bytes)
 
@@ -175,27 +136,11 @@ class ImageCommands(commands.Cog, name="Image"):
             text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 50
         else:
             text_start_height = (image.height - font.getbbox(quote)[3]) / 2
-        end = self.draw_multiple_line_text(
-            image,
-            quote,
-            font,
-            text_color=(255, 255, 255),
-            text_start_height=text_start_height,
-        )
+        end = self.draw_multiple_line_text(image, quote, font, text_color=(255, 255, 255), text_start_height=text_start_height)
         # Draw the author shadow
-        draw.text(
-            ((image.width - font2.getbbox(author)[2]) / 2 + 2, end + 50),
-            author,
-            font=font2,
-            fill=(0, 0, 0),
-        )
+        draw.text(((image.width - font2.getbbox(author)[2]) / 2 + 2, end + 50), author, font=font2, fill=(0, 0, 0))
         # Draw the author
-        draw.text(
-            ((image.width - font2.getbbox(author)[2]) / 2, end + 50),
-            author,
-            font=font2,
-            fill=(255, 255, 255),
-        )
+        draw.text(((image.width - font2.getbbox(author)[2]) / 2, end + 50), author, font=font2, fill=(255, 255, 255))
         with BytesIO() as image_binary:
             image.save(image_binary, "PNG")
             image_binary.seek(0)

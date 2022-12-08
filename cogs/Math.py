@@ -43,9 +43,7 @@ class Math(commands.Cog):
         else:
             await QuickEmb(inter, f"Result: ```{answer}```").success().send()
 
-    @commands.slash_command(
-        name="mathhelp", description="Help for the ``/math`` command"
-    )
+    @commands.slash_command(name="mathhelp", description="Help for the ``/math`` command")
     async def math_help(self, inter):
         await QuickEmb(
             inter,

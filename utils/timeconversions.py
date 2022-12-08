@@ -56,18 +56,11 @@ class HumanTime:
         now = now or datetime.datetime.utcnow()
         dt, status = self.calendar.parseDT(argument, sourceTime=now)
         if not status.hasDateOrTime:
-            raise commands.BadArgument(
-                'invalid time provided, try e.g. "tomorrow" or "3 days"'
-            )
+            raise commands.BadArgument('invalid time provided, try e.g. "tomorrow" or "3 days"')
 
         if not status.hasTime:
             # replace it with the current time
-            dt = dt.replace(
-                hour=now.hour,
-                minute=now.minute,
-                second=now.second,
-                microsecond=now.microsecond,
-            )
+            dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
 
         self.dt: datetime.datetime = dt
         self._past: bool = dt < now
@@ -215,9 +208,7 @@ async def convert(argument: str) -> FriendlyTimeResult:
                 argument = argument[6:]
         elements = calendar.nlp(argument, sourceTime=now)
         if elements is None or len(elements) == 0:
-            raise commands.BadArgument(
-                'Invalid time provided, try e.g. "tomorrow" or "3 days".'
-            )
+            raise commands.BadArgument('Invalid time provided, try e.g. "tomorrow" or "3 days".')
         # handle the following cases:
         # "date time" foo
         # date time foo
@@ -225,9 +216,7 @@ async def convert(argument: str) -> FriendlyTimeResult:
         # first the first two cases:
         dt, status, begin, end, dt_string = elements[0]
         if not status.hasDateOrTime:
-            raise commands.BadArgument(
-                'Invalid time provided, try e.g. "tomorrow" or "3 days".'
-            )
+            raise commands.BadArgument('Invalid time provided, try e.g. "tomorrow" or "3 days".')
         if begin not in (0, 1) and end != len(argument):
             raise commands.BadArgument(
                 "Time is either in an inappropriate location, which "
@@ -236,12 +225,7 @@ async def convert(argument: str) -> FriendlyTimeResult:
             )
         if not status.hasTime:
             # replace it with the current time
-            dt = dt.replace(
-                hour=now.hour,
-                minute=now.minute,
-                second=now.second,
-                microsecond=now.microsecond,
-            )
+            dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
         # if midnight is provided, just default to next day
         if status.accuracy == pdt.pdtContext.ACU_HALFDAY:
             dt = dt.replace(day=now.day + 1)
@@ -253,9 +237,7 @@ async def convert(argument: str) -> FriendlyTimeResult:
                 if argument[0] != '"':
                     raise commands.BadArgument("Expected quote before time input...")
                 if not (end < len(argument) and argument[end] == '"'):
-                    raise commands.BadArgument(
-                        "If the time is quoted, you must unquote it."
-                    )
+                    raise commands.BadArgument("If the time is quoted, you must unquote it.")
                 remaining = argument[end + 1 :].lstrip(" ,.!")
             else:
                 remaining = argument[end:].lstrip(" ,.!")

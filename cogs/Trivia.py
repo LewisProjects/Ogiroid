@@ -43,19 +43,13 @@ class Trivia(commands.Cog, name="Trivia"):
             user = await self.flag_quiz.get_user(inter.author.id)
 
         def check(m):
-            return (
-                m.author == inter.author
-                and m.channel == inter.channel
-                and len(m.content) <= 100
-            )
+            return m.author == inter.author and m.channel == inter.channel and len(m.content) <= 100
 
         for emoji, country in countries.items():
             tries += 1
             retry = True
             while retry:
-                user = await self.flag_quiz.add_data(
-                    user_id=inter.author.id, user=user, correct=correct, tries=tries
-                )
+                user = await self.flag_quiz.add_data(user_id=inter.author.id, user=user, correct=correct, tries=tries)
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
@@ -65,42 +59,22 @@ class Trivia(commands.Cog, name="Trivia"):
                 await channel.send(embed=embed)
                 await channel.send(emoji)
                 try:
-                    guess = await self.bot.wait_for(
-                        "message", check=check, timeout=60.0
-                    )
+                    guess = await self.bot.wait_for("message", check=check, timeout=60.0)
                 except asyncio.exceptions.TimeoutError:
-                    await QuickEmb(
-                        channel, "Due to no response the quiz ended early."
-                    ).error().send()
-                    await self.flag_quiz.add_data(
-                        inter.author.id, tries - 1, correct, user=user
-                    )
+                    await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
+                    await self.flag_quiz.add_data(inter.author.id, tries - 1, correct, user=user)
                     return
 
                 # Checks if the guess is similar to the actual name to account typos
                 if type(country) == list:
                     for name in country:
-                        if (
-                            textdistance.hamming.normalized_similarity(
-                                guess.content.lower(), name.lower()
-                            )
-                            >= 0.7
-                        ):
-                            await QuickEmb(
-                                channel, f"Correct. The country indeed was {country[0]}"
-                            ).success().send()
+                        if textdistance.hamming.normalized_similarity(guess.content.lower(), name.lower()) >= 0.7:
+                            await QuickEmb(channel, f"Correct. The country indeed was {country[0]}").success().send()
                             correct += 1
                             retry = False
                             break
-                elif (
-                    textdistance.hamming.normalized_similarity(
-                        guess.content.lower(), country.lower()
-                    )
-                    >= 0.7
-                ):
-                    await QuickEmb(
-                        channel, f"Correct. The country indeed was {country}"
-                    ).success().send()
+                elif textdistance.hamming.normalized_similarity(guess.content.lower(), country.lower()) >= 0.7:
+                    await QuickEmb(channel, f"Correct. The country indeed was {country}").success().send()
                     correct += 1
                     retry = False
 
@@ -110,17 +84,11 @@ class Trivia(commands.Cog, name="Trivia"):
                     await QuickEmb(channel, f"The country was {country}").send()
                     retry = False
                 elif guess.content.casefold() == "give up":
-                    await guess.reply(
-                        "Are you sure you want to quit? Type yes to confirm."
-                    )
+                    await guess.reply("Are you sure you want to quit? Type yes to confirm.")
                     try:
-                        response = await self.bot.wait_for(
-                            "message", check=check, timeout=60.0
-                        )
+                        response = await self.bot.wait_for("message", check=check, timeout=60.0)
                     except asyncio.exceptions.TimeoutError:
-                        await QuickEmb(
-                            channel, "Due to no response the quiz ended."
-                        ).error().send()
+                        await QuickEmb(channel, "Due to no response the quiz ended.").error().send()
                     else:
                         if response.content.casefold() not in [
                             "yes",
@@ -134,50 +102,27 @@ class Trivia(commands.Cog, name="Trivia"):
                             "ye",
                         ]:
                             continue
-                    await QuickEmb(
-                        channel,
-                        f"Your Score: {correct}/{tries - 1}. Thanks for playing.",
-                    ).send()
-                    await self.flag_quiz.add_data(
-                        guess.author.id, tries - 1, correct, user=user
-                    )
+                    await QuickEmb(channel, f"Your Score: {correct}/{tries - 1}. Thanks for playing.").send()
+                    await self.flag_quiz.add_data(guess.author.id, tries - 1, correct, user=user)
                     return
                 # If retry is still True (not changed) then the guess was incorrect
                 elif retry:
                     await errorEmb(inter, "Incorrect")
 
         await self.flag_quiz.add_data(inter.author.id, tries, correct, user=user)
-        await channel.send(
-            f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}"
-        )
+        await channel.send(f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}")
 
-    @commands.slash_command(
-        name="flagquiz-leaderboard", description="Leaderboard for the flag quiz."
-    )
+    @commands.slash_command(name="flagquiz-leaderboard", description="Leaderboard for the flag quiz.")
     async def flag_quiz_leaderboard(
         self,
         inter,
-        sortby: str = commands.Param(
-            choices={
-                "Correct Guesses": "correct",
-                "Guesses": "tries",
-                "Fully Completed": "completed",
-            }
-        ),
+        sortby: str = commands.Param(choices={"Correct Guesses": "correct", "Guesses": "tries", "Fully Completed": "completed"}),
     ):
         try:
             leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
         except UsersNotFound:
-            return (
-                await QuickEmb(inter, "No users have taken the quiz yet.")
-                .error()
-                .send()
-            )
-        translator = {
-            "correct": "Correct Guesses",
-            "tries": "Guesses",
-            "completed": "Fully Completed",
-        }
+            return await QuickEmb(inter, "No users have taken the quiz yet.").error().send()
+        translator = {"correct": "Correct Guesses", "tries": "Guesses", "completed": "Fully Completed"}
 
         leaderboard_string = ""
         leaderboard_header = "Place  ***-***  User  ***-***  Correct Guesses/Total Guesses  ***-***  Completed   "
@@ -195,10 +140,7 @@ class Trivia(commands.Cog, name="Trivia"):
 
         await inter.send(embed=embed)
 
-    @commands.slash_command(
-        name="flagquiz-user",
-        description="Get Flag Quiz User Stats about a particular user.",
-    )
+    @commands.slash_command(name="flagquiz-user", description="Get Flag Quiz User Stats about a particular user.")
     async def flag_quiz_user(self, inter, user: disnake.User = None):
         if user:
             user_id = user.id
@@ -207,26 +149,15 @@ class Trivia(commands.Cog, name="Trivia"):
         try:
             player = await self.flag_quiz.get_user(user_id)
         except UserNotFound:
-            await errorEmb(
-                inter, "This user never took part in the flag quiz or doesn't exist."
-            )
+            await errorEmb(inter, "This user never took part in the flag quiz or doesn't exist.")
             return
 
         user = self.bot.get_user(player.user_id)
-        embed = disnake.Embed(
-            title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF
-        )
+        embed = disnake.Embed(title=f"{user.display_name} Flag Quiz Stats", color=0xFFFFFF)
         embed.set_thumbnail(url=user.display_avatar.url)
         embed.add_field(name=f"Player:", value=f"{user}")
-        embed.add_field(
-            name="Correct Guesses / Total Guesses",
-            value=f"{player.correct} / {player.tries}",
-            inline=False,
-        )
-        embed.add_field(
-            name="Got all 199 Flags correct in one Run",
-            value=f"{player.completed} times",
-        )
+        embed.add_field(name="Correct Guesses / Total Guesses", value=f"{player.correct} / {player.tries}", inline=False)
+        embed.add_field(name="Got all 199 Flags correct in one Run", value=f"{player.completed} times")
         await inter.send(embed=embed)
 
     @commands.slash_command(
@@ -273,24 +204,14 @@ class Trivia(commands.Cog, name="Trivia"):
             Option(
                 name="kind",
                 description="Type of the questions",
-                choices={
-                    "Multiple Choice": "multiple",
-                    "True/False": "boolean",
-                    "Any": "any",
-                },
+                choices={"Multiple Choice": "multiple", "True/False": "boolean", "Any": "any"},
             ),
         ],
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def trivia(
-        self, inter, category="Any", difficulty=None, amount: int = 5, kind="multiple"
-    ):
+    async def trivia(self, inter, category="Any", difficulty=None, amount: int = 5, kind="multiple"):
         if int(amount) <= 1:
-            return (
-                await QuickEmb(inter, "The amount of questions needs to be at least 1")
-                .error()
-                .send()
-            )
+            return await QuickEmb(inter, "The amount of questions needs to be at least 1").error().send()
 
         def check(m):
             return m.author == inter.author and m.channel == inter.channel
@@ -319,9 +240,7 @@ class Trivia(commands.Cog, name="Trivia"):
         embed.set_author(name=inter.author, icon_url=inter.author.display_avatar)
         embed.set_thumbnail(url=inter.author.display_avatar)
         embed.add_field(name="Category:", value=category + "   ")
-        embed.add_field(
-            name="Difficulty:", value=difficulty if difficulty else "Any Difficulty"
-        )
+        embed.add_field(name="Difficulty:", value=difficulty if difficulty else "Any Difficulty")
         embed.add_field(name="Amount of Questions:", value=amount, inline=False)
         embed.add_field(name="Type:", value=kind, inline=False)
         await inter.send(embed=embed)
@@ -341,32 +260,19 @@ class Trivia(commands.Cog, name="Trivia"):
                 answers_string += f"{emojis[i]}: {html.unescape(answers[i])}\n"
                 components.append(disnake.ui.Button(emoji=emojis[i], custom_id=f"{i}"))
 
-            embed = disnake.Embed(
-                title=html.unescape(question["question"]),
-                description=answers_string,
-                color=0xFFFFFF,
-            )
+            embed = disnake.Embed(title=html.unescape(question["question"]), description=answers_string, color=0xFFFFFF)
             await channel.send(embed=embed, components=components)
             try:
-                user_inter = await self.bot.wait_for(
-                    "button_click", check=check, timeout=60.0
-                )
+                user_inter = await self.bot.wait_for("button_click", check=check, timeout=60.0)
             except asyncio.exceptions.TimeoutError:
-                return (
-                    await QuickEmb(channel, "Due to no response the quiz ended early.")
-                    .error()
-                    .send()
-                )
+                return await QuickEmb(channel, "Due to no response the quiz ended early.").error().send()
 
             user_answer = answers[int(user_inter.component.custom_id)]
             questions += 1
             if user_answer == answer:
                 correct += 1
                 if n == len(data["results"]):
-                    await QuickEmb(
-                        user_inter,
-                        f"Correct the answer indeed is {html.unescape(answer)}.",
-                    ).success().send()
+                    await QuickEmb(user_inter, f"Correct the answer indeed is {html.unescape(answer)}.").success().send()
                 else:
                     await QuickEmb(
                         user_inter,
@@ -374,19 +280,14 @@ class Trivia(commands.Cog, name="Trivia"):
                     ).success().send()
             else:
                 if n == len(data["results"]):
-                    await QuickEmb(
-                        user_inter,
-                        f"Incorrect the correct answer is {html.unescape(answer)}.",
-                    ).error().send()
+                    await QuickEmb(user_inter, f"Incorrect the correct answer is {html.unescape(answer)}.").error().send()
                 else:
                     await QuickEmb(
                         user_inter,
                         f"Incorrect the correct answer is {html.unescape(answer)}. Your score so far is {correct} / {questions}",
                     ).error().send()
 
-        await QuickEmb(
-            channel, f"Thanks for playing. Your final Score is {correct} / {questions}."
-        ).send()
+        await QuickEmb(channel, f"Thanks for playing. Your final Score is {correct} / {questions}.").send()
 
 
 def setup(bot):

@@ -37,15 +37,11 @@ class Tickets(commands.Cog):
         await ticket_channel.send(
             "Create a Ticket.",
             components=disnake.ui.Button(
-                emoji=disnake.PartialEmoji.from_str("📩"),
-                label="Create a Ticket",
-                custom_id="ticket_button",
+                emoji=disnake.PartialEmoji.from_str("📩"), label="Create a Ticket", custom_id="ticket_button"
             ),
         )
 
-    @commands.slash_command(
-        name="edit-ticket-message", description="Update the ticket message."
-    )
+    @commands.slash_command(name="edit-ticket-message", description="Update the ticket message.")
     @commands.guild_only()
     @commands.has_role("Staff")
     async def edit_ticket_message(self, inter):
@@ -57,9 +53,7 @@ class Tickets(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", check=check, timeout=300.0)
         except asyncio.exceptions.TimeoutError:
-            return await errorEmb(
-                inter, "Due to no response the operation was canceled"
-            )
+            return await errorEmb(inter, "Due to no response the operation was canceled")
 
         await msg.delete()
 
@@ -68,9 +62,7 @@ class Tickets(commands.Cog):
         try:
             await self.message.edit(content=text)
         except disnake.errors.Forbidden or disnake.errors.HTTPException:
-            return await errorEmb(
-                inter, "I do not have permission to edit this message."
-            )
+            return await errorEmb(inter, "I do not have permission to edit this message.")
 
         await sucEmb(inter, "Edited!")
 
@@ -91,22 +83,19 @@ class Tickets(commands.Cog):
         for channel in guild.channels:
             try:
                 if int(channel.name.strip().replace("ticket-", "")) == int(user.id):
-                    await errorEmb(
-                        inter,
-                        "You already have a ticket open. Please close it before opening a new one",
-                    )
+                    await errorEmb(inter, "You already have a ticket open. Please close it before opening a new one")
                     return
             except ValueError:
                 pass
 
         ticket = await category.create_text_channel(f"ticket-{user.id}")
         await ticket.edit(topic=f"Ticket opened by {user.name}.")
-        await ticket.set_permissions(
-            inter.guild.get_role(inter.guild.id), read_messages=False
-        )
+        await ticket.set_permissions(inter.guild.get_role(inter.guild.id), read_messages=False)
         await ticket.set_permissions(user, **TICKET_PERMS)
         await ticket.set_permissions(staff, **TICKET_PERMS)
-        message_content = "Thank you for contacting support! A staff member will be here shortly!\nTo close the the ticket use ``/close``"
+        message_content = (
+            "Thank you for contacting support! A staff member will be here shortly!\nTo close the the ticket use ``/close``"
+        )
         em = disnake.Embed(
             title=f"Ticket made by {user.name}#{user.discriminator}",
             description=f"{message_content}",
@@ -115,9 +104,7 @@ class Tickets(commands.Cog):
         em.set_footer(text=f"{user}")
         em.timestamp = datetime.now()
         await ticket.send(embed=em)
-        await inter.send(
-            f"Created Ticket. Your ticket: {ticket.mention}", ephemeral=True
-        )
+        await inter.send(f"Created Ticket. Your ticket: {ticket.mention}", ephemeral=True)
 
     @commands.slash_command(description="Close ticket")
     async def close(self, inter):

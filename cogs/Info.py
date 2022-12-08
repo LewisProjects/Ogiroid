@@ -11,9 +11,7 @@ class Info(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
         self.openweathermap_api_key = self.bot.config.tokens.weathermap
-        self.openweather = OpenWeatherAPI(
-            key=self.openweathermap_api_key, session=self.bot.session
-        )
+        self.openweather = OpenWeatherAPI(key=self.openweathermap_api_key, session=self.bot.session)
 
     @commands.slash_command(
         description="Get current weather for specific city",
@@ -22,8 +20,7 @@ class Info(commands.Cog):
     async def weather(self, inter, *, city):
         if not self.openweather.apiKey:
             return await errorEmb(
-                inter,
-                "OpenWeather's API Key is not set! Please use the ``/reportbug`` command to report this issue",
+                inter, "OpenWeather's API Key is not set! Please use the ``/reportbug`` command to report this issue"
             )
 
         try:
@@ -40,10 +37,7 @@ class Info(commands.Cog):
             name="OpenWeather",
             icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
         )
-        e.add_field(
-            name="Temperature",
-            value=f"{round(weatherData.temp.celcius)}\N{DEGREE SIGN}C",
-        )
+        e.add_field(name="Temperature", value=f"{round(weatherData.temp.celcius)}\N{DEGREE SIGN}C")
         e.add_field(name="Humidity", value=weatherData.humidity)
         e.add_field(name="Wind", value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
