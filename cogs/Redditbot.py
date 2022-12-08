@@ -11,10 +11,15 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         self.bot = bot
 
     # Get Information Related to the GitHub of the Bot
-    @commands.slash_command(name="rbgithub", description="Get Information Related to the GitHub of the Reddit Bot")
+    @commands.slash_command(
+        name="rbgithub",
+        description="Get Information Related to the GitHub of the Reddit Bot",
+    )
     @commands.guild_only()
     async def rbgithub(self, ctx):
-        url = await self.bot.session.get("https://api.github.com/repos/elebumm/RedditVideoMakerBot")
+        url = await self.bot.session.get(
+            "https://api.github.com/repos/elebumm/RedditVideoMakerBot"
+        )
         json = await url.json()
         if url.status == 200:
             # Creat an embed with the information: Name, Description, URL, Stars, Gazers, Forks, Last Updated

@@ -1,15 +1,15 @@
 import datetime
-
-import disnake
 import datetime as dt
-from disnake.ext import commands, tasks
 import random
 
+import disnake
+from disnake.ext import commands, tasks
+
+from utils.CONSTANTS import months, congrats_messages
 from utils.DBhandlers import BirthdayHandler
+from utils.bot import OGIROID
 from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
-from utils.CONSTANTS import months, congrats_messages
-from utils.bot import OGIROID
 
 
 class Birthday(commands.Cog):
@@ -30,11 +30,18 @@ class Birthday(commands.Cog):
     async def birthday(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
-    @birthday.sub_command(name="set", description="Set your birthday. Cant be removed without Staff.")
+    @birthday.sub_command(
+        name="set", description="Set your birthday. Cant be removed without Staff."
+    )
     async def set(
         self,
         inter,
-        day: int = commands.Param(name="day", ge=1, le=31, description="The day of your birthday. Select carefully."),
+        day: int = commands.Param(
+            name="day",
+            ge=1,
+            le=31,
+            description="The day of your birthday. Select carefully.",
+        ),
         month: str = commands.Param(
             name="month",
             description="The month of your birthday. Select carefully.",
@@ -55,17 +62,23 @@ class Birthday(commands.Cog):
         await sucEmb(inter, f"Your birthday has been set to {birth_date}")
 
     @commands.has_permissions(manage_roles=True)
-    @birthday.sub_command(name="edit", description="Edit a users birthday. Can only be done by Staff.")
+    @birthday.sub_command(
+        name="edit", description="Edit a users birthday. Can only be done by Staff."
+    )
     async def edit(
         self,
         inter,
-        day: int = commands.Param(name="day", ge=1, le=31, description="The day of the birthday."),
+        day: int = commands.Param(
+            name="day", ge=1, le=31, description="The day of the birthday."
+        ),
         month: str = commands.Param(
             name="month",
             description="The month of the birthday.",
             choices=months,
         ),
-        user: disnake.User = commands.Param(name="user", description="User to edit the birthday of."),
+        user: disnake.User = commands.Param(
+            name="user", description="User to edit the birthday of."
+        ),
     ):
         try:
             await self.birthday.update_user(user.id, f"{day}/{month}")
@@ -74,11 +87,15 @@ class Birthday(commands.Cog):
             return await errorEmb(inter, "The User doesn't have a birthday set")
 
     @commands.has_permissions(manage_roles=True)
-    @birthday.sub_command(name="remove", description="Remove a birthday. Can only be done by Staff.")
+    @birthday.sub_command(
+        name="remove", description="Remove a birthday. Can only be done by Staff."
+    )
     async def remove(
         self,
         inter: disnake.ApplicationCommandInteraction,
-        user: disnake.User = commands.Param(name="user", description="Removes the birthday of this user"),
+        user: disnake.User = commands.Param(
+            name="user", description="Removes the birthday of this user"
+        ),
     ):
         try:
             await self.birthday.delete_user(user.id)
@@ -88,7 +105,9 @@ class Birthday(commands.Cog):
         await sucEmb(inter, "The birthday has been removed")
 
     @birthday.sub_command(name="get", description="Get the birthday of a user")
-    async def get(self, inter, user: disnake.User = commands.Param(name="user", default=None)):
+    async def get(
+        self, inter, user: disnake.User = commands.Param(name="user", default=None)
+    ):
         if user is None:
             user = inter.author
         else:
@@ -98,9 +117,13 @@ class Birthday(commands.Cog):
         if birthday is None:
             return await errorEmb(inter, "This user doesn't have a birthday set")
 
-        next_birthday = datetime.datetime.strptime(birthday.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y")
+        next_birthday = datetime.datetime.strptime(
+            birthday.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y"
+        )
         if next_birthday < datetime.datetime.now():
-            next_birthday = datetime.datetime.strptime(birthday.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y")
+            next_birthday = datetime.datetime.strptime(
+                birthday.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y"
+            )
         await QuickEmb(
             inter,
             f"{user.mention}'s birthday is in {(next_birthday - datetime.datetime.now()).days} Days."
@@ -128,11 +151,18 @@ class Birthday(commands.Cog):
             # if the birthday is today, congratulate the user
             if user.birthday == today:
                 await member.add_roles(guild.get_role(self.bot.config.roles.birthday))
-                congrats_msg = await channel.send(f"{random.choice(congrats_messages)} {member.mention}! 🎂")
+                congrats_msg = await channel.send(
+                    f"{random.choice(congrats_messages)} {member.mention}! 🎂"
+                )
                 await congrats_msg.add_reaction("🥳")
             # If the birthday isn't today and the user still has the birthday role, remove it
-            elif user.birthday != today and member.get_role(self.bot.config.roles.birthday) is not None:
-                await member.remove_roles(guild.get_role(self.bot.config.roles.birthday))
+            elif (
+                user.birthday != today
+                and member.get_role(self.bot.config.roles.birthday) is not None
+            ):
+                await member.remove_roles(
+                    guild.get_role(self.bot.config.roles.birthday)
+                )
 
 
 def setup(bot):

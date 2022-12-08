@@ -6,6 +6,38 @@ from utils.CONSTANTS import *
 
 
 @dataclass
+class GConfig:
+    guild: int
+    xp_boost: int | float
+    xp_boost_expiry: int
+    xp_boost_enabled: bool
+
+    @property
+    def boost_expired(self):
+        from time import time
+
+        now = int(time())
+        if self.xp_boost_expiry >= now:
+            return False
+        return True
+
+    @property
+    def boost_time_left(self):
+        from time import time
+
+        now = int(time())
+        return self.xp_boost_expiry - now
+
+    @property
+    def get_boost(self):
+        return self.xp_boost
+
+    @property
+    def xp_boost_active(self) -> bool:
+        return bool(self.xp_boost_enabled) and not self.boost_expired
+
+
+@dataclass
 class Tokens:
     SRA: str = os.getenv("SRA_API_KEY")
     bot: str = os.getenv("TOKEN")

@@ -11,8 +11,8 @@ from disnake.ext import commands
 from disnake.ext.commands import Cog, Param
 
 from utils import checks
-from utils.bot import OGIROID
 from utils.assorted import traceback_maker
+from utils.bot import OGIROID
 from utils.pagination import CreatePaginator
 
 
@@ -84,14 +84,22 @@ class Dev(Cog):
         """Autocomplete for the reload command"""
         options = os.listdir("cogs")
         options = [option[:-3] for option in options if option.endswith(".py")]
-        return [option for option in options if option.startswith(inter.data.options[0].value)]
+        return [
+            option
+            for option in options
+            if option.startswith(inter.data.options[0].value)
+        ]
 
     @staticmethod
     def autocomplete_util(inter: ApplicationCommandInteraction, option_name: str):
         """Autocomplete for the reload command"""
         options = os.listdir("utils")
         options = [option[:-3] for option in options if option.endswith(".py")]
-        return [option for option in options if option.startswith(inter.data.options[0].value)]
+        return [
+            option
+            for option in options
+            if option.startswith(inter.data.options[0].value)
+        ]
 
     @commands.slash_command()
     @checks.is_dev()
@@ -102,7 +110,11 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def load(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
+    async def load(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str = Param(autocomplete=autocomplete),
+    ):
         """The command is used to load the Extensions into the Bot."""
         name = name.title()
         try:
@@ -113,7 +125,11 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def unload(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
+    async def unload(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str = Param(autocomplete=autocomplete),
+    ):
         """Unloads an extension."""
         name = name.title()
         try:
@@ -124,7 +140,11 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def reload(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete)):
+    async def reload(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str = Param(autocomplete=autocomplete),
+    ):
         """Reloads an extension."""
         name = name.title()
         try:
@@ -147,16 +167,23 @@ class Dev(Cog):
                     error_collection.append([file, traceback_maker(e, advance=False)])
 
         if error_collection:
-            output = "\n".join([f"**{g[0]}** ```diff\n- {g[1]}```" for g in error_collection])
+            output = "\n".join(
+                [f"**{g[0]}** ```diff\n- {g[1]}```" for g in error_collection]
+            )
             return await inter.send(
-                f"Attempted to reload all extensions, was able to reload, " f"however the following failed...\n\n{output}"
+                f"Attempted to reload all extensions, was able to reload, "
+                f"however the following failed...\n\n{output}"
             )
 
         await inter.send("Successfully reloaded all extensions")
 
     @commands.slash_command()
     @checks.is_dev()
-    async def reloadutils(self, inter: ApplicationCommandInteraction, name: str = Param(autocomplete=autocomplete_util)):
+    async def reloadutils(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str = Param(autocomplete=autocomplete_util),
+    ):
         """Reloads a utils module."""
         name_maker = f"utils/{name}.py"
         try:
@@ -166,7 +193,9 @@ class Dev(Cog):
             return await inter.send(f"Couldn't find module named **{name_maker}**")
         except Exception as e:
             error = traceback_maker(e)
-            return await inter.send(f"Module **{name_maker}** returned error and was not reloaded...\n{error}")
+            return await inter.send(
+                f"Module **{name_maker}** returned error and was not reloaded...\n{error}"
+            )
         await inter.send(f"Reloaded module **{name_maker}**")
 
     @checks.is_dev()

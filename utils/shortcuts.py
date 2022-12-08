@@ -28,16 +28,22 @@ async def permsEmb(inter: ApplicationCommandInteraction, *, permissions: str):
     await inter.send(
         embed=emb,
         ephemeral=True,
-        allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
+        allowed_mentions=disnake.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=True
+        ),
     )
 
 
-async def errorEmb(inter: ApplicationCommandInteraction, text, ephemeral=True, *args, **kwargs):
+async def errorEmb(
+    inter: ApplicationCommandInteraction, text, ephemeral=True, *args, **kwargs
+):
     emb = Embed(description=text, color=disnake.Color.red(), *args, **kwargs)
     await inter.send(
         embed=emb,
         ephemeral=ephemeral,
-        allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
+        allowed_mentions=disnake.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=True
+        ),
     )
 
 
@@ -77,7 +83,9 @@ async def sucEmb(inter: ApplicationCommandInteraction, text, ephemeral=True):
     await inter.send(
         embed=emb,
         ephemeral=ephemeral,
-        allowed_mentions=disnake.AllowedMentions(everyone=False, users=False, roles=False, replied_user=True),
+        allowed_mentions=disnake.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=True
+        ),
     )
 
 

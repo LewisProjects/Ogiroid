@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import datetime as dt
 import traceback
 from datetime import datetime
-import datetime as dt
 
 import disnake
 from disnake import Embed, ApplicationCommandInteraction, HTTPException
@@ -41,7 +41,9 @@ class ErrorHandler(Cog):
 
             # non real error handling
             if isinstance(error, CommandNotFound):
-                return await errorEmb(inter, "Command not found! use /help for a list of commands")
+                return await errorEmb(
+                    inter, "Command not found! use /help for a list of commands"
+                )
             elif isinstance(error, NotOwner):
                 await errorEmb(
                     inter,
@@ -51,23 +53,39 @@ class ErrorHandler(Cog):
                 await errorEmb(inter, error.text)
                 return await self.send_traceback(inter, error)
             elif isinstance(error, MissingPermissions):
-                return await permsEmb(inter, permissions=f"{', '.join(error.missing_permissions)}")
+                return await permsEmb(
+                    inter, permissions=f"{', '.join(error.missing_permissions)}"
+                )
             elif isinstance(error, MissingRole):
                 return await permsEmb(inter, permissions=f"Role: {error.missing_role}")
             elif isinstance(error, MaxConcurrencyReached):
                 return await errorEmb(
-                    inter, "You've reached max capacity of command usage at once, please finish the previous one..."
+                    inter,
+                    "You've reached max capacity of command usage at once, please finish the previous one...",
                 )
             elif isinstance(error, CommandOnCooldown):
-                return await errorEmb(inter, f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.")
+                return await errorEmb(
+                    inter,
+                    f"This command is on cooldown... try again in {error.retry_after:.2f} seconds.",
+                )
             elif isinstance(error, GuildNotFound):
-                return await errorEmb(error, f"You can only use this command in a server")
+                return await errorEmb(
+                    error, f"You can only use this command in a server"
+                )
             elif isinstance(error, CheckFailure):
                 if self.bot.uptime - dt.timedelta(seconds=10) < datetime.now():
-                    return await errorEmb(inter, "wait a few seconds before using this command again")
-                return await errorEmb(inter, "You don't have permission to use this command")
+                    return await errorEmb(
+                        inter, "wait a few seconds before using this command again"
+                    )
+                return await errorEmb(
+                    inter, "You don't have permission to use this command"
+                )
             elif self.debug_mode:
-                traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4))
+                traceback_nice = "".join(
+                    traceback.format_exception(
+                        type(error), error, error.__traceback__, 4
+                    )
+                )
                 print(traceback_nice)
                 traceback.print_exc()
                 return await errorEmb(inter, "check console for error")
@@ -92,10 +110,14 @@ class ErrorHandler(Cog):
             await error_channel.send(embed=e_embed)
 
             # Debug Info
-            traceback_nice_e = "".join(traceback.format_exception(type(e), e, e.__traceback__, 4)).replace("```", "")
+            traceback_nice_e = "".join(
+                traceback.format_exception(type(e), e, e.__traceback__, 4)
+            ).replace("```", "")
 
             debug_info_e = (
-                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
+                f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[
+                    :200
+                ]
                 + "```"
                 + f"```py\n{traceback_nice_e}"[: 2000 - 206]
                 + "```"
@@ -112,10 +134,14 @@ class ErrorHandler(Cog):
             timestamp=datetime.now(),
         )
         await error_channel.send(embed=error_embed)
-        traceback_nice = "".join(traceback.format_exception(type(error), error, error.__traceback__, 4)).replace("```", "```")
+        traceback_nice = "".join(
+            traceback.format_exception(type(error), error, error.__traceback__, 4)
+        ).replace("```", "```")
 
         debug_info = (
-            f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[:200]
+            f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[
+                :200
+            ]
             + "```"
             + f"```py\n{traceback_nice}"[: 2000 - 206]
             + "```"

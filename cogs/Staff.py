@@ -1,9 +1,14 @@
 import asyncio
 import datetime as dt
-import io
 
 import disnake
-from disnake import TextInputStyle, PartialEmoji, Color, ApplicationCommandInteraction, Option
+from disnake import (
+    TextInputStyle,
+    PartialEmoji,
+    Color,
+    ApplicationCommandInteraction,
+    Option,
+)
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
 
@@ -79,14 +84,22 @@ class Staff(commands.Cog):
         user: disnake.User,
         reason: str = None,
         delete_messages: int = ParamInfo(
-            description="How many days of messages to delete.", default=0, choices=[0, 1, 2, 3, 4, 5, 6, 7]
+            description="How many days of messages to delete.",
+            default=0,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
         ),
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=user, reason=reason, clean_history_duration=dt.timedelta(days=delete_messages))
+        await inter.guild.ban(
+            user=user,
+            reason=reason,
+            clean_history_duration=dt.timedelta(days=delete_messages),
+        )
         await sucEmb(inter, "User has been banned successfully!")
 
-    @commands.slash_command(name="softban", description="Softbans a user from the server.")
+    @commands.slash_command(
+        name="softban", description="Softbans a user from the server."
+    )
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
     async def softban(
@@ -96,7 +109,11 @@ class Staff(commands.Cog):
         reason: str = None,
     ):
         """Bans a user from the server."""
-        await inter.guild.ban(user=user, reason=reason or "softban", clean_history_duration=dt.timedelta(days=7))
+        await inter.guild.ban(
+            user=user,
+            reason=reason or "softban",
+            clean_history_duration=dt.timedelta(days=7),
+        )
         await sucEmb(inter, "User has been softbanned successfully!")
         await asyncio.sleep(5)
         await inter.guild.unban(user=user, reason="softban unban")
@@ -104,7 +121,12 @@ class Staff(commands.Cog):
     @commands.slash_command(name="kick", description="Kicks a user from the server.")
     @commands.has_permissions(kick_members=True)
     @commands.guild_only()
-    async def kick(self, inter: ApplicationCommandInteraction, member: disnake.Member, reason: str = None):
+    async def kick(
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member,
+        reason: str = None,
+    ):
         """Kicks a user from the server."""
         await member.kick(reason=reason)
         await sucEmb(inter, "User has been kicked successfully!")
@@ -112,7 +134,9 @@ class Staff(commands.Cog):
     @commands.slash_command(name="unban", description="Unbans a user from the server.")
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()
-    async def unban(self, inter: ApplicationCommandInteraction, user_id, reason: str = None):
+    async def unban(
+        self, inter: ApplicationCommandInteraction, user_id, reason: str = None
+    ):
         """Unbans a user from the server."""
         try:
             await inter.guild.unban(disnake.Object(id=int(user_id)), reason=reason)
@@ -123,7 +147,9 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "User has been unbanned successfully!")
 
-    @commands.slash_command(name="mute", description="Timeout(mute)'s a user from the server.")
+    @commands.slash_command(
+        name="mute", description="Timeout(mute)'s a user from the server."
+    )
     @commands.has_role("Staff")
     @commands.guild_only()
     async def mute(
@@ -162,10 +188,17 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "User has been muted successfully!")
 
-    @commands.slash_command(name="unmute", description="Unmutes a user from the server.")
+    @commands.slash_command(
+        name="unmute", description="Unmutes a user from the server."
+    )
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def unmute(self, inter: ApplicationCommandInteraction, member: disnake.Member, reason: str = None):
+    async def unmute(
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member,
+        reason: str = None,
+    ):
         """Unmutes a user from the server."""
         try:
             await member.timeout(reason=reason, duration=None)
@@ -179,15 +212,27 @@ class Staff(commands.Cog):
     @commands.slash_command(name="warn", description="Warns a user from the server.")
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def warn(self, inter: ApplicationCommandInteraction, member: disnake.Member, reason: str = None):
+    async def warn(
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member,
+        reason: str = None,
+    ):
         """Warns a user from the server."""
-        await self.warning.create_warning(member.id, reason, moderator_id=inter.author.id)
+        await self.warning.create_warning(
+            member.id, reason, moderator_id=inter.author.id
+        )
         await warning_embed(inter, user=member, reason=reason)
 
-    @commands.slash_command(name="removewarning", description="Removes a warning from a user from the server.")
+    @commands.slash_command(
+        name="removewarning",
+        description="Removes a warning from a user from the server.",
+    )
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def remove_warning(self, inter: ApplicationCommandInteraction, member: disnake.Member):
+    async def remove_warning(
+        self, inter: ApplicationCommandInteraction, member: disnake.Member
+    ):
         """Removes a warning from a user from the server."""
         warnings = await self.warning.get_warnings(member.id)
         if len(warnings) == 0:
@@ -201,7 +246,10 @@ class Staff(commands.Cog):
         else:
             await warnings_embed(inter, member=member, warnings=warnings)
             temp_msg = await inter.channel.send(
-                embed=disnake.Embed(title="Reply with the index of the warning to remove", color=0x00FF00)
+                embed=disnake.Embed(
+                    title="Reply with the index of the warning to remove",
+                    color=0x00FF00,
+                )
             )
 
             def check(m):
@@ -228,10 +276,14 @@ class Staff(commands.Cog):
             await original_message.delete()
             await msg.delete()
 
-    @commands.slash_command(name="warnings", description="Shows the warnings of a user from the server.")
+    @commands.slash_command(
+        name="warnings", description="Shows the warnings of a user from the server."
+    )
     @commands.has_role("Staff")
     @commands.guild_only()
-    async def warnings(self, inter: ApplicationCommandInteraction, member: disnake.Member):
+    async def warnings(
+        self, inter: ApplicationCommandInteraction, member: disnake.Member
+    ):
         """Shows the warnings of a user from the server."""
         warnings = await self.warning.get_warnings(member.id)
         if not warnings:
@@ -271,7 +323,9 @@ class Staff(commands.Cog):
                 reason=f"Emoji yoinked by {inter.author} VIA {inter.guild.me.name}",
             )
             await inter.send(
-                embed=disnake.Embed(description=f"emoji successfully stolen", color=Color.random()).set_image(url=emoji.url)
+                embed=disnake.Embed(
+                    description=f"emoji successfully stolen", color=Color.random()
+                ).set_image(url=emoji.url)
             )
         except Exception as e:
             await inter.send(str(e))
@@ -283,17 +337,24 @@ class Staff(commands.Cog):
         self,
         inter: ApplicationCommandInteraction,
         name: str,
-        input_type: str = commands.Param(choices=["file(image)", "url(image)"], description="What you will input."),
+        input_type: str = commands.Param(
+            choices=["file(image)", "url(image)"], description="What you will input."
+        ),
     ):
         """Adds an image to the server emojis"""
         await inter.send(f"Please send the {input_type} now")
         try:
-            msg = await self.bot.wait_for("message", check=lambda m: m.author == inter.author and m.channel == inter.channel)
+            msg = await self.bot.wait_for(
+                "message",
+                check=lambda m: m.author == inter.author and m.channel == inter.channel,
+            )
         except asyncio.TimeoutError:
             return await inter.send("Timed out!")
 
         if input_type == "url(image)":
-            response = await self.bot.session.get(msg.content.strip().replace("webp", "png"))
+            response = await self.bot.session.get(
+                msg.content.strip().replace("webp", "png")
+            )
             response_bytes = await response.read()
             image = response_bytes
 
@@ -335,7 +396,9 @@ class Staff(commands.Cog):
     @commands.slash_command(name="channellock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channellock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None):
+    async def channellock(
+        self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None
+    ):
         """Lock a channel"""
         # Lock's a channel by not letting anyone send messages to it
         if channel is None:
@@ -352,7 +415,9 @@ class Staff(commands.Cog):
     @commands.slash_command(name="channelunlock")
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def channelunlock(self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None):
+    async def channelunlock(
+        self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None
+    ):
         """Unlock a channel"""
         # Unlock's a channel by letting everyone send messages to it
         if channel is None:
@@ -367,10 +432,18 @@ class Staff(commands.Cog):
         await inter.send(f"🔓 Unlocked {channel.mention} successfully!")
 
     # Reaction Roles with buttons:
-    @commands.slash_command(name="addreactionrole", description="Add a reaction based role to a message")
+    @commands.slash_command(
+        name="addreactionrole", description="Add a reaction based role to a message"
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def add_reaction_role(self, inter: ApplicationCommandInteraction, message_id, emoji: str, role: disnake.Role):
+    async def add_reaction_role(
+        self,
+        inter: ApplicationCommandInteraction,
+        message_id,
+        emoji: str,
+        role: disnake.Role,
+    ):
         # Checking if the message exists:
         message_id = int(message_id)
         message = await inter.channel.fetch_message(message_id)
@@ -387,10 +460,15 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, f"Added!")
 
-    @commands.slash_command(name="removereactionrole", description="Remove a reaction based role from a message")
+    @commands.slash_command(
+        name="removereactionrole",
+        description="Remove a reaction based role from a message",
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def remove_reaction_role(self, inter, message_id, emoji: str, role: disnake.Role):
+    async def remove_reaction_role(
+        self, inter, message_id, emoji: str, role: disnake.Role
+    ):
         # Checking if the message exists:
         message_id = int(message_id)
         message = await inter.channel.fetch_message(message_id)
@@ -411,32 +489,53 @@ class Staff(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         emoji = PartialEmoji(name=payload.emoji.name, id=payload.emoji.id)
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id and emoji == PartialEmoji.from_str(message.emoji):
-                await self.reaction_roles.increment_roles_given(payload.message_id, message.emoji)
+            if (
+                payload.message_id == message.message_id
+                and emoji == PartialEmoji.from_str(message.emoji)
+            ):
+                await self.reaction_roles.increment_roles_given(
+                    payload.message_id, message.emoji
+                )
                 guild = self.bot.get_guild(payload.guild_id)
-                await guild.get_member(payload.user_id).add_roles(guild.get_role(message.role_id))
+                await guild.get_member(payload.user_id).add_roles(
+                    guild.get_role(message.role_id)
+                )
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
         emoji = PartialEmoji(name=payload.emoji.name, id=payload.emoji.id)
         for message in self.reaction_roles.messages:
-            if payload.message_id == message.message_id and emoji == PartialEmoji.from_str(message.emoji):
+            if (
+                payload.message_id == message.message_id
+                and emoji == PartialEmoji.from_str(message.emoji)
+            ):
                 guild = self.bot.get_guild(payload.guild_id)
-                await guild.get_member(payload.user_id).remove_roles(guild.get_role(message.role_id))
+                await guild.get_member(payload.user_id).remove_roles(
+                    guild.get_role(message.role_id)
+                )
 
     @commands.slash_command(
-        name="initialise-message", description="Create a Message with Buttons where users click them and get roles."
+        name="initialise-message",
+        description="Create a Message with Buttons where users click them and get roles.",
     )
     @commands.guild_only()
     @commands.has_role("Staff")
     async def initialise_message(
         self,
         inter: disnake.ApplicationCommandInteraction,
-        emoji: str = ParamInfo(description="The emoji to be on the button. You can add more later."),
-        color=ParamInfo(choices=["blurple", "grey", "red", "green"], description="Color of the button."),
-        role: disnake.Role = ParamInfo(description="The role to be given when clicked."),
+        emoji: str = ParamInfo(
+            description="The emoji to be on the button. You can add more later."
+        ),
+        color=ParamInfo(
+            choices=["blurple", "grey", "red", "green"],
+            description="Color of the button.",
+        ),
+        role: disnake.Role = ParamInfo(
+            description="The role to be given when clicked."
+        ),
         channel: disnake.TextChannel = ParamInfo(
-            channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
+            channel_types=[disnake.ChannelType.text],
+            description="The channel where the message is sent.",
         ),
     ):
         def check(m):
@@ -447,7 +546,9 @@ class Staff(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", check=check, timeout=300.0)
         except asyncio.exceptions.TimeoutError:
-            return await errorEmb(inter, "Due to no response the operation was canceled")
+            return await errorEmb(
+                inter, "Due to no response the operation was canceled"
+            )
 
         await msg.delete()
 
@@ -469,11 +570,14 @@ class Staff(commands.Cog):
 
         await self.reaction_roles.create_message(msg.id, role.id, str(emoji))
 
-        await sucEmb(inter, "Successfully created message. To add more buttons use `/add_button`")
+        await sucEmb(
+            inter, "Successfully created message. To add more buttons use `/add_button`"
+        )
 
     @commands.slash_command(
         name="add-button",
-        description="Add a button to a previously created message." " Use /initialise-message for that.",
+        description="Add a button to a previously created message."
+        " Use /initialise-message for that.",
     )
     @commands.guild_only()
     @commands.has_role("Staff")
@@ -483,9 +587,13 @@ class Staff(commands.Cog):
         message_id,
         new_emoji: str,
         role: disnake.Role,
-        color=ParamInfo(choices=["blurple", "grey", "red", "green"], description="Color of the button."),
+        color=ParamInfo(
+            choices=["blurple", "grey", "red", "green"],
+            description="Color of the button.",
+        ),
         channel: disnake.TextChannel = ParamInfo(
-            channel_types=[disnake.ChannelType.text], description="The channel where the message is sent."
+            channel_types=[disnake.ChannelType.text],
+            description="The channel where the message is sent.",
         ),
     ):
 
@@ -497,8 +605,14 @@ class Staff(commands.Cog):
 
         exists = False
         for message in self.reaction_roles.messages:
-            if message.message_id == message_id and PartialEmoji.from_str(message.emoji) == emoji and message.role_id == role.id:
-                return await errorEmb(inter, "Such a button already exists on the message.")
+            if (
+                message.message_id == message_id
+                and PartialEmoji.from_str(message.emoji) == emoji
+                and message.role_id == role.id
+            ):
+                return await errorEmb(
+                    inter, "Such a button already exists on the message."
+                )
             elif message.message_id == message_id:
                 exists = True
 
@@ -513,7 +627,9 @@ class Staff(commands.Cog):
 
         custom_id = f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}"
 
-        new_button = disnake.ui.Button(emoji=emoji, custom_id=custom_id, style=disnake.ButtonStyle[color])
+        new_button = disnake.ui.Button(
+            emoji=emoji, custom_id=custom_id, style=disnake.ButtonStyle[color]
+        )
 
         components.add_item(new_button)
         try:
@@ -525,7 +641,10 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "Added Button")
 
-    @commands.slash_command(name="edit-message", description="Edit a message the bot sent(Role messages with buttons only).")
+    @commands.slash_command(
+        name="edit-message",
+        description="Edit a message the bot sent(Role messages with buttons only).",
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
     async def edit_message(self, inter, message_id, channel: disnake.TextChannel):
@@ -538,7 +657,8 @@ class Staff(commands.Cog):
         if not exists:
             return await errorEmb(
                 inter,
-                "The message does not exist in the Database to initialise a message use" " ``/initialise-message``.",
+                "The message does not exist in the Database to initialise a message use"
+                " ``/initialise-message``.",
             )
 
         message = await channel.fetch_message(message_id)
@@ -553,7 +673,9 @@ class Staff(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", check=check, timeout=300.0)
         except asyncio.exceptions.TimeoutError:
-            return await errorEmb(inter, "Due to no response the operation was canceled")
+            return await errorEmb(
+                inter, "Due to no response the operation was canceled"
+            )
 
         await msg.delete()
 
@@ -562,11 +684,16 @@ class Staff(commands.Cog):
         try:
             await message.edit(content=text)
         except disnake.errors.Forbidden or disnake.errors.HTTPException:
-            return await errorEmb(inter, "I do not have permission to edit this message.")
+            return await errorEmb(
+                inter, "I do not have permission to edit this message."
+            )
 
         await sucEmb(inter, "Edited!")
 
-    @commands.slash_command(name="delete-message", description="Delete a message the bot sent(Role messages with buttons only).")
+    @commands.slash_command(
+        name="delete-message",
+        description="Delete a message the bot sent(Role messages with buttons only).",
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
     async def delete_message(self, inter, message_id, channel: disnake.TextChannel):
@@ -579,7 +706,8 @@ class Staff(commands.Cog):
         if not exists:
             return await errorEmb(
                 inter,
-                "The message does not exist in the Database to initialise a message use" " ``/initialise-message``.",
+                "The message does not exist in the Database to initialise a message use"
+                " ``/initialise-message``.",
             )
 
         await self.reaction_roles.remove_messages(message_id)
@@ -591,14 +719,25 @@ class Staff(commands.Cog):
         try:
             await message.delete()
         except disnake.errors.Forbidden or disnake.errors.HTTPException:
-            return await errorEmb(inter, "I do not have permission to delete this message.")
+            return await errorEmb(
+                inter, "I do not have permission to delete this message."
+            )
 
         await sucEmb(inter, "Deleted!")
 
-    @commands.slash_command(name="remove-button", description="Remove a button from a message.")
+    @commands.slash_command(
+        name="remove-button", description="Remove a button from a message."
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
-    async def remove_button(self, inter, message_id, emoji: str, channel: disnake.TextChannel, role: disnake.Role):
+    async def remove_button(
+        self,
+        inter,
+        message_id,
+        emoji: str,
+        channel: disnake.TextChannel,
+        role: disnake.Role,
+    ):
         message_id = int(message_id.strip())
         emoji = PartialEmoji.from_str(emoji.strip())
 
@@ -616,7 +755,10 @@ class Staff(commands.Cog):
         message_components = disnake.ui.View.from_message(message)
 
         for button in message_components.children:
-            if button.custom_id == f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}":
+            if (
+                button.custom_id
+                == f"{role.id}-{emoji.name if emoji.is_unicode_emoji() else emoji.id}"
+            ):
                 message_components.remove_item(button)
                 break
 
@@ -647,11 +789,16 @@ class Staff(commands.Cog):
         member = guild.get_member(inter.user.id)
 
         if member.get_role(role_id) is None:
-            await member.add_roles(role, reason=f"Clicked button to get role. gave {role.name}")
+            await member.add_roles(
+                role, reason=f"Clicked button to get role. gave {role.name}"
+            )
             await self.reaction_roles.increment_roles_given(message.id, str(emoji))
             return await sucEmb(inter, "Added Role")
         else:
-            await member.remove_roles(role, reason=f"Clicked button while already having the role. removed {role.name}")
+            await member.remove_roles(
+                role,
+                reason=f"Clicked button while already having the role. removed {role.name}",
+            )
             return await sucEmb(inter, "Removed Role")
 
     @commands.slash_command(name="staffvote", description="Propose a Staff Vote.")
@@ -661,15 +808,23 @@ class Staff(commands.Cog):
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
 
-    @commands.slash_command(name="staffhelp", description="Get the help for the staff commands.")
+    @commands.slash_command(
+        name="staffhelp", description="Get the help for the staff commands."
+    )
     @commands.guild_only()
     @commands.has_role("Staff")
     async def staffhelp(self, inter):
         """Get the help for the staff commands."""
         staff_commands = commands.Cog.get_slash_commands(self)
-        emb = disnake.Embed(title="Staff Commands", description="All staff commands", color=0xFFFFFF)
+        emb = disnake.Embed(
+            title="Staff Commands", description="All staff commands", color=0xFFFFFF
+        )
         for command in staff_commands:
-            emb.add_field(name=f"/{command.qualified_name}", value=command.description, inline=False)
+            emb.add_field(
+                name=f"/{command.qualified_name}",
+                value=command.description,
+                inline=False,
+            )
 
         await inter.send(embed=emb)
 
