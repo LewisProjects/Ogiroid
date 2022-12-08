@@ -52,7 +52,10 @@ class Welcome(Cog):
                 name="Rules:", value=f"Checkout the rules, {rules.mention}", inline=True
             )
             embed.set_thumbnail(url=member.display_avatar)
-            await member.dm_channel.send(embed=embed)
+            try:
+                await member.dm_channel.send(embed=embed)
+            except disnake.Forbidden:
+                pass # DMs are closed or something else went wrong so we just ignore it and move on with our lives :D
         else:
             pass
 
