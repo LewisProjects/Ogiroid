@@ -2,10 +2,11 @@ from __future__ import annotations, generator_stop
 
 import random
 import time
-from typing import List, Literal, Optional, TYPE_CHECKING
+from typing import List, Literal, Optional, TYPE_CHECKING, Dict
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
+from utils.config import GConfig
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
@@ -20,6 +21,38 @@ from utils.models import (
 if TYPE_CHECKING:
     from utils.bot import OGIROID
 
+class ConfigHandler:
+    def __init__(self, bot: "OGIROID", db):
+        self.bot = bot
+        self.db = db
+        self.config: Dict[dict] = {}
+
+    async def load_config(self, guild_id: int):
+        async with self.db.execute("SELECT * FROM config WHERE guild_id = ?", (guild_id,)) as cur:
+            config = await cur.fetchone()
+            if config is None:
+                await self.create_config(guild_id)
+                print('Created config for guild', guild_id)
+                return await self.load_config(guild_id)
+            self.config[guild_id] = config
+
+    async def get_config(self, guild_id: int) -> GConfig:
+        if guild_id not in self.config:
+            await self.load_config(guild_id)
+        cnfg = self.config[guild_id]
+        return GConfig(*cnfg)
+
+    async def create_config(self, guild_id):
+        await self.db.execute(
+            "INSERT INTO config (guild_id) VALUES (?)",
+            (guild_id,),
+        )
+        await self.db.commit()
+
+
+    async def get_boost(self, guild_id: int) -> int:
+        config = await self.get_config(guild_id)
+        return config.xp_boost
 
 class FlagQuizHandler:
     def __init__(self, bot: "OGIROID", db):

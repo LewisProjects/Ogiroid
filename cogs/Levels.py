@@ -27,11 +27,13 @@ from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param, BadArg
 
 from utils import timeconversions
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
+from utils.DBhandlers import ConfigHandler
 from utils.bot import OGIROID
+from utils.config import GConfig
 from utils.exceptions import LevelingSystemError, UserNotFound
 from utils.models import User, RoleReward
 from utils.pagination import LeaderboardView
-from utils.shortcuts import errorEmb, sucEmb, make_config, Config, get_expiry
+from utils.shortcuts import errorEmb, sucEmb, get_expiry
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
@@ -47,6 +49,7 @@ class LevelsController:
             self.__rate, self.__per, BucketType.member
         )
         self.cache = TTLCache(maxsize=100_000, ttl=3600)
+        self.config_hander = ConfigHandler(self.bot, self.db)
 
     def remove_cached(self, user: Member) -> None:
         self.cache.pop(f"levels_{user.id}_{user.guild.id}", None)
@@ -198,6 +201,7 @@ class LevelsController:
         return random.choice(xp_probability)
 
     async def add_xp(self, message: Message, xp: int):
+        print("adding xp", xp)
         user = await self.get_user(message.author)
         if user is None:
             await self.set_level(message.author, 0)
@@ -226,27 +230,23 @@ class LevelsController:
     async def get_boost(self, message: Message) -> int:
         """get the boost that the server/user will have then"""
         boost = 1
-        print("0")
-        config: Config = await make_config(self.bot, message.guild.id)
-        print("1")
+        config: GConfig = await self.config_hander.get_config(message.guild.id)
         if message.author.roles.__contains__(
             message.guild.get_role(self.bot.config.roles.nitro)
         ):
             boost = 2
-
-        if config.xp_boost_enabled and not config.boost_expired():
+        if config.xp_boost_active:
             boost *= config.xp_boost
-        return boost
+        return int(boost)
 
     async def grant_xp(self, message):
-        print("granting xp")
         boost = await self.get_boost(message)
-        print("boost", boost)
+        xp = await self.random_xp() * boost
         try:
-            await self.add_xp(message, await self.random_xp() * boost)
+            await self.add_xp(message, xp)
         except UserNotFound:
             await self.add_user(message.author, message.guild)
-            await self.add_xp(message, await self.random_xp() * boost)
+            await self.add_xp(message, xp)
         self._cooldown.update_rate_limit(message)
 
     async def handle_message(self, message: Message):
