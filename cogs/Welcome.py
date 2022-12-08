@@ -30,17 +30,32 @@ class Welcome(Cog):
                 f" please checkout the designated channels.We hope you have a great time here.",
                 color=0xFFFFFF,
             )
-            embed.add_field(name="Chat with other members:", value=f"Chat with the members, {general.mention}", inline=True)
-            embed.add_field(name="Introductions:", value=f"Introduce yourself, {introduction.mention}", inline=True)
-            embed.add_field(name="Roles:", value=f"Select some roles, {roles.mention}", inline=True)
+            embed.add_field(
+                name="Chat with other members:",
+                value=f"Chat with the members, {general.mention}",
+                inline=True,
+            )
+            embed.add_field(
+                name="Introductions:",
+                value=f"Introduce yourself, {introduction.mention}",
+                inline=True,
+            )
+            embed.add_field(
+                name="Roles:", value=f"Select some roles, {roles.mention}", inline=True
+            )
             embed.add_field(
                 name="Reddit Bot Related:",
                 value=f"Here for the Reddit bot? Checkout {reddit_bot.mention}",
                 inline=True,
             )
-            embed.add_field(name="Rules:", value=f"Checkout the rules, {rules.mention}", inline=True)
+            embed.add_field(
+                name="Rules:", value=f"Checkout the rules, {rules.mention}", inline=True
+            )
             embed.set_thumbnail(url=member.display_avatar)
-            await member.dm_channel.send(embed=embed)
+            try:
+                await member.dm_channel.send(embed=embed)
+            except disnake.Forbidden:
+                pass # DMs are closed or something else went wrong so we just ignore it and move on with our lives :D
         else:
             pass
 
