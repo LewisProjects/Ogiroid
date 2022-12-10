@@ -156,11 +156,9 @@ class Fun(commands.Cog):
             )
             await inter.send(embed=embed)
         else:
-            e = await inter.send(
-                "**You must be in a voice channel to use this command!**"
+            await inter.send(
+                "**You must be in a voice channel to use this command!**", ephemeral=True
             )
-            time.sleep(5)
-            await e.delete()
 
     @commands.slash_command()
     @commands.cooldown(1, 2, commands.BucketType.user)
