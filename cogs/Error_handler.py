@@ -138,8 +138,10 @@ class ErrorHandler(Cog):
             traceback.format_exception(type(error), error, error.__traceback__, 4)
         ).replace("```", "```")
 
+        options = ' '.join([f'{name}: {value}' for name, value in inter.options.items()])
+
         debug_info = (
-            f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}"[
+            f"```\n{inter.author} {inter.author.id}: /{inter.application_command.name}{' ' + options if options != '' else options}"[
                 :200
             ]
             + "```"

@@ -162,6 +162,25 @@ class Log(Cog):
             log_channel = self.bot.get_channel(self.bot.config.channels.logs)
             await log_channel.send(embed=embed)
 
+    @Cog.listener()
+    async def on_slash_command(self, inter):
+        log_channel = self.bot.get_channel(self.bot.config.channels.ogiroid_logs)
+        embed = Embed(
+            colour=inter.author.colour,
+            timestamp=datetime.now(),
+        )
+
+        embed.set_author(name=inter.author, icon_url=inter.author.display_avatar.url)
+
+        options = ' '.join([f'{name}: {value}' for name, value in inter.options.items()])
+
+        embed.description = f"`/{inter.data['name']}{' ' + options if options != '' else options}`"
+
+        embed.set_footer(
+            text=f"{inter.author.name}#{inter.author.discriminator}"
+        )
+        await log_channel.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Log(bot))

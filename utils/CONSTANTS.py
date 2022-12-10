@@ -28,6 +28,7 @@ class Channels:
     rules: int = 905182869410955355
     uploads: int = 1033712950252408884
     birthdays: int = 1044886735588429864
+    ogiroid_logs: int = 1040797919214845962
 
     @classmethod
     def dev(cls):
@@ -48,6 +49,7 @@ class Channels:
         cls.rules: int = 1013853473172893837
         cls.uploads: int = 1013853473172893837
         cls.birthdays: int = 1013853473172893837  # dummy channel
+        cls.ogiroid_logs: int = cls.logs
         return cls
 
 
