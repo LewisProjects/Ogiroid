@@ -3,7 +3,6 @@ from datetime import datetime
 from disnake import Embed
 from disnake.ext.commands import Cog
 
-import discord
 import typing as t
 
 MAIN_COLOR = 0x5e7bdd
@@ -16,13 +15,13 @@ class Log(Cog):
         self.bot = bot
 
     async def send_modlog(self,
-        color: discord.Colour,
+        color: disnake.Colour,
         title: t.Optional[str],
         text: str,
-        member: t.Optional[discord.Member] = None,
+        member: t.Optional[disnake.Member] = None,
         content: t.Optional[str] = None) -> Context:
     
-        embed = discord.Embed(description=text[:4093] + '...' if len(text) > 4096 else text)
+        embed = Embed(description=text[:4093] + '...' if len(text) > 4096 else text)
 
         if title:
             embed.set_author(name=title)
@@ -214,9 +213,17 @@ class Log(Cog):
             text=f"{inter.author.name}#{inter.author.discriminator}"
         )
         await log_channel.send(embed=embed)
+    
+    @Cog.listener()
+    async def on_guild_role_create(self, role):
+        """Sends a message in log channel when role is created."""
+        title = 'Role created'
+        content = f'{role.mention}(``{role.id}``) has been created.'
+
+        await self.send_modlog(MAIN_COLOR, title, content)
 
     @Cog.listener()
-    async def on_guild_role_delete(self, role: discord.Role):
+    async def on_guild_role_delete(self, role):
         """Sends a message in log channel when role is deleted."""
         title = 'Role deleted'
         content = f'**{role.name}**(``{role.id}``) has been deleted.'
@@ -225,7 +232,7 @@ class Log(Cog):
 
 
     @Cog.listener()
-    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+    async def on_guild_role_update(self, before, after):
 
         title = 'Role edited'
         after.permissions = []
@@ -243,7 +250,7 @@ class Log(Cog):
 
     
     @Cog.listener()
-    async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
+    async def on_guild_update(self, before, after):
 
         title = 'Server edited'
         
@@ -263,7 +270,7 @@ class Log(Cog):
         await self.send_modlog(MAIN_COLOR, title, message)
 
     @Cog.listener()
-    async def on_thread_create(self, thread: discord.Thread):
+    async def on_thread_create(self, thread):
 
         title = 'Thread created'
         message = f'Thread {thread.mention} (`{thread.id}`) has been created.'
@@ -272,7 +279,7 @@ class Log(Cog):
 
 
     @Cog.listener()
-    async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
+    async def on_thread_update(self, before, after):
 
         title = 'Thread name edited'
         message = (f'Thread {after.mention} (`{after.id}`) in {after.parent.mention} (`{after.parent.id}`)\n'
@@ -283,7 +290,7 @@ class Log(Cog):
 
     
     @Cog.listener()
-    async def on_thread_delete(self, thread: discord.Thread):
+    async def on_thread_delete(self, thread):
 
         title = 'Thread deleted'
         message = f'Thread **{thread.name}** (`{thread.id}`) in {thread.parent.mention} (`{thread.parent.id}`) deleted.'
