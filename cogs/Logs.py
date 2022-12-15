@@ -15,7 +15,7 @@ class Log(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-   async def send_modlog(self,
+    async def send_modlog(self,
         color: discord.Colour,
         title: t.Optional[str],
         text: str,
