@@ -1,7 +1,8 @@
 from datetime import datetime
 
+import disnake
 from disnake import Embed
-from disnake.ext.commands import Cog
+from disnake.ext.commands import Cog, Context
 
 import typing as t
 
