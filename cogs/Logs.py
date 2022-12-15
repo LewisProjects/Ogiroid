@@ -145,6 +145,7 @@ class Log(Cog):
             )
             await log_channel.send(embed=embed)
 
+
     @Cog.listener()
     async def on_message_edit(self, before, after):
         log_channel = self.bot.get_channel(self.bot.config.channels.logs)
