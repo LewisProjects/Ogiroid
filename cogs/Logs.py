@@ -4,7 +4,6 @@ from disnake import Embed
 from disnake.ext.commands import Cog
 
 import discord
-from discord.ext import commands
 import typing as t
 
 MAIN_COLOR = 0x5e7bdd
@@ -13,7 +12,7 @@ NEGATIVE_COLOR = 0Xcc0202
 
 
 class Log(Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot):
         self.bot = bot
         
     async def send_modlog(self,
@@ -35,7 +34,7 @@ class Log(Cog):
         if content and len(content) > 2000:
             content = content[:2000 - 3] + '...'
         
-        modlog_channel = self.bot.get_channel() # < - channel ID
+        modlog_channel = self.bot.get_channel(self.bot.config.channels.logs)
         log_message = await modlog_channel.send(
             content=content,
             embed=embed
@@ -196,7 +195,7 @@ class Log(Cog):
         await self.send_modlog(NEGATIVE_COLOR, title, content)
 
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
 
         title = 'Role edited'
@@ -214,7 +213,7 @@ class Log(Cog):
         await self.send_modlog(MAIN_COLOR, title, content)
 
     
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
 
         title = 'Server edited'
@@ -234,7 +233,7 @@ class Log(Cog):
 
         await self.send_modlog(MAIN_COLOR, title, message)
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_thread_create(self, thread: discord.Thread):
 
         title = 'Thread created'
@@ -243,7 +242,7 @@ class Log(Cog):
         await self.send_modlog(POSITIVE_COLOR, title, message)
 
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
 
         title = 'Thread name edited'
@@ -254,7 +253,7 @@ class Log(Cog):
         await self.send_modlog(MAIN_COLOR, title, message)
 
     
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_thread_delete(self, thread: discord.Thread):
 
         title = 'Thread deleted'
