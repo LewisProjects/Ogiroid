@@ -216,7 +216,7 @@ class Log(Cog):
         await log_channel.send(embed=embed)
     
     @Cog.listener()
-    async def on_guild_role_create(self, role):
+    async def on_guild_role_create(self, role: disnake.Role):
         """Sends a message in log channel when role is created."""
         title = 'Role created'
         content = f'{role.mention}(``{role.id}``) has been created.'
@@ -224,7 +224,7 @@ class Log(Cog):
         await self.send_modlog(MAIN_COLOR, title, content)
 
     @Cog.listener()
-    async def on_guild_role_delete(self, role):
+    async def on_guild_role_delete(self, role: disnake.Role):
         """Sends a message in log channel when role is deleted."""
         title = 'Role deleted'
         content = f'**{role.name}**(``{role.id}``) has been deleted.'
@@ -233,14 +233,9 @@ class Log(Cog):
 
 
     @Cog.listener()
-    async def on_guild_role_update(self, before, after):
+    async def on_guild_role_update(self, before: disnake.Role, after: disnake.Role):
 
         title = 'Role edited'
-        after.permissions = []
-        before.permissions = []
-        
-        if before.permissions == after.permissions:
-            return
 
         if before.name != after.name: 
             content = f'**{before.name}** has been named to **{after.name}**'
@@ -251,7 +246,7 @@ class Log(Cog):
 
     
     @Cog.listener()
-    async def on_guild_update(self, before, after):
+    async def on_guild_update(self, before: disnake.Guild, after: disnake.Guild):
 
         title = 'Server edited'
         
@@ -271,7 +266,7 @@ class Log(Cog):
         await self.send_modlog(MAIN_COLOR, title, message)
 
     @Cog.listener()
-    async def on_thread_create(self, thread):
+    async def on_thread_create(self, thread: disnake.Thread):
 
         title = 'Thread created'
         message = f'Thread {thread.mention} (`{thread.id}`) has been created.'
@@ -280,7 +275,7 @@ class Log(Cog):
 
 
     @Cog.listener()
-    async def on_thread_update(self, before, after):
+    async def on_thread_update(self, before: disnake.Thread, after: disnake.Thread):
 
         title = 'Thread name edited'
         message = (f'Thread {after.mention} (`{after.id}`) in {after.parent.mention} (`{after.parent.id}`)\n'
@@ -291,7 +286,7 @@ class Log(Cog):
 
     
     @Cog.listener()
-    async def on_thread_delete(self, thread):
+    async def on_thread_delete(self, thread: disnake.Thread):
 
         title = 'Thread deleted'
         message = f'Thread **{thread.name}** (`{thread.id}`) in {thread.parent.mention} (`{thread.parent.id}`) deleted.'
