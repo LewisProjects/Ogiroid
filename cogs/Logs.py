@@ -225,7 +225,8 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_guild_role_delete(self, role: disnake.Role):
-        """Sends a message in log channel when role is deleted."""
+        """Sends a message in log channel when role gets deleted."""
+        
         title = 'Role deleted'
         content = f'**{role.name}**(``{role.id}``) has been deleted.'
 
@@ -234,6 +235,7 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_guild_role_update(self, before: disnake.Role, after: disnake.Role):
+        """Sends a message in log channel when role edites in the server."""
 
         title = 'Role edited'
 
@@ -247,6 +249,7 @@ class Log(Cog):
     
     @Cog.listener()
     async def on_guild_update(self, before: disnake.Guild, after: disnake.Guild):
+        """Sends a message in log channel when guild updates."""
 
         title = 'Server edited'
         
@@ -267,6 +270,7 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_thread_create(self, thread: disnake.Thread):
+        """Sends a message in log channel when thread creates."""
 
         title = 'Thread created'
         message = f'Thread {thread.mention} (`{thread.id}`) has been created.'
@@ -276,6 +280,7 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_thread_update(self, before: disnake.Thread, after: disnake.Thread):
+        """Sends a message in log channel when thread updates."""
 
         title = 'Thread name edited'
         message = (f'Thread {after.mention} (`{after.id}`) in {after.parent.mention} (`{after.parent.id}`)\n'
@@ -287,11 +292,51 @@ class Log(Cog):
     
     @Cog.listener()
     async def on_thread_delete(self, thread: disnake.Thread):
+        """Sends a message in log channel when thread deletes."""
 
         title = 'Thread deleted'
         message = f'Thread **{thread.name}** (`{thread.id}`) in {thread.parent.mention} (`{thread.parent.id}`) deleted.'
 
         await self.send_modlog(NEGATIVE_COLOR, title, message)
+        
+    @Cog.listener()
+    async def on_member_join(self, member: disnake.Member):
+        """Sends a message in log channel if member joined the server."""
+
+        title = 'Member has joined the server'
+        message = f'{member.mention} has joined the server.'
+
+        await self.send_modlog(MAIN_COLOR, title, message, member)
+
+        
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: disnake.Member):
+        """Sends a message in log channel when member leaves the server."""
+
+        title = 'Member has left the server'
+        message = f'{member.mention} has left the server.'
+
+        
+        await self.send_modlog(NEGATIVE_COLOR, title, message, member)
+        
+    @Cog.listener()
+    async def on_member_ban(self, guild: disnake.Guild, user: disnake.User):
+        """Sends a message in log channel if member gets banned from the server."""
+
+        title = 'User banned'
+        message = f'User {user.mention} has been banned from server `{guild.name}`.'
+
+        await self.send_modlog(NEGATIVE_COLOR, title, message)
+
+
+    @Cog.listener()
+    async def on_member_unban(self, guild: disnake.Guild, user: disnake.User):
+        """Sends a message in log channel if member gets unbanned from the server."""
+
+        title = 'User unbanned'
+        message = f'User {user.mention} has been unbanned from server `{guild.name}`.'
+
+        await self.send_modlog(POSITIVE_COLOR, title, message)
 
 
 def setup(bot):
