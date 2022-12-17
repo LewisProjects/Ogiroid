@@ -53,7 +53,7 @@ With that being said, you have officially reported a bug! Thank you so much 🤩
 
 Fork the repository and then clone it using 
 
-```git clone https://github.com/LewisProjects/Ogiroid.git```
+```git clone https://github.com/YOURGITHUBUSERNAME/Ogiroid.git```
 
 After this get into the folder you cloned the repository to.
 We always work on the development branch so make sure you are on the dev branch.
