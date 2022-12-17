@@ -213,7 +213,7 @@ class LevelsController:
             await self.set_level(message.author, 0)
         user = await self.get_user(message.author)
         user.xp += xp
-        while user.xp >= user.xp_needed: # fixme this is broken
+        while user.xp >= user.xp_needed:  # fixme this is broken
             # get the extra xp that the user has after leveling up
             user.xp -= user.xp_needed
             user.lvl += 1
@@ -291,7 +291,7 @@ class LevelsController:
         raw = await record.fetchone()
         if raw is None:
             raise UserNotFound
-        self.cache[f"levels_{user.id}_{user.guild.id}"]  = User(*raw)
+        self.cache[f"levels_{user.id}_{user.guild.id}"] = User(*raw)
         return User(*raw)
 
     async def generate_image_card(

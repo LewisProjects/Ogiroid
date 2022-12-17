@@ -55,7 +55,7 @@ class Welcome(Cog):
             try:
                 await member.dm_channel.send(embed=embed)
             except disnake.Forbidden:
-                pass # DMs are closed or something else went wrong so we just ignore it and move on with our lives :D
+                pass  # DMs are closed or something else went wrong so we just ignore it and move on with our lives :D
         else:
             pass
 
