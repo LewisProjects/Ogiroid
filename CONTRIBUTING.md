@@ -51,7 +51,7 @@ With that being said, you have officially reported a bug! Thank you so much 🤩
 
 ### Contributing Code
 
-Fork the repository and then clone it using 
+Fork the repository and then clone it using: (make sure to insert your username)
 
 ```git clone https://github.com/YOURGITHUBUSERNAME/Ogiroid.git```
 
