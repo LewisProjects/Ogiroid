@@ -308,7 +308,9 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_member_ban(self, guild: disnake.Guild, user: t.Union[disnake.User, disnake.Member]):
+    async def on_member_ban(
+        self, guild: disnake.Guild, user: t.Union[disnake.User, disnake.Member]
+    ):
         """Sends a message in log channel if member gets banned from the server."""
 
         ban = await guild.fetch_ban(user)
