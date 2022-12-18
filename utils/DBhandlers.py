@@ -2,15 +2,58 @@ from __future__ import annotations, generator_stop
 
 import random
 import time
-from typing import List, Literal, Optional, TYPE_CHECKING
+from typing import List, Literal, Optional, TYPE_CHECKING, Dict
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
+from utils.config import GConfig
 from utils.exceptions import *
-from utils.models import FlagQuizUser, BlacklistedUser, Tag, ReactionRole, WarningModel, BirthdayModel, TimezoneModel
+from utils.models import (
+    FlagQuizUser,
+    BlacklistedUser,
+    Tag,
+    ReactionRole,
+    WarningModel,
+    BirthdayModel,
+    TimezoneModel,
+)
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
+
+
+class ConfigHandler:
+    def __init__(self, bot: "OGIROID", db):
+        self.bot = bot
+        self.db = db
+        self.config: Dict[dict] = {}
+
+    async def load_config(self, guild_id: int):
+        async with self.db.execute(
+            "SELECT * FROM config WHERE guild_id = ?", (guild_id,)
+        ) as cur:
+            config = await cur.fetchone()
+            if config is None:
+                await self.create_config(guild_id)
+                return await self.load_config(guild_id)
+            self.config[guild_id] = config
+
+    async def get_config(self, guild_id: int) -> GConfig:
+        if guild_id not in self.config:
+            await self.load_config(guild_id)
+        cnfg = self.config[guild_id]
+        return GConfig(*cnfg)
+
+    async def create_config(self, guild_id):
+        await self.db.execute(
+            "INSERT INTO config (guild_id) VALUES (?)",
+            (guild_id,),
+        )
+        await self.db.commit()
+
+    async def get_boost(self, guild_id: int) -> int:
+        config = await self.get_config(guild_id)
+        return config.xp_boost
 
 
 class FlagQuizHandler:
@@ -24,7 +67,9 @@ class FlagQuizHandler:
         if user is not None:
             return user
         elif await self.exists(user_id):
-            async with self.db.execute(f"SELECT * FROM flag_quizz WHERE user_id = {user_id}") as cur:
+            async with self.db.execute(
+                f"SELECT * FROM flag_quizz WHERE user_id = {user_id}"
+            ) as cur:
                 rawUserData = await cur.fetchone()
                 user = FlagQuizUser(*rawUserData)
                 await self.cache.set(str(user_id), user)
@@ -34,7 +79,9 @@ class FlagQuizHandler:
             raise UserNotFound
 
     async def exists(self, user_id: int):
-        async with self.db.execute(f"SELECT EXISTS(SELECT 1 FROM flag_quizz WHERE user_id=?)", [user_id]) as cur:
+        async with self.db.execute(
+            f"SELECT EXISTS(SELECT 1 FROM flag_quizz WHERE user_id=?)", [user_id]
+        ) as cur:
             return bool((await cur.fetchone())[0])
 
     async def get_leaderboard(self, order_by="correct"):
@@ -46,9 +93,18 @@ class FlagQuizHandler:
                 leaderboard.append(FlagQuizUser(*row))
             if len(leaderboard) == 0:
                 raise UsersNotFound
+            leaderboard = sorted(
+                leaderboard, key=lambda x: x.correct + (x.completed * 199), reverse=True
+            )  # line might fail lol idk
             return leaderboard
 
-    async def add_data(self, user_id: int, tries: int, correct: int, user: Optional[FlagQuizUser] = None) -> FlagQuizUser:
+    async def add_data(
+        self,
+        user_id: int,
+        tries: int,
+        correct: int,
+        user: Optional[FlagQuizUser] = None,
+    ) -> FlagQuizUser:
         if user is not None:
             try:
                 user = await self.get_user(user_id)
@@ -103,7 +159,9 @@ class BlacklistHandler:
         if user is not None:
             return user
         elif user_id in [user.id for user in self.blacklist]:
-            user: BlacklistedUser = [user for user in self.blacklist if user.id == user_id][0]
+            user: BlacklistedUser = [
+                user for user in self.blacklist if user.id == user_id
+            ][0]
             await self.cache.add(user_id, user)
             return user
         else:
@@ -136,7 +194,15 @@ class BlacklistHandler:
         """Returns the BlacklistedUser object of the user"""
         return self.get_user(user_id)
 
-    async def add(self, user_id: int, reason: str, bot: bool, tickets: bool, tags: bool, expires: int):
+    async def add(
+        self,
+        user_id: int,
+        reason: str,
+        bot: bool,
+        tickets: bool,
+        tags: bool,
+        expires: int,
+    ):
         """Adds a user to the blacklist"""
         await self.db.execute(
             f"INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES (?, ?, ?, ?, ?, ?)",
@@ -167,7 +233,8 @@ class BlacklistHandler:
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
         """Edits the flags (blacklist perms) of a user"""
         await self.db.execute(
-            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?", [bot, tickets, tags, user_id]
+            f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?",
+            [bot, tickets, tags, user_id],
         )
         await self.db.commit()
         indx = await self.get_user_index(user_id)
@@ -180,7 +247,9 @@ class BlacklistHandler:
 
     async def edit_reason(self, user_id: int, reason: str):
         """Edits the blacklist reason of a user"""
-        await self.db.execute(f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id])
+        await self.db.execute(
+            f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id]
+        )
         await self.db.commit()
         indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
@@ -190,7 +259,9 @@ class BlacklistHandler:
 
     async def edit_expiry(self, user_id: int, expires: int):
         """Edits when the blacklist expires of a user"""
-        await self.db.execute(f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id])
+        await self.db.execute(
+            f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id]
+        )
         await self.db.commit()
         indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
@@ -279,9 +350,13 @@ class TagManager:
             return
         return Tag(*raw)
 
-    async def all(self, orderby: Literal["views", "created_at"] = "views", limit=10) -> List[Tag]:
+    async def all(
+        self, orderby: Literal["views", "created_at"] = "views", limit=10
+    ) -> List[Tag]:
         tags = []
-        async with self.db.execute(f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}") as cur:
+        async with self.db.execute(
+            f"SELECT * FROM tags ORDER BY {orderby} DESC{f' LIMIT {limit}' if limit > 1 else ''}"
+        ) as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
@@ -300,18 +375,24 @@ class TagManager:
         await self.remove_aliases(name)
 
     async def update(self, name, param, new_value):
-        async with self.db.execute(f"UPDATE tags SET {param} = ? WHERE tag_id = ?", [new_value, name]):
+        async with self.db.execute(
+            f"UPDATE tags SET {param} = ? WHERE tag_id = ?", [new_value, name]
+        ):
             await self.db.commit()
         if param == "tag_id":
             await self.cache.add(new_value, await self.get(name))
             await self.cache.remove(name)
         else:
-            await self.cache.set(name, await self.get(name, force=True))  # force to fetch directly from the database
+            await self.cache.set(
+                name, await self.get(name, force=True)
+            )  # force to fetch directly from the database
 
     async def rename(self, name, new_name):
         name = await self.get_name(name)
         await self.update(name, "tag_id", new_name)
-        async with self.db.execute(f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?", [new_name, name]):
+        async with self.db.execute(
+            f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?", [new_name, name]
+        ):
             await self.db.commit()
 
         self.names["tags"].append(new_name)
@@ -327,19 +408,25 @@ class TagManager:
         if tag:
             tag.views += 1
             await self.cache.set(name, tag)
-        await self.db.execute("UPDATE tags SET views = views + 1 WHERE tag_id = ?", [name])
+        await self.db.execute(
+            "UPDATE tags SET views = views + 1 WHERE tag_id = ?", [name]
+        )
         await self.db.commit()
 
     async def get_top(self, limit=10):
         tags = []
-        async with self.db.execute(f"SELECT tag_id, views FROM tags ORDER BY views DESC LIMIT {limit}") as cur:
+        async with self.db.execute(
+            f"SELECT tag_id, views FROM tags ORDER BY views DESC LIMIT {limit}"
+        ) as cur:
             async for row in cur:
                 tags.append(Tag(*row))
         if len(tags) == 0:
             raise TagsNotFound
         return tags
 
-    async def get_tags_by_owner(self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"):
+    async def get_tags_by_owner(
+        self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"
+    ):
         tags = []
         async with self.db.execute(
             f"SELECT tag_id, views FROM tags WHERE owner = {owner} ORDER BY {orderby} DESC LIMIT {limit}"
@@ -360,7 +447,9 @@ class TagManager:
         name_or_alias = name_or_alias.casefold()
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
-        _cur = await self.db.execute("SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias])
+        _cur = await self.db.execute(
+            "SELECT tag_id FROM tag_relations WHERE alias = ?", [name_or_alias]
+        )
         value = await _cur.fetchone()
         if value is None:
             raise TagNotFound(name_or_alias)
@@ -373,7 +462,9 @@ class TagManager:
             raise AliasAlreadyExists
         elif len(aliases) > 10:
             raise AliasLimitReached
-        await self.db.execute("INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias])
+        await self.db.execute(
+            "INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias]
+        )
         await self.db.commit()
         self.names["aliases"].append(alias)
         await self.cache.add(alias, await self.get(name))
@@ -382,7 +473,9 @@ class TagManager:
         name = await self.get_name(name)
         if alias not in (await self.get_aliases(name)):
             raise AliasNotFound
-        await self.db.execute("DELETE FROM tag_relations WHERE tag_id = ? AND alias = ?", [name, alias])
+        await self.db.execute(
+            "DELETE FROM tag_relations WHERE tag_id = ? AND alias = ?", [name, alias]
+        )
         await self.db.commit()
         self.names["aliases"].remove(alias)
         await self.cache.delete(alias)
@@ -407,7 +500,9 @@ class TagManager:
                     return []
                 return [row[1] for row in content]
         name = await self.get_name(name)
-        async with self.db.execute("SELECT * FROM tag_relations WHERE tag_id = ?", [name]) as cur:
+        async with self.db.execute(
+            "SELECT * FROM tag_relations WHERE tag_id = ?", [name]
+        ) as cur:
             content = await cur.fetchall()
             if content is None:
                 return []
@@ -426,17 +521,25 @@ class RolesHandler:
     async def startup(self):
         self.messages = await self.get_messages()
 
-    async def exists(self, message_id: int, emoji: str, role_id: int) -> bool | ReactionRole:
+    async def exists(
+        self, message_id: int, emoji: str, role_id: int
+    ) -> bool | ReactionRole:
         """Check if msg exists in the database if it does, it returns the message else it returns False"""
         for msg in self.messages:
-            if msg.role_id == role_id and message_id == msg.message_id and str(emoji) == msg.emoji:
+            if (
+                msg.role_id == role_id
+                and message_id == msg.message_id
+                and str(emoji) == msg.emoji
+            ):
                 return msg
         return False
 
     async def get_messages(self):
         """get all messages from the database"""
         messages = []
-        async with self.db.execute(f"SELECT message_id, role_id, emoji, roles_given FROM reaction_roles") as cur:
+        async with self.db.execute(
+            f"SELECT message_id, role_id, emoji, roles_given FROM reaction_roles"
+        ) as cur:
             async for row in cur:
                 messages.append(ReactionRole(*row))
             return messages
@@ -446,7 +549,8 @@ class RolesHandler:
         if await self.exists(message_id, emoji, role_id):
             raise ReactionAlreadyExists
         await self.db.execute(
-            "INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)", [message_id, role_id, emoji]
+            "INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES (?, ?, ?)",
+            [message_id, role_id, emoji],
         )
         await self.db.commit()
 
@@ -479,7 +583,9 @@ class RolesHandler:
 
     async def remove_messages(self, message_id: int):
         """Removes all messages matching the id"""
-        await self.db.execute("DELETE FROM reaction_roles WHERE message_id = ?", [message_id])
+        await self.db.execute(
+            "DELETE FROM reaction_roles WHERE message_id = ?", [message_id]
+        )
         await self.db.commit()
         self.messages = [msg for msg in self.messages if msg.message_id != message_id]
 
@@ -490,7 +596,9 @@ class WarningHandler:
         self.bot = bot
 
     async def get_warning(self, warning_id: int) -> Optional[WarningModel]:
-        async with self.db.execute("SELECT * FROM warnings WHERE warning_id = ?", [warning_id]) as cur:
+        async with self.db.execute(
+            "SELECT * FROM warnings WHERE warning_id = ?", [warning_id]
+        ) as cur:
             content = await cur.fetchone()
             if content is None:
                 return None
@@ -498,14 +606,17 @@ class WarningHandler:
 
     async def get_warnings(self, user_id: int) -> List[WarningModel]:
         warnings = []
-        async with self.db.execute("SELECT * FROM warnings WHERE user_id = ?", [user_id]) as cur:
+        async with self.db.execute(
+            "SELECT * FROM warnings WHERE user_id = ?", [user_id]
+        ) as cur:
             async for row in cur:
                 warnings.append(WarningModel(*row))
         return warnings
 
     async def create_warning(self, user_id: int, reason: str, moderator_id: int):
         await self.db.execute(
-            "INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)", [user_id, reason, moderator_id]
+            "INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)",
+            [user_id, reason, moderator_id],
         )
         await self.db.commit()
         return True
@@ -532,7 +643,9 @@ class BirthdayHandler:
         self.bot = bot
 
     async def get_user(self, user_id: int) -> Optional[BirthdayModel]:
-        async with self.db.execute("SELECT * FROM birthday WHERE user_id = ?", [user_id]) as cur:
+        async with self.db.execute(
+            "SELECT * FROM birthday WHERE user_id = ?", [user_id]
+        ) as cur:
             content = await cur.fetchone()
             if content is None:
                 return None
@@ -582,7 +695,9 @@ class TimezoneHandler:
         self.bot = bot
 
     async def get_user(self, user_id: int) -> Optional[TimezoneModel]:
-        async with self.db.execute("SELECT * FROM timezone WHERE user_id = ?", [user_id]) as cur:
+        async with self.db.execute(
+            "SELECT * FROM timezone WHERE user_id = ?", [user_id]
+        ) as cur:
             content = await cur.fetchone()
             if content is None:
                 return None

@@ -33,7 +33,9 @@ class Commands(commands.Cog):
         self.bot = bot
 
     # Can be deprecated since there is a server info command now and its specific to the Lewis's Server
-    @commands.slash_command(name="membercount", description="Get the member count of the server")
+    @commands.slash_command(
+        name="membercount", description="Get the member count of the server"
+    )
     async def membercount(self, inter):
         """Count the members in the server"""
         member_count = len(inter.guild.members)
@@ -47,11 +49,15 @@ class Commands(commands.Cog):
         )
         await inter.response.send_message(embed=embed)
 
-    @commands.slash_command(name="ping", description="Shows how fast the bot is replying to you!")
+    @commands.slash_command(
+        name="ping", description="Shows how fast the bot is replying to you!"
+    )
     async def ping(self, inter):
         """Shows how fast the bot is replying to you!"""
         uptime = str(datetime.timedelta(seconds=int(round(time.time() - startTime))))
-        embed = disnake.Embed(title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF)
+        embed = disnake.Embed(
+            title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF
+        )
         ping = round(inter.bot.latency * 1000)
         if ping < 50:
             emoji = "<:404:985939028597682216>"
@@ -63,7 +69,9 @@ class Commands(commands.Cog):
             emoji = "<:bad:985939031449804850> "
         else:
             emoji = "🗼"
-        embed.add_field(name=f"Latency {emoji} :", value=f"```>> {ping} ms```", inline=True)
+        embed.add_field(
+            name=f"Latency {emoji} :", value=f"```>> {ping} ms```", inline=True
+        )
         embed.add_field(
             name=f"Uptime <:uptime:986174741452824586>:",
             value=f"```>> {uptime}```",
@@ -78,9 +86,13 @@ class Commands(commands.Cog):
     @commands.slash_command(name="botinfo", description="Shows info about the bot!")
     async def botinfo(self, inter):
         """Shows the info of the bot"""
-        embed = disnake.Embed(title="Ogiroid Information: ", description=" ", color=0xFFFFFF)
+        embed = disnake.Embed(
+            title="Ogiroid Information: ", description=" ", color=0xFFFFFF
+        )
         embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
-        embed.add_field(name="**Bot Version: **", value=f"```>> {__VERSION__}```", inline=False)
+        embed.add_field(
+            name="**Bot Version: **", value=f"```>> {__VERSION__}```", inline=False
+        )
         embed.add_field(
             name="**Disnake Version: **",
             value=f"```>> {disnake.__version__}```",
@@ -100,7 +112,11 @@ class Commands(commands.Cog):
             url="https://cdn.discordapp.com/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
         )
 
-        button = disnake.ui.Button(label="Source", style=disnake.ButtonStyle.url, url="https://github.com/LewisProjects/Ogiroid")
+        button = disnake.ui.Button(
+            label="Source",
+            style=disnake.ButtonStyle.url,
+            url="https://github.com/LewisProjects/Ogiroid",
+        )
         await inter.send(embed=embed, components=button)
 
     @commands.slash_command()
@@ -110,7 +126,9 @@ class Commands(commands.Cog):
         if guild_id is not None and await self.bot.is_owner(inter.author):
             guild = self.bot.get_guild(guild_id)
             if guild is None:
-                await QuickEmb(inter, "Invalid Guild ID given or im not in that guild").error().send()
+                await QuickEmb(
+                    inter, "Invalid Guild ID given or im not in that guild"
+                ).error().send()
                 return
         else:
             guild = inter.guild
@@ -135,7 +153,9 @@ class Commands(commands.Cog):
             totals[channel_type] += 1
             if not perms.read_messages:
                 secret[channel_type] += 1
-            elif isinstance(channel, disnake.VoiceChannel) and (not perms.connect or not perms.speak):
+            elif isinstance(channel, disnake.VoiceChannel) and (
+                not perms.connect or not perms.speak
+            ):
                 secret[channel_type] += 1
         e = disnake.Embed(colour=0xFFFFFF)
         e.title = guild.name
@@ -182,8 +202,12 @@ class Commands(commands.Cog):
         e.add_field(name="Channels", value="\n".join(channel_info))
 
         if guild.premium_tier != 0:
-            boosts = f"Level {guild.premium_tier}\n{guild.premium_subscription_count} boosts"
-            last_boost = max(guild.members, key=lambda m: m.premium_since or guild.created_at)
+            boosts = (
+                f"Level {guild.premium_tier}\n{guild.premium_subscription_count} boosts"
+            )
+            last_boost = max(
+                guild.members, key=lambda m: m.premium_since or guild.created_at
+            )
             if last_boost.premium_since is not None:
                 boosts = f"{boosts}\nLast Boost: {last_boost}"
             e.add_field(name="Boosts", value=boosts, inline=False)
@@ -192,7 +216,10 @@ class Commands(commands.Cog):
         fmt = f"Total: {guild.member_count} ({plural(bots):bot})"
 
         e.add_field(name="Members", value=fmt, inline=False)
-        e.add_field(name="Roles", value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles")
+        e.add_field(
+            name="Roles",
+            value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles",
+        )
 
         emoji_stats = Counter()
         for emoji in guild.emojis:
@@ -219,26 +246,44 @@ class Commands(commands.Cog):
             user: disnake.Member = inter.author
         e = disnake.Embed(description="")
         roles = [
-            role.name.replace("@", "@\u200b") for role in getattr(user, "roles", []) if not role.id == inter.guild.default_role.id
+            role.name.replace("@", "@\u200b")
+            for role in getattr(user, "roles", [])
+            if not role.id == inter.guild.default_role.id
         ]
         bottag = "<:bot_tag:880193490556944435>"
         e.set_author(name=f'{user}{bottag if user.bot else ""}')
-        join_position = sorted(inter.guild.members, key=lambda m: m.joined_at).index(user) + 1
+        join_position = (
+            sorted(inter.guild.members, key=lambda m: m.joined_at).index(user) + 1
+        )
 
         e.add_field(name="Join Position", value=join_position)
         e.add_field(name="ID", value=user.id, inline=False)
-        e.add_field(name="Joined", value=getattr(user, "joined_at", None).strftime("%m/%d/%Y"), inline=False)
-        e.add_field(name="Created", value=user.created_at.strftime("%m/%d/%Y"), inline=False)
+        e.add_field(
+            name="Joined",
+            value=getattr(user, "joined_at", None).strftime("%m/%d/%Y"),
+            inline=False,
+        )
+        e.add_field(
+            name="Created", value=user.created_at.strftime("%m/%d/%Y"), inline=False
+        )
 
         voice = getattr(user, "voice", None)
         if voice is not None:
             vc = voice.channel
             other_people = len(vc.members) - 1
-            voice = f"{vc.name} with {other_people} others" if other_people else f"{vc.name} by themselves"
+            voice = (
+                f"{vc.name} with {other_people} others"
+                if other_people
+                else f"{vc.name} by themselves"
+            )
             e.add_field(name="Voice", value=voice, inline=False)
 
         if roles:
-            e.add_field(name="Roles", value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles", inline=False)
+            e.add_field(
+                name="Roles",
+                value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles",
+                inline=False,
+            )
 
         colour = user.colour
         if colour.value:
@@ -260,7 +305,9 @@ class Commands(commands.Cog):
         await inter.send(embed=e)
 
     @commands.slash_command(name="avatar", description="Shows the avatar of a user.")
-    async def avatar(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None):
+    async def avatar(
+        self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None
+    ):
         """Shows the avatar of a user."""
         if user == None:
             user = inter.author
