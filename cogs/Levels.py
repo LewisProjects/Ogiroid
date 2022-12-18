@@ -212,8 +212,11 @@ class LevelsController:
         if user is None:
             await self.set_level(message.author, 0)
         user = await self.get_user(message.author)
+        old_lvl = user.lvl
         user.xp += xp
+        print(user.xp, "xp")
         while user.xp >= user.xp_needed:  # fixme this is broken
+            print(user, user.xp_needed)
             # get the extra xp that the user has after leveling up
             user.xp -= user.xp_needed
             user.lvl += 1
@@ -224,14 +227,9 @@ class LevelsController:
             xp=user.xp,
             guild_id=message.guild.id,
         )  # type: ignore
-        self.bot.dispatch("level_up", message, user.lvl)
 
-        await self._update_record(
-            member=message.author,
-            level=user.lvl,
-            xp=user.xp,
-            guild_id=message.guild.id,
-        )  # type: ignore
+        if user.lvl > old_lvl:
+            self.bot.dispatch("level_up", message, user.lvl)
 
     async def get_boost(self, message: Message) -> int:
         """get the boost that the server/user will have then"""
@@ -424,7 +422,7 @@ class Level(commands.Cog):
         Called when a user reaches a certain level
         """
 
-        # await self.controller.send_levelup(msg, level)
+        await self.controller.send_levelup(msg, level)
         if await self.is_role_reward(msg.guild, level):
             role = await self.get_role_reward(msg.guild, level)
             if role is not None:
