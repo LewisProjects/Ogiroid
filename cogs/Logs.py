@@ -246,16 +246,13 @@ class Log(Cog):
                 values = string.replace('False', 'removed')
 
             names_raw = names.replace('_', ' ').replace('guild', 'server') 
-
-            
+         
             if 'added' in values:
                 added.append(names_raw)
             else:
                 removed.append(names_raw)
 
-        
-
-
+                
         if len(added) == 0 and len(removed) > 0 and after_ != before_:
             content = (
                 f"**Removed: ** {', '.join(removed)}"
