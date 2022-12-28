@@ -221,9 +221,79 @@ class Log(Cog):
 
         title = "Role edited"
 
-        if before.name != after.name:
-            content = f"**{before.name}** has been named to **{after.name}**"
-        else:  # needs to check perms aswell
+        before_, after_ = [], []
+
+
+        for before_name in before.permissions:
+            before_.append(before_name)
+            
+        for after_name in after.permissions:
+            after_.append(after_name)
+
+        added, removed = [], []
+        check = set(after_) - set(before_)
+
+        for name in list(check):
+            names = name[0]
+            values = name[1]
+            if values == True:
+                value = True
+                string = str(value)
+                values = string.replace('True', 'added')
+            else:
+                value = False
+                string = str(value)
+                values = string.replace('False', 'removed')
+
+            names_raw = names.replace('_', ' ').replace('guild', 'server') 
+
+            
+            if 'added' in values:
+                added.append(names_raw)
+            else:
+                removed.append(names_raw)
+
+        
+
+
+        if len(added) == 0 and len(removed) > 0 and after_ != before_:
+            content = (
+                f"**Removed: ** {', '.join(removed)}"
+            )
+        elif len(removed) == 0 and len(added) > 0 and after_ != before_:
+            content = (
+                f"**Added: ** {','.join(added)}\n"
+            )
+        elif len(added) == 0 and len(removed) > 0 and after_ != before_ and after.name != before.name:
+            content = (
+                f'**Old name: ** {before.name}\n'
+                f'**New name: ** {after.name}\n'
+                f"**Removed: ** {','.join(removed)}\n"
+            )
+        elif len(removed) == 0 and len(added) > 0 and after_ != before_ and after.name != before.name:
+            content = (
+                f'**Old name: ** {before.name}\n'
+                f'**New name: ** {after.name}\n'
+                f"**Added: ** {','.join(added)}\n"
+            )
+        elif after_ != before_ and after.name != before.name:
+            content = (
+                f'**Old name: ** {before.name}\n'
+                f'**New name: ** {after.name}\n'
+                f"**Added: ** {','.join(added)}\n"
+                f"**Removed: ** {', '.join(removed)}"
+            )
+        elif after_ != before_:
+            content = (
+                f"**Added: ** {','.join(added)}\n"
+                f"**Removed: ** {', '.join(removed)}"
+            )
+        elif after.name != before.name:
+            content = (
+                f'**Old name: ** {before.name}\n'
+                f'**New name: ** {after.name}'
+            )
+        else:
             return
 
         embed = Embed(
