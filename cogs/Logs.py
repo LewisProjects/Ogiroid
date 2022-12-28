@@ -263,20 +263,20 @@ class Log(Cog):
             )
         elif len(added) == 0 and len(removed) > 0 and after_ != before_ and after.name != before.name:
             content = (
-                f'**Old name: ** {before.name}\n'
-                f'**New name: ** {after.name}\n'
+                f'**Old name: ** `{before.name}`\n'
+                f'**New name: ** `{after.name}`\n'
                 f"**Removed: ** {','.join(removed)}\n"
             )
         elif len(removed) == 0 and len(added) > 0 and after_ != before_ and after.name != before.name:
             content = (
-                f'**Old name: ** {before.name}\n'
-                f'**New name: ** {after.name}\n'
+                f'**Old name: ** `{before.name}`\n'
+                f'**New name: ** `{after.name}`\n'
                 f"**Added: ** {','.join(added)}\n"
             )
         elif after_ != before_ and after.name != before.name:
             content = (
-                f'**Old name: ** {before.name}\n'
-                f'**New name: ** {after.name}\n'
+                f'**Old name: ** `{before.name}`\n'
+                f'**New name: ** `{after.name}`\n'
                 f"**Added: ** {','.join(added)}\n"
                 f"**Removed: ** {', '.join(removed)}"
             )
@@ -287,8 +287,8 @@ class Log(Cog):
             )
         elif after.name != before.name:
             content = (
-                f'**Old name: ** {before.name}\n'
-                f'**New name: ** {after.name}'
+                f'**Old name: ** `{before.name}`\n'
+                f'**New name: ** `{after.name}`'
             )
         else:
             return
