@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-__VERSION__ = "2.0"
+__VERSION__ = "2.1"
 
 from typing import Final
 
@@ -49,7 +49,7 @@ class Channels:
         cls.rules: int = 1013853473172893837
         cls.uploads: int = 1013853473172893837
         cls.birthdays: int = 1013853473172893837  # dummy channel
-        cls.ogiroid_logs: int = cls.logs
+        cls.ogiroid_logs: int = 1053627879348514869
         return cls
 
 

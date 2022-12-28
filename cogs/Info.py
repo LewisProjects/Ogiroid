@@ -19,7 +19,15 @@ class Info(commands.Cog):
         description="Get current weather for specific city",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def weather(self, inter, *, city):
+    async def weather(
+        self,
+        inter,
+        *,
+        city,
+        private: bool = commands.Param(
+            False, description="Send weather privately, not exposing location"
+        ),
+    ):
         if not self.openweather.apiKey:
             return await errorEmb(
                 inter,
@@ -47,7 +55,10 @@ class Info(commands.Cog):
         e.add_field(name="Humidity", value=weatherData.humidity)
         e.add_field(name="Wind", value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
-        await inter.send(embed=e)
+        if private:
+            await inter.send(embed=e, ephemeral=True)
+        else:
+            await inter.send(embed=e)
 
     @commands.slash_command(description="stats about the commands that have been ran")
     @commands.cooldown(1, 5, commands.BucketType.user)

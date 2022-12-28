@@ -157,7 +157,8 @@ class Fun(commands.Cog):
             await inter.send(embed=embed)
         else:
             await inter.send(
-                "**You must be in a voice channel to use this command!**", ephemeral=True
+                "**You must be in a voice channel to use this command!**",
+                ephemeral=True,
             )
 
     @commands.slash_command()
