@@ -37,13 +37,17 @@ class Fun(commands.Cog):
             # noinspection PyUnresolvedReferences
             self.togetherControl = await DiscordTogether(TOKEN)
 
-    @commands.slash_command(name="spotify", description="Show what song a member listening to in Spotify")
+    @commands.slash_command(
+        name="spotify", description="Show what song a member listening to in Spotify"
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
     async def spotifyinfo(self, inter: ApplicationCommandInteraction, user: Member):
         user = user or inter.author
 
-        spotify: disnake.Spotify = disnake.utils.find(lambda s: isinstance(s, disnake.Spotify), user.activities)
+        spotify: disnake.Spotify = disnake.utils.find(
+            lambda s: isinstance(s, disnake.Spotify), user.activities
+        )
         if not spotify:
             return await errorEmb(inter, f"{user} is not listening to Spotify!")
 
@@ -113,7 +117,9 @@ class Fun(commands.Cog):
         choices = [choice1, choice2, choice3, choice4, choice5, choice6]
         choices = [choice for choice in choices if choice is not None]
         choices_str = ""
-        emojis = emojis[: len(choices)]  # trims emojis list to length of inputted choices
+        emojis = emojis[
+            : len(choices)
+        ]  # trims emojis list to length of inputted choices
         i = 0
         for emoji in emojis:
             choices_str += f"{emoji}  {choices[i]}\n\n"
@@ -130,7 +136,9 @@ class Fun(commands.Cog):
         for emoji in emojis:
             await poll.add_reaction(emoji)
 
-    @commands.slash_command(name="youtube", description="Watch YouTube in a Discord VC with your friends")
+    @commands.slash_command(
+        name="youtube", description="Watch YouTube in a Discord VC with your friends"
+    )
     async def youtube(self, inter):
         """Watch YouTube in a Discord VC with your friends"""
         if inter.author.voice:
@@ -197,18 +205,28 @@ class Fun(commands.Cog):
 
         try:
             await msg.add_reaction("🍻")
-            await self.bot.wait_for("raw_reaction_add", timeout=30.0, check=reaction_check)
-            await msg.edit(content=f"**{user.name}** and **{inter.author.name}** are enjoying a lovely beer together 🍻")
+            await self.bot.wait_for(
+                "raw_reaction_add", timeout=30.0, check=reaction_check
+            )
+            await msg.edit(
+                content=f"**{user.name}** and **{inter.author.name}** are enjoying a lovely beer together 🍻"
+            )
         except asyncio.TimeoutError:
             await msg.delete()
-            await inter.send(f"well, doesn't seem like **{user.name}** wanted a beer with you **{inter.author.name}** ;-;")
+            await inter.send(
+                f"well, doesn't seem like **{user.name}** wanted a beer with you **{inter.author.name}** ;-;"
+            )
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
             beer_offer = f"**{user.name}**, you got a 🍺 from **{inter.author.name}**"
-            beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
+            beer_offer = (
+                f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
+            )
             await msg.edit(content=beer_offer)
 
-    @commands.slash_command(aliases=["slots", "bet"])  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
+    @commands.slash_command(
+        aliases=["slots", "bet"]
+    )  # Credit: AlexFlipNote - https://github.com/AlexFlipnote
     async def slot(self, inter):
         """Roll the slot machine"""
         emojis = "💻💾💿🖥🖨🖱🌐⌨"
@@ -222,7 +240,9 @@ class Fun(commands.Cog):
         else:
             await inter.send(f"{slotmachine} No match, you lost 😢")
 
-    @commands.slash_command(name="8ball", brief="8ball", description="Ask the magic 8ball a question")
+    @commands.slash_command(
+        name="8ball", brief="8ball", description="Ask the magic 8ball a question"
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def eightball(self, inter: ApplicationCommandInteraction, *, question):
         """Ask the magic 8ball a question"""
@@ -248,7 +268,9 @@ class Fun(commands.Cog):
             "Outlook not so good.",
             "Very doubtful.",
         ]
-        await inter.send(f"Question: {question}\nAnswer: **{random.choice(responses)}**")
+        await inter.send(
+            f"Question: {question}\nAnswer: **{random.choice(responses)}**"
+        )
 
     @commands.slash_command(
         name="askogiroid",
@@ -265,7 +287,9 @@ class Fun(commands.Cog):
             intro.set_thumbnail(
                 url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
             )
-            intro.set_footer(text="Think about a real or fictional character. I will try to guess who it is")
+            intro.set_footer(
+                text="Think about a real or fictional character. I will try to guess who it is"
+            )
             bye = disnake.Embed(
                 title="Ogiroid",
                 description="Bye, " + inter.author.mention,
@@ -281,11 +305,17 @@ class Fun(commands.Cog):
                 return msg.author == inter.author and msg.channel == inter.channel
 
             components = [
-                disnake.ui.Button(label="Yes", custom_id="y", style=disnake.ButtonStyle.green),
-                disnake.ui.Button(label="No", custom_id="n", style=disnake.ButtonStyle.red),
+                disnake.ui.Button(
+                    label="Yes", custom_id="y", style=disnake.ButtonStyle.green
+                ),
+                disnake.ui.Button(
+                    label="No", custom_id="n", style=disnake.ButtonStyle.red
+                ),
                 disnake.ui.Button(label="Probably", custom_id="p"),
                 disnake.ui.Button(label="Idk", custom_id="idk"),
-                disnake.ui.Button(label="Back", custom_id="b", style=disnake.ButtonStyle.blurple),
+                disnake.ui.Button(
+                    label="Back", custom_id="b", style=disnake.ButtonStyle.blurple
+                ),
             ]
 
             try:
@@ -294,15 +324,21 @@ class Fun(commands.Cog):
                 channel = self.bot.get_channel(inter.channel.id)
                 button_click = channel
                 while aki.progression <= 80:
-                    question = disnake.Embed(title="Question", description=q, color=0xFFFFFF)
+                    question = disnake.Embed(
+                        title="Question", description=q, color=0xFFFFFF
+                    )
                     question.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )
                     await button_click.send(embed=question, components=components)
                     try:
-                        button_click = await self.bot.wait_for("button_click", check=check, timeout=30)
+                        button_click = await self.bot.wait_for(
+                            "button_click", check=check, timeout=30
+                        )
                     except asyncio.TimeoutError:
-                        await inter.send("Sorry you took too long to respond!(waited for 30sec)")
+                        await inter.send(
+                            "Sorry you took too long to respond!(waited for 30sec)"
+                        )
                         await inter.send(embed=bye)
                         return
                     if button_click.component.custom_id == "b":
@@ -322,10 +358,14 @@ class Fun(commands.Cog):
                 )
                 # answer.set_image(aki.first_guess['absolute_picture_path']) may contain NSFW images
                 answer.set_footer(text="Was I correct?")
-                await button_click.send(embed=answer, components=[components[0], components[1]])
+                await button_click.send(
+                    embed=answer, components=[components[0], components[1]]
+                )
                 # await inter.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
                 try:
-                    correct = await self.bot.wait_for("button_click", check=check, timeout=30)
+                    correct = await self.bot.wait_for(
+                        "button_click", check=check, timeout=30
+                    )
                 except asyncio.TimeoutError:
                     await errorEmb(correct, "Sorry you took too long to respond.")
                     await inter.send(embed=bye)
@@ -346,16 +386,22 @@ class Fun(commands.Cog):
             except Exception as e:
                 await errorEmb(inter, e)
 
-    @commands.slash_command(name="bored", brief="activity", description="Returns an activity")
+    @commands.slash_command(
+        name="bored", brief="activity", description="Returns an activity"
+    )
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def bored(self, inter):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
-            async with activitySession.get(f"https://boredapi.com/api/activity", ssl=False) as activityData:  # keep as http
+            async with activitySession.get(
+                f"https://boredapi.com/api/activity", ssl=False
+            ) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
 
-    @commands.slash_command(name="morse", description="Encode text into morse code and decode morse code.")
+    @commands.slash_command(
+        name="morse", description="Encode text into morse code and decode morse code."
+    )
     async def morse(self, inter):
         pass
 
@@ -395,9 +441,13 @@ class Fun(commands.Cog):
     async def info(
         self,
         inter: ApplicationCommandInteraction,
-        pokem: str = commands.ParamInfo(name="pokemon", description="The name of the Pokémon"),
+        pokem: str = commands.ParamInfo(
+            name="pokemon", description="The name of the Pokémon"
+        ),
     ):
-        response = await self.bot.session.get(f"https://pokeapi.co/api/v2/pokemon/{pokem}")
+        response = await self.bot.session.get(
+            f"https://pokeapi.co/api/v2/pokemon/{pokem}"
+        )
         poke_data = await response.json()
 
         try:
@@ -406,7 +456,9 @@ class Fun(commands.Cog):
             embed.add_field(name="Type", value=poke_data["types"][0]["type"]["name"])
             embed.add_field(name="Height", value=f"{poke_data['height']}m")
             embed.add_field(name="Weight", value=f"{poke_data['weight']}kg")
-            embed.add_field(name="Abilities", value=poke_data["abilities"][0]["ability"]["name"])
+            embed.add_field(
+                name="Abilities", value=poke_data["abilities"][0]["ability"]["name"]
+            )
             embed.add_field(name="Base Experience", value=poke_data["base_experience"])
             embed.add_field(name="Species", value=poke_data["species"]["name"])
             embed.set_footer(
@@ -430,7 +482,9 @@ class Fun(commands.Cog):
             embed.set_footer(text=f"Requested by: {inter.author.name}")
             return await inter.send(embed=embed)
         else:
-            return await errorEmb(inter, "An unexpected error occurred! Please try again later.")
+            return await errorEmb(
+                inter, "An unexpected error occurred! Please try again later."
+            )
 
 
 def setup(bot):
