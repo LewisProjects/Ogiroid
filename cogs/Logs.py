@@ -82,6 +82,20 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_member_update(self, before, after):
+        before_roles = []
+        after_roles = []
+        for role in before.roles:
+            before_roles.append(str(role.mention))
+
+        before_roles.reverse()
+        before_roles.pop()
+
+        for role in after.roles:
+            after_roles.append(str(role.mention))
+        
+        after_roles.reverse()
+        after_roles.pop()
+        
         if before.display_name != after.display_name:
             embed = Embed(
                 title="Nickname change",
@@ -110,8 +124,8 @@ class Log(Cog):
             )
 
             fields = [
-                ("Before", ", ".join([r.mention for r in before.roles]), False),
-                ("After", ", ".join([r.mention for r in after.roles]), False),
+                ("Before", ", ".join(before_roles), False),
+                ("After", ", ".join(after_roles), False),
             ]
 
             for name, value, inline in fields:
