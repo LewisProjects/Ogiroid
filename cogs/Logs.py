@@ -337,6 +337,8 @@ class Log(Cog):
                 f"Before: `{before.afk_timeout}`\n"
                 f"After: `{after.afk_timeout}`"
             )
+        else:
+            message = None
 
         embed = Embed(
             title="Server edited",
