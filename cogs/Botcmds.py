@@ -4,6 +4,7 @@ from collections import Counter
 
 import disnake
 from disnake.ext import commands
+from disnake.utils import format_dt
 
 from utils.CONSTANTS import status, __VERSION__
 from utils.bot import OGIROID
@@ -260,11 +261,11 @@ class Commands(commands.Cog):
         e.add_field(name="ID", value=user.id, inline=False)
         e.add_field(
             name="Joined",
-            value=getattr(user, "joined_at", None).strftime("%m/%d/%Y"),
+            value=format_dt(user.joined_at, style="R"),
             inline=False,
         )
         e.add_field(
-            name="Created", value=user.created_at.strftime("%m/%d/%Y"), inline=False
+            name="Created", value=format_dt(user.created_at, style="R"), inline=False
         )
 
         voice = getattr(user, "voice", None)
