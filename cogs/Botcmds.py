@@ -261,11 +261,11 @@ class Commands(commands.Cog):
         e.add_field(name="ID", value=user.id, inline=False)
         e.add_field(
             name="Joined",
-            value=format_dt(user.joined_at, style="R"),
+            value=f'{format_dt(user.joined_at, style="R")}, {format_dt(user.joined_at, style="d")}',
             inline=False,
         )
         e.add_field(
-            name="Created", value=format_dt(user.created_at, style="R"), inline=False
+            name="Created", value=f'{format_dt(user.created_at, style="R")}, {format_dt(user.created_at, style="d")}', inline=False
         )
 
         voice = getattr(user, "voice", None)
