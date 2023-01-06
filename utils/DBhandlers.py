@@ -604,35 +604,35 @@ class WarningHandler:
                 return None
             return WarningModel(*content)
 
-    async def get_warnings(self, user_id: int) -> List[WarningModel]:
+    async def get_warnings(self, user_id: int, guild_id: int) -> List[WarningModel]:
         warnings = []
         async with self.db.execute(
-            "SELECT * FROM warnings WHERE user_id = ?", [user_id]
+            "SELECT * FROM warnings WHERE user_id = ? AND guild_id = ?", [user_id, guild_id]
         ) as cur:
             async for row in cur:
                 warnings.append(WarningModel(*row))
         return warnings
 
-    async def create_warning(self, user_id: int, reason: str, moderator_id: int):
+    async def create_warning(self, user_id: int, reason: str, moderator_id: int, guild_id: int):
         await self.db.execute(
-            "INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)",
-            [user_id, reason, moderator_id],
+            "INSERT INTO warnings (user_id, reason, moderator_id, guild_id) VALUES (?, ?, ?, ?)",
+            [user_id, reason, moderator_id, guild_id],
         )
         await self.db.commit()
         return True
 
-    async def remove_all_warnings(self, user_id: int) -> bool:
-        warnings = await self.get_warnings(user_id)
+    async def remove_all_warnings(self, user_id: int, guild_id: int) -> bool:
+        warnings = await self.get_warnings(user_id, guild_id)
         if len(warnings) == 0:
             return False
-        await self.db.execute("DELETE FROM warnings WHERE user_id = ?", [user_id])
+        await self.db.execute("DELETE FROM warnings WHERE user_id = ? AND guild_id = ?", [user_id, guild_id])
         await self.db.commit()
 
-    async def remove_warning(self, warning_id: int) -> bool:
+    async def remove_warning(self, warning_id: int, guild_id: int) -> bool:
         warning = await self.get_warning(warning_id)
         if warning is None:
             return False
-        await self.db.execute("DELETE FROM warnings WHERE warning_id = ?", [warning_id])
+        await self.db.execute("DELETE FROM warnings WHERE warning_id = ? AND guild_id = ?", [warning_id, guild_id])
         await self.db.commit()
         return True
 

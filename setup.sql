@@ -60,7 +60,8 @@ IF NOT EXISTS warnings
     warning_id SERIAL PRIMARY KEY,
     user_id BIGINT,
     moderator_id BIGINT,
-    reason TEXT
+    reason TEXT,
+    guild_id BIGINT
 );
 
 CREATE TABLE
