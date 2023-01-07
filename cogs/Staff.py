@@ -364,16 +364,6 @@ class Staff(commands.Cog):
         except ValueError:
             pass
 
-    @commands.slash_command(name="faq")
-    @commands.guild_only()
-    @commands.has_role("Staff")
-    async def faq(self, inter: ApplicationCommandInteraction, person: disnake.Member):
-        """FAQ command for the staff team"""
-        channel = self.bot.get_channel(self.bot.config.channels.reddit_faq)
-        await channel.send(f"{person.mention}", delete_after=2)
-        # Sending Done so this Application didn't respond error can be avoided
-        await inter.send("Done", delete_after=1)
-
     @commands.slash_command(name="prune")
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
@@ -796,7 +786,7 @@ class Staff(commands.Cog):
 
     @commands.slash_command(name="staffvote", description="Propose a Staff Vote.")
     @commands.guild_only()
-    @commands.has_role("Staff")
+    @commands.has_permissions(ban_members=True)
     async def staffvote(self, inter):
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
@@ -805,7 +795,7 @@ class Staff(commands.Cog):
         name="staffhelp", description="Get the help for the staff commands."
     )
     @commands.guild_only()
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def staffhelp(self, inter):
         """Get the help for the staff commands."""
         staff_commands = commands.Cog.get_slash_commands(self)
