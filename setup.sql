@@ -33,6 +33,7 @@ IF NOT EXISTS flag_quizz
     tries INTEGER,
     correct INTEGER,
     completed INTEGER
+    guild_id INTEGER
 );
 
 CREATE TABLE

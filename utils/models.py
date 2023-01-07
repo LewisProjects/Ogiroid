@@ -105,6 +105,7 @@ class FlagQuizUser:
     tries: int
     correct: int
     completed: int
+    guild_id: int
 
 
 @dataclass

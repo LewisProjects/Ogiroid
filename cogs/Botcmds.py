@@ -265,7 +265,9 @@ class Commands(commands.Cog):
             inline=False,
         )
         e.add_field(
-            name="Created", value=f'{format_dt(user.created_at, style="R")}, {format_dt(user.created_at, style="d")}', inline=False
+            name="Created",
+            value=f'{format_dt(user.created_at, style="R")}, {format_dt(user.created_at, style="d")}',
+            inline=False,
         )
 
         voice = getattr(user, "voice", None)

@@ -92,10 +92,10 @@ class Log(Cog):
 
         for role in after.roles:
             after_roles.append(str(role.mention))
-        
+
         after_roles.reverse()
         after_roles.pop()
-        
+
         if before.display_name != after.display_name:
             embed = Embed(
                 title="Nickname change",
@@ -237,10 +237,9 @@ class Log(Cog):
 
         before_, after_ = [], []
 
-
         for before_name in before.permissions:
             before_.append(before_name)
-            
+
         for after_name in after.permissions:
             after_.append(after_name)
 
@@ -253,56 +252,59 @@ class Log(Cog):
             if values == True:
                 value = True
                 string = str(value)
-                values = string.replace('True', 'added')
+                values = string.replace("True", "added")
             else:
                 value = False
                 string = str(value)
-                values = string.replace('False', 'removed')
+                values = string.replace("False", "removed")
 
-            names_raw = names.replace('_', ' ').replace('guild', 'server') 
-         
-            if 'added' in values:
+            names_raw = names.replace("_", " ").replace("guild", "server")
+
+            if "added" in values:
                 added.append(names_raw)
             else:
                 removed.append(names_raw)
 
-                
         if len(added) == 0 and len(removed) > 0 and after_ != before_:
-            content = (
-                f"**Removed: ** {', '.join(removed)}"
-            )
+            content = f"**Removed: ** {', '.join(removed)}"
         elif len(removed) == 0 and len(added) > 0 and after_ != before_:
+            content = f"**Added: ** {','.join(added)}\n"
+        elif (
+            len(added) == 0
+            and len(removed) > 0
+            and after_ != before_
+            and after.name != before.name
+        ):
             content = (
-                f"**Added: ** {','.join(added)}\n"
-            )
-        elif len(added) == 0 and len(removed) > 0 and after_ != before_ and after.name != before.name:
-            content = (
-                f'**Old name: ** `{before.name}`\n'
-                f'**New name: ** `{after.name}`\n'
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`\n"
                 f"**Removed: ** {','.join(removed)}\n"
             )
-        elif len(removed) == 0 and len(added) > 0 and after_ != before_ and after.name != before.name:
+        elif (
+            len(removed) == 0
+            and len(added) > 0
+            and after_ != before_
+            and after.name != before.name
+        ):
             content = (
-                f'**Old name: ** `{before.name}`\n'
-                f'**New name: ** `{after.name}`\n'
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`\n"
                 f"**Added: ** {','.join(added)}\n"
             )
         elif after_ != before_ and after.name != before.name:
             content = (
-                f'**Old name: ** `{before.name}`\n'
-                f'**New name: ** `{after.name}`\n'
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`\n"
                 f"**Added: ** {','.join(added)}\n"
                 f"**Removed: ** {', '.join(removed)}"
             )
         elif after_ != before_:
             content = (
-                f"**Added: ** {','.join(added)}\n"
-                f"**Removed: ** {', '.join(removed)}"
+                f"**Added: ** {','.join(added)}\n" f"**Removed: ** {', '.join(removed)}"
             )
         elif after.name != before.name:
             content = (
-                f'**Old name: ** `{before.name}`\n'
-                f'**New name: ** `{after.name}`'
+                f"**Old name: ** `{before.name}`\n" f"**New name: ** `{after.name}`"
             )
         else:
             return

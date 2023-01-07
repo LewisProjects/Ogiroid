@@ -238,7 +238,9 @@ class Staff(commands.Cog):
         if len(warnings) == 0:
             return await errorEmb(inter, "User has no warnings!")
         elif len(warnings) == 1:
-            status = await self.warning.remove_warning(warnings[0].warning_id, inter.guild.id)
+            status = await self.warning.remove_warning(
+                warnings[0].warning_id, inter.guild.id
+            )
             if status:
                 await sucEmb(inter, "Warning has been removed successfully!")
             else:
@@ -264,7 +266,9 @@ class Staff(commands.Cog):
             if id > len(warnings) or id < 1:
                 return await errorEmb(inter, "Invalid warning index!")
 
-            status = await self.warning.remove_warning(warnings[id - 1].warning_id, inter.guild.id)
+            status = await self.warning.remove_warning(
+                warnings[id - 1].warning_id, inter.guild.id
+            )
             if status:
                 await sucEmb(inter, "Warning has been removed successfully!")
             else:

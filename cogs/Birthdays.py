@@ -21,7 +21,9 @@ async def get_days_until_birthday(user_data) -> (int, str):
         next_birthday = datetime.datetime.strptime(
             user_data.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y"
         )
-    return (next_birthday - datetime.datetime.now()).days, f"<t:{str(next_birthday.timestamp()).split('.')[0]}:D>"
+    return (
+        next_birthday - datetime.datetime.now()
+    ).days, f"<t:{str(next_birthday.timestamp()).split('.')[0]}:D>"
 
 
 class Birthday(commands.Cog):
@@ -132,8 +134,7 @@ class Birthday(commands.Cog):
         days, discord_date = await get_days_until_birthday(birthday)
         await QuickEmb(
             inter,
-            f"{user.mention}'s birthday is in {days} Days."
-            f"{discord_date}",
+            f"{user.mention}'s birthday is in {days} Days." f"{discord_date}",
         ).send()
 
     @birthday.sub_command(name="next", description="Get the next birthday")
@@ -159,8 +160,7 @@ class Birthday(commands.Cog):
         days, discord_date = await get_days_until_birthday(next_birthday)
         await QuickEmb(
             inter,
-            f"{member.mention}'s birthday is in {days} Days."
-            f"{discord_date}",
+            f"{member.mention}'s birthday is in {days} Days." f"{discord_date}",
         ).send()
 
     # @tasks.loop(time=[dt.time(dt.datetime.utcnow().hour, dt.datetime.utcnow().minute, dt.datetime.utcnow().second + 10)])
