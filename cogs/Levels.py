@@ -214,9 +214,7 @@ class LevelsController:
         user = await self.get_user(message.author)
         old_lvl = user.lvl
         user.xp += xp
-        print(user.xp, "xp")
-        while user.xp >= user.xp_needed:  # fixme this is broken
-            print(user, user.xp_needed)
+        while user.xp >= user.xp_needed:
             # get the extra xp that the user has after leveling up
             user.xp -= user.xp_needed
             user.lvl += 1
