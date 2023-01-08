@@ -14,8 +14,8 @@ class Search(commands.Cog):
         self,
         inter,
         engine: str = commands.Param(
-            description="Wich Search engine to use",
-            choices=["google", "duckduckgo", "bing"],
+            description="Which Search engine to use",
+            choices=["google", "duckduckgo", "bing", "letmegoogle"],
         ),
         query: str = commands.Param(description="The query to search for"),
     ):
@@ -27,6 +27,8 @@ class Search(commands.Cog):
             await inter.send(f"https://duckduckgo.com/?q={query}")
         elif engine == "bing":
             await inter.send(f"https://bing.com/search?q={query}")
+        elif engine == "letmegoogle":
+            await inter.send(f"https://letmegooglethat.com/?q={query}")
 
     @commands.slash_command(
         name="feeling-lucky",
