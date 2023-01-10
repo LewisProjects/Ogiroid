@@ -25,7 +25,7 @@ class Timezone(commands.Cog):
         if not self.bot.ready_:
             self.db_timezone: TimezoneHandler = TimezoneHandler(self.bot, self.bot.db)
 
-    @commands.slash_command(name="timezone")
+    @commands.slash_command(name="timezone", description="Timezone base command")
     async def timezone(self, inter: disnake.ApplicationCommandInteraction):
         pass
 

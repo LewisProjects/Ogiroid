@@ -34,7 +34,7 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def pyeval(self, inter, *, body: str):
-        """Evaluates a code"""
+        """Evaluates a code snippet"""
         await inter.response.defer()
         env = {
             "bot": self.bot,
@@ -104,7 +104,7 @@ class Dev(Cog):
     @commands.slash_command()
     @checks.is_dev()
     async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str):
-        """says text"""
+        """Repeats text"""
         await (await inter.original_message()).delete()
         await inter.send(f"{what_to_say}")
 
@@ -115,7 +115,7 @@ class Dev(Cog):
         inter: ApplicationCommandInteraction,
         name: str = Param(autocomplete=autocomplete),
     ):
-        """The command is used to load the Extensions into the Bot."""
+        """Loads an extension"""
         name = name.title()
         try:
             self.bot.load_extension(f"cogs.{name}")
