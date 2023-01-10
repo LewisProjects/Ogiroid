@@ -40,7 +40,7 @@ class Birthday(commands.Cog):
     def cog_unload(self):
         self.birthday_check.cancel()
 
-    @commands.slash_command(name="birthday")
+    @commands.slash_command(name="birthday", description="Birthdays base command")
     async def birthday(self, inter: disnake.ApplicationCommandInteraction):
         pass
 

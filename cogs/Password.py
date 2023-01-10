@@ -15,7 +15,7 @@ class Password(commands.Cog):
     @commands.slash_command(
         name="password",
         aliases=["pass"],
-        description="Generate a random password & DM's it!",
+        description="Generates a random password & DM's it!",
     )
     async def password(self, inter, length: int):
         """Generate a random password & DMs it!"""

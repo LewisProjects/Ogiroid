@@ -148,7 +148,7 @@ class Staff(commands.Cog):
         await sucEmb(inter, "User has been unbanned successfully!")
 
     @commands.slash_command(
-        name="mute", description="Timeout(mute)'s a user from the server."
+        name="mute", description="'timeout's a user from the server."
     )
     @commands.has_permissions(manage_roles=True)
     @commands.guild_only()
