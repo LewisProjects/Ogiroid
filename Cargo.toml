@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.0.32", features = ["derive", "env"] }
-diffy = "0.3.0"
 poise = "0.5.2"
 stretto = { version = "0.7.1", features = ["async"] }
 tokio = { version = "1.22.1", features = ["macros", "rt-multi-thread"] }

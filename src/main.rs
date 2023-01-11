@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use stretto::AsyncCache;
 
-use poise::serenity_prelude::{self as serenity, Activity, CacheHttp, ChannelId, Guild};
+use poise::serenity_prelude::{self as serenity, Activity, CacheHttp, ChannelId, Guild, GuildId};
 mod cli;
 use cli::{Cli, Parser};
 use serenity::cache::Cache;
@@ -10,9 +10,9 @@ use event::handle_event;
 mod commands;
 use commands::*;
 mod util;
-use util::sanitize_message;
 
 pub struct Data {
+    deleted_cache: AsyncCache<u64, SnipeDel>,
     edit_cache: AsyncCache<u64, Snipe>,
     cache: Arc<Cache>,
 } // User data, which is stored and accessible in all command invocations
@@ -36,7 +36,7 @@ async fn main() {
     let cli = Cli::parse();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age(), editsnipe()],
+            commands: vec![age(), editsnipe(), snipe()],
             event_handler: |ctx, event, framework_context, data| {
                 Box::pin(handle_event(ctx, event, framework_context, data))
             },
@@ -48,18 +48,34 @@ async fn main() {
         )
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
-                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                ctx.dnd().await;
-                ctx.set_activity(Activity::competing(cli.activity)).await;
-                ctx.cache.set_max_messages(cli.cache_size);
                 println!(
                     "Bot connected as {}",
                     ctx.http.get_current_user().await.unwrap().name
                 );
+                if let Some(guild) = cli.guild_id {
+                    let Some(guild) = GuildId(guild).to_guild_cached(&ctx.cache) else {
+                    panic!("Failed to get guild with id {}", guild)
+                };
+                    poise::builtins::register_in_guild(
+                        ctx,
+                        &framework.options().commands,
+                        guild.id,
+                    )
+                    .await?;
+                    println!("Registered commands locally in guild {}", guild.name);
+                } else {
+                    poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+                    println!("Registered commands globally")
+                }
+                ctx.dnd().await;
+                ctx.set_activity(Activity::competing(cli.activity)).await;
+                ctx.cache.set_max_messages(cli.cache_size);
                 Ok(Data {
-                    edit_cache: AsyncCache::new(
+                    edit_cache: AsyncCache::new(2000, cli.edit_cache as i64 * 2000, tokio::spawn)
+                        .unwrap(),
+                    deleted_cache: AsyncCache::new(
                         2000,
-                        cli.edit_cache.get() as i64 * 2000,
+                        cli.deletion_cache as i64 * 2000,
                         tokio::spawn,
                     )
                     .unwrap(),

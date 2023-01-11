@@ -1,20 +1,41 @@
 use crate::serenity;
 use crate::Data;
 
-use crate::util::sanitize_message;
 use crate::Context;
 use crate::Error;
-use diffy::create_patch;
-use diffy::PatchFormatter;
 use poise::serenity_prelude::Context as ContextEv;
 use poise::serenity_prelude::Message;
 use poise::serenity_prelude::MessageUpdateEvent;
-use poise::serenity_prelude::UserId;
+use serenity::model::id::ChannelId;
 #[derive(Debug)]
 pub struct Snipe {
     pub before: Message,
     pub after: Option<Message>,
-    pub authorid: UserId,
+}
+
+#[derive(Debug)]
+pub struct SnipeDel {
+    pub message: Message,
+}
+
+pub async fn save_deleted<'a>(
+    ctx: &ContextEv,
+    message: Option<Message>,
+    channel: &ChannelId,
+    data: &'a Data,
+) {
+    let Some(message) = message else {
+        return ()
+    };
+    // Abort if the author of the message is a bot.
+    if message.author.bot {
+        return ();
+    };
+
+    let cost = message.content.len() as i64;
+    data.deleted_cache
+        .insert(channel.0, SnipeDel { message }, cost)
+        .await;
 }
 
 pub async fn save_edit<'a>(
@@ -41,7 +62,6 @@ pub async fn save_edit<'a>(
                 Snipe {
                     before: text.clone(),
                     after: new.clone(),
-                    authorid: id,
                 },
                 cost,
             )
@@ -49,7 +69,7 @@ pub async fn save_edit<'a>(
     }
 }
 
-/// Displays your or another user's account creation date
+/// Get the most recently edited message in a channel
 #[poise::command(slash_command)]
 pub async fn editsnipe(
     ctx: Context<'_>,
@@ -58,31 +78,58 @@ pub async fn editsnipe(
     let c = channel.unwrap_or_else(|| ctx.channel_id());
     let data = ctx.data();
     let Some(message) = data.edit_cache.get(c.as_u64()) else {
-        ctx.say(format!("Could not find any recent edits in <#{}>", c.0)).await;
+        ctx.say(format!("Could not find any recent edits in <#{}>", c.0)).await?;
         return Ok(())
     };
+    let Snipe { before, after } = message.as_ref();
     ctx.send(|b| {
         b.embed(|embed| {
             let mut embed = embed
                 .author(|a| {
-                    let author = ctx.author();
+                    let author = &before.author;
                     let mut build = a.name(&author.name);
                     if let Some(url) = author.avatar_url() {
                         build.icon_url(url);
                     }
                     build
                 })
-                .field(
-                    "Before",
-                    sanitize_message(message.as_ref().before.clone(), &data.cache),
-                    false,
-                );
-            if let Some(after) = message.as_ref().after.as_ref() {
-                embed.field("After", sanitize_message(after.clone(), &data.cache), false);
+                .field("Before", before.content_safe(&data.cache), false);
+            if let Some(after) = after.as_ref() {
+                embed.field("After", after.content_safe(&data.cache), false);
             }
             embed
         })
     })
-    .await;
+    .await?;
+    Ok(())
+}
+/// Get the latest deleted message in a channel
+#[poise::command(slash_command)]
+pub async fn snipe(
+    ctx: Context<'_>,
+    #[description = "Channel"] channel: Option<serenity::ChannelId>,
+) -> Result<(), Error> {
+    let c = channel.unwrap_or_else(|| ctx.channel_id());
+    let data = ctx.data();
+    let Some(message) = data.deleted_cache.get(c.as_u64()) else {
+        ctx.say(format!("Could not find a recently deleted message in <#{}>", c.0)).await?;
+        return Ok(())
+    };
+    ctx.send(|b| {
+        b.embed(|embed| {
+            let mut embed = embed
+                .author(|a| {
+                    let author = &message.as_ref().message.author;
+                    let mut build = a.name(&author.name);
+                    if let Some(url) = author.avatar_url() {
+                        build.icon_url(url);
+                    }
+                    build
+                })
+                .description(message.as_ref().message.content_safe(&data.cache));
+            embed
+        })
+    })
+    .await?;
     Ok(())
 }

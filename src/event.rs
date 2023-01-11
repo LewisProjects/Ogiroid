@@ -1,4 +1,4 @@
-use crate::commands::save_edit;
+use crate::commands::{save_deleted, save_edit};
 use crate::Data;
 use poise::serenity_prelude::Context;
 use poise::{event::Event, FrameworkContext};
@@ -23,7 +23,13 @@ pub async fn handle_event<'a, E>(
             deleted_message_id,
             guild_id,
         } => {
-            println!("{} {} {:?}", channel_id, deleted_message_id, guild_id)
+            save_deleted(
+                ctx,
+                data.cache.message(channel_id, deleted_message_id),
+                channel_id,
+                data,
+            )
+            .await
         }
         GuildMemberAddition { new_member } => {
             println!("new member: {new_member}")
