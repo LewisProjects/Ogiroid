@@ -169,15 +169,18 @@ class Log(Cog):
                 timestamp=datetime.now(),
             )
 
-            fields = [("Content", message.content, False)]
-
-            for name, value, inline in fields:
-                embed.add_field(name=name, value=value, inline=inline)
-
             embed.set_footer(
                 text=f"{message.author.name}#{message.author.discriminator}"
             )
+
+            n=0
+            while len(message.content) > n:
+                embed.add_field(name="content", value=message.content[n:n+1024], inline=False)
+                n += 1024
+
             await self.log_channel.send(embed=embed)
+
+
 
     @Cog.listener()
     async def on_slash_command(self, inter):
