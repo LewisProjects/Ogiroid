@@ -1,5 +1,5 @@
-import disnake
 import datetime as dt
+
 from disnake.ext import commands, tasks
 
 from utils.bot import OGIROID
@@ -10,7 +10,6 @@ class Lewis(commands.Cog, name="Lewis"):
         self.bot = bot
         self.upload_check.start()
         self.youtube_channel_id = "UCWI-ohtRu8eEeDj93hmUsUQ"
-        self.youtube_channel_url = f"https://www.youtube.com/channel/{self.youtube_channel_id}"
         self.youtube_api_key = self.bot.config.tokens.yt_api_key
         self.youtube_api_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={self.youtube_channel_id}&maxResults=1&order=date&type=video&key={self.youtube_api_key}"
 
@@ -41,9 +40,13 @@ class Lewis(commands.Cog, name="Lewis"):
         hour = video_release_time.split("T")[1].split(":")[0]
         minute = video_release_time.split("T")[1].split(":")[1]
         second = video_release_time.split("T")[1].split(":")[2].split("Z")[0]
-        time = dt.datetime(int(year), int(month), int(day), int(hour), int(minute), int(second))
+        time = dt.datetime(
+            int(year), int(month), int(day), int(hour), int(minute), int(second)
+        )
         if check_time - time < dt.timedelta(minutes=30):
-            return await channel.send(f"Hey, Lewis posted a new video! <@&{self.bot.config.roles.yt_announcements}>\n{video_url}")
+            return await channel.send(
+                f"Hey, Lewis posted a new video! <@&{self.bot.config.roles.yt_announcements}>\n{video_url}"
+            )
         else:
             return
 

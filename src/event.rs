@@ -15,18 +15,12 @@ pub async fn handle_event<'a, E>(
             new,
             event,
         } => {
-            println!(
-                // "{:#?} {:#?} {:#?}",
-                "{:?}",
-                // data.cache
-                //     .message(event.channel_id, event.id)
-                //     .map(|x| x.content_safe(&data.cache)),
-                old_if_available
-                    .as_ref()
-                    .map(|x| x.content_safe(&data.cache)),
-                ctx.cache.message(channel_id, message_id) // new,
-                                                          // event
-            );
+            if let Some(old) = old_if_available {
+                let safe = old.content_safe(&ctx.cache);
+                data.edit_cache
+                    .insert(*event.channel_id.as_u64(), safe, 5)
+                    .await;
+            }
         }
         MessageDelete {
             channel_id,

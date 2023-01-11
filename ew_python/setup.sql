@@ -78,4 +78,36 @@ IF NOT EXISTS role_rewards
     guild_id BIGINT,
     role_id BIGINT,
     required_lvl INTEGER DEFAULT 0
-)
+);
+
+CREATE TABLE
+IF NOT EXISTS birthday
+(
+    user_id BIGINT,
+    birthday TEXT DEFAULT NULL,
+    birthday_last_changed BIGINT DEFAULT NULL
+);
+
+CREATE TABLE
+IF NOT EXISTS timezone
+(
+    user_id BIGINT,
+    timezone TEXT DEFAULT NULL,
+    timezone_last_changed BIGINT DEFAULT NULL
+);
+
+CREATE TABLE
+IF NOT EXISTS config
+(
+    guild_id BIGINT,
+    xp_boost INTEGER DEFAULT 1,
+    xp_boost_expiry BIGINT DEFAULT 0,
+    xp_boost_enabled BOOLEAN DEFAULT TRUE,
+    UNIQUE(guild_id)
+
+
+);
+
+DROP TABLE IF EXISTS xp_boosts_user;
+
+

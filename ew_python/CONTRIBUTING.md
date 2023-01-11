@@ -15,7 +15,7 @@ The following is a set of guidelines for contributing to Ogiroid, which is a par
 > This project and everyone participating in it is governed by the Ogiroid code of conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to the developers.
 
 ## [What do I require before getting started?](#prerequisites)
-We expect you to be experienced with [Python](https://www.python.org/) and [Disnake](https://disnake.dev/) (a fork of [Discord.py](https://github.com/Rapptz/discord.py)). Having experience with Discord.py should also get you sailing, disnake and discord.py are almost the same. 
+We expect you to be experienced with [Python](https://www.python.org/) and [Disnake](https://disnake.dev/) (a fork of [Discord.py](https://github.com/Rapptz/discord.py)). Having experience with Discord.py should also get you sailing, disnake and discord.py are almost the same, or you could also take a look at the very helpful disnake documentation.
 
 ## [What can I do to contribute?](#contribution) 
 **1. Reporting any bugs 🐞:**
@@ -48,3 +48,37 @@ Alternatively, you can headover to our [Discord Server](https://discord.com/5uw4
 With that being said, you have officially reported a bug! Thank you so much 🤩!
 
 <!--Contributing.md: writeup #1-->
+
+### Contributing Code
+
+Fork the repository and then clone it using: (make sure to insert your username)
+
+```git clone https://github.com/YOURGITHUBUSERNAME/Ogiroid.git```
+
+After this get into the folder you cloned the repository to.
+We always work on the development branch so make sure you are on the dev branch.
+
+```git checkout development```
+
+Now you need to create a Discord Bot if you don't already have one. Please look up a guide for how to do this.
+Invite the bot to a test server you own or create a test server.
+
+Now copy secrets.env.template and rename the copy to secrets.env
+Insert your bots token in the correct field.
+Set development to true. The rest can be ignored for now.
+
+To install the requirements:
+
+```pip install -r requirements.txt```
+
+And finally to run the bot:
+
+```python main.py```
+
+utils/CONSTANTS.py stores the ids for various channels, for the main server and for the official development server, to wich you will gain access after a significant contribution. 
+
+Use ```black . --safe``` for formatting (need to install black with pip)
+
+If you need any help contact us on discord or open an issue.
+
+After you have finished writing the code open a PR with the base branch being development.

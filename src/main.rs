@@ -1,14 +1,17 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+use stretto::AsyncCache;
 
-use poise::serenity_prelude::{self as serenity, Activity, CacheHttp, Guild};
+use poise::serenity_prelude::{self as serenity, Activity, CacheHttp, ChannelId, Guild};
 mod cli;
 use cli::{Cli, Parser};
 use serenity::cache::Cache;
 mod event;
 use event::handle_event;
+mod commands;
+use commands::*;
 
 pub struct Data {
-    // cache: Arc<Cache>,
+    edit_cache: AsyncCache<u64, String>,
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -30,7 +33,7 @@ async fn main() {
     let cli = Cli::parse();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age()],
+            commands: vec![age(), snipedit()],
             event_handler: |ctx, event, framework_context, data| {
                 Box::pin(handle_event(ctx, event, framework_context, data))
             },
@@ -40,14 +43,14 @@ async fn main() {
         .intents(
             serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT,
         )
-        .setup(|ctx, _ready, framework| {
+        .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 ctx.dnd().await;
                 ctx.set_activity(Activity::competing(cli.activity)).await;
-                ctx.cache.set_max_messages(20);
+                ctx.cache.set_max_messages(cli.cache_size);
                 Ok(Data {
-                    // cache: ctx.cache().unwrap().clone(),
+                    edit_cache: AsyncCache::new(1000, 5000, tokio::spawn).unwrap(),
                 })
             })
         });
