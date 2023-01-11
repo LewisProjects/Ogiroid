@@ -13,13 +13,13 @@ Written in: **Rust**, eventually. Made using <a href="https://github.com/serenit
 Main Contributor/Developer:
 [CordlessCoder](https://github.com/CordlessCoder)
 
-The bot is currently on release: <b>0.0.1</b><br>
+The bot is currently on release: <b>0.1.0</b><br>
 License: MIT<br>
 Wish to Contribute to this bot? Check out our <a href="https://github.com/LewisProjects/Ogiroid/blob/development/CONTRIBUTING.md">contribution guidelines</a>
 
 ### TODOs:
 
-- [ ] get a basic bot working in Serenity, write a ping command
+- [x] get a basic bot working in Serenity+Poise, write a ping command
 - rewrite Ogiroid features one by one
   1.  [ ] urlshorten
   1.  [ ] paste
