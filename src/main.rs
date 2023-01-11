@@ -1,7 +1,9 @@
 use std::sync::Arc;
 use stretto::AsyncCache;
 
-use poise::serenity_prelude::{self as serenity, Activity, CacheHttp, ChannelId, Guild, GuildId};
+use poise::serenity_prelude::{
+    self as serenity, ActivityButton, CacheHttp, CreateButton, GuildId, MessageActivity,
+};
 mod cli;
 use cli::{Cli, Parser};
 use serenity::cache::Cache;
@@ -68,14 +70,18 @@ async fn main() {
                     println!("Registered commands globally")
                 }
                 ctx.dnd().await;
-                ctx.set_activity(Activity::competing(cli.activity)).await;
+                println!("Set activity to {} {}", cli.activity_type, cli.activity);
+                let activity = cli
+                    .activity_type
+                    .activity(&cli.activity_type, cli.stream_url);
+                ctx.set_activity(activity).await;
                 ctx.cache.set_max_messages(cli.cache_size);
                 Ok(Data {
-                    edit_cache: AsyncCache::new(2000, cli.edit_cache as i64 * 2000, tokio::spawn)
+                    edit_cache: AsyncCache::new(2000, cli.edit_cache as i64 * 1024, tokio::spawn)
                         .unwrap(),
                     deleted_cache: AsyncCache::new(
                         2000,
-                        cli.deletion_cache as i64 * 2000,
+                        cli.deletion_cache as i64 * 1024,
                         tokio::spawn,
                     )
                     .unwrap(),

@@ -1,3 +1,5 @@
+use std::str::from_utf8_unchecked;
+
 use crate::serenity;
 use crate::Data;
 
@@ -84,18 +86,34 @@ pub async fn editsnipe(
     let Snipe { before, after } = message.as_ref();
     ctx.send(|b| {
         b.embed(|embed| {
-            let mut embed = embed
-                .author(|a| {
-                    let author = &before.author;
-                    let mut build = a.name(&author.name);
-                    if let Some(url) = author.avatar_url() {
-                        build.icon_url(url);
-                    }
-                    build
-                })
-                .field("Before", before.content_safe(&data.cache), false);
+            let mut embed = embed.author(|a| {
+                let author = &before.author;
+                let mut build = a.name(&author.name);
+                if let Some(url) = author.avatar_url() {
+                    build.icon_url(url);
+                }
+                build
+            });
+            let before = before.content_safe(&data.cache);
+            let mut chunks = before.as_bytes().chunks(1024);
+            for (i, line) in chunks.enumerate() {
+                embed.field(
+                    if i == 0 { "Before" } else { "" },
+                    unsafe { from_utf8_unchecked(&line) },
+                    false,
+                );
+            }
             if let Some(after) = after.as_ref() {
-                embed.field("After", after.content_safe(&data.cache), false);
+                let after = after.content_safe(&data.cache);
+
+                let mut chunks = after.as_bytes().chunks(1024);
+                for (i, line) in chunks.enumerate() {
+                    embed.field(
+                        if i == 0 { "After" } else { "" },
+                        unsafe { from_utf8_unchecked(&line) },
+                        false,
+                    );
+                }
             }
             embed
         })
@@ -111,24 +129,43 @@ pub async fn snipe(
 ) -> Result<(), Error> {
     let c = channel.unwrap_or_else(|| ctx.channel_id());
     let data = ctx.data();
-    let Some(message) = data.deleted_cache.get(c.as_u64()) else {
+    let Some(snipe) = data.deleted_cache.get(c.as_u64()) else {
         ctx.say(format!("Could not find a recently deleted message in <#{}>", c.0)).await?;
         return Ok(())
     };
+    let SnipeDel { message } = snipe.as_ref();
     ctx.send(|b| {
         b.embed(|embed| {
             let mut embed = embed
                 .author(|a| {
-                    let author = &message.as_ref().message.author;
+                    let author = &message.author;
                     let mut build = a.name(&author.name);
                     if let Some(url) = author.avatar_url() {
                         build.icon_url(url);
                     }
                     build
                 })
-                .description(message.as_ref().message.content_safe(&data.cache));
+                .url("https://github.com/LewisProjects/Ogiroid")
+                .description(message.content_safe(&data.cache))
+                .timestamp(message.timestamp);
+            if let Some(attachment) = message.attachments.get(0) {
+                embed.image(&attachment.url);
+            }
             embed
-        })
+        });
+        message
+            .attachments
+            .iter()
+            .skip(1)
+            .take(3)
+            .for_each(|attachment| {
+                b.embed(|embed| {
+                    embed
+                        .url("https://github.com/LewisProjects/Ogiroid")
+                        .image(&attachment.url)
+                });
+            });
+        b
     })
     .await?;
     Ok(())
