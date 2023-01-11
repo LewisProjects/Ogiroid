@@ -1,3 +1,4 @@
+#![allow(dead_code, unused)]
 use std::sync::Arc;
 use stretto::AsyncCache;
 
@@ -11,34 +12,24 @@ mod event;
 use event::handle_event;
 mod commands;
 use commands::*;
-mod util;
+mod state;
+use state::Db;
 
 pub struct Data {
     deleted_cache: AsyncCache<u64, SnipeDel>,
     edit_cache: AsyncCache<u64, Snipe>,
     cache: Arc<Cache>,
+    db: Db,
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
-
-/// Displays your or another user's account creation date
-#[poise::command(slash_command)]
-async fn age(
-    ctx: Context<'_>,
-    #[description = "Selected user"] user: Option<serenity::User>,
-) -> Result<(), Error> {
-    let u = user.as_ref().unwrap_or_else(|| ctx.author());
-    let response = format!("{}'s account was created at {}", u.name, u.created_at());
-    ctx.say(response).await?;
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age(), editsnipe(), snipe()],
+            commands: vec![level(), editsnipe(), snipe()],
             event_handler: |ctx, event, framework_context, data| {
                 Box::pin(handle_event(ctx, event, framework_context, data))
             },
@@ -71,12 +62,18 @@ async fn main() {
                 }
                 ctx.dnd().await;
                 println!("Set activity to {} {}", cli.activity_type, cli.activity);
-                let activity = cli
-                    .activity_type
-                    .activity(&cli.activity_type, cli.stream_url);
+                let activity = cli.activity_type.activity(&cli.activity, cli.stream_url);
                 ctx.set_activity(activity).await;
                 ctx.cache.set_max_messages(cli.cache_size);
+
                 Ok(Data {
+                    db: Db::new(
+                        cli.db_path
+                            .to_str()
+                            .expect("--db-path needs to be valid unicode"),
+                        cli.level_cache_size,
+                    )
+                    .unwrap(),
                     edit_cache: AsyncCache::new(2000, cli.edit_cache as i64 * 1024, tokio::spawn)
                         .unwrap(),
                     deleted_cache: AsyncCache::new(

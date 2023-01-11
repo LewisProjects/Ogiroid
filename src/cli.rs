@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, path::PathBuf};
 
 pub use clap::Parser;
 use poise::serenity_prelude::Activity;
@@ -44,9 +44,13 @@ pub struct Cli {
     #[arg(short, long, env = "STREAM_URL", default_value = "https://twitch.tv")]
     /// The stream URL to use, only applies when activity_type is set to streaming
     pub stream_url: String,
-    // #[arg(long, env = "ACTIVITY_INSTANCED", default_value = "false")]
-    // /// The label of button1
-    // pub instanced_activity: bool,
+    #[arg(long, env = "DB_PATH", default_value = "db")]
+    /// The path to the directory to use for storing the DB
+    pub db_path: PathBuf,
+
+    #[arg(long, env = "LEVEL_CACHE", default_value = "200")]
+    /// The number of elements to keep in the LEVELLING DB cache
+    pub level_cache_size: usize,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug, PartialEq, PartialOrd, Eq)]

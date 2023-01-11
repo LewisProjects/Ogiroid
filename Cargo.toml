@@ -8,5 +8,13 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.0.32", features = ["derive", "env"] }
 poise = "0.5.2"
+rkyv = { version = "0.7.39", features = ["validation", "archive_le"] }
+serde = "1.0.152"
 stretto = { version = "0.7.1", features = ["async"] }
 tokio = { version = "1.22.1", features = ["macros", "rt-multi-thread"] }
+bytecheck = "0.6.9"
+byteorder = "1.4.3"
+[dependencies.rocksdb]
+default-features = false
+features = ["lz4", "multi-threaded-cf"]
+version = "0.19"
