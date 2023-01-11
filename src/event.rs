@@ -1,3 +1,4 @@
+use crate::commands::save_edit;
 use crate::Data;
 use poise::serenity_prelude::Context;
 use poise::{event::Event, FrameworkContext};
@@ -15,12 +16,7 @@ pub async fn handle_event<'a, E>(
             new,
             event,
         } => {
-            if let Some(old) = old_if_available {
-                let safe = old.content_safe(&ctx.cache);
-                data.edit_cache
-                    .insert(*event.channel_id.as_u64(), safe, 5)
-                    .await;
-            }
+            save_edit(ctx, old_if_available, new, event, data).await;
         }
         MessageDelete {
             channel_id,

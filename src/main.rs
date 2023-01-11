@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use stretto::AsyncCache;
 
 use poise::serenity_prelude::{self as serenity, Activity, CacheHttp, ChannelId, Guild};
@@ -9,9 +9,12 @@ mod event;
 use event::handle_event;
 mod commands;
 use commands::*;
+mod util;
+use util::sanitize_message;
 
 pub struct Data {
-    edit_cache: AsyncCache<u64, String>,
+    edit_cache: AsyncCache<u64, Snipe>,
+    cache: Arc<Cache>,
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -33,7 +36,7 @@ async fn main() {
     let cli = Cli::parse();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age(), snipedit()],
+            commands: vec![age(), editsnipe()],
             event_handler: |ctx, event, framework_context, data| {
                 Box::pin(handle_event(ctx, event, framework_context, data))
             },
@@ -49,8 +52,18 @@ async fn main() {
                 ctx.dnd().await;
                 ctx.set_activity(Activity::competing(cli.activity)).await;
                 ctx.cache.set_max_messages(cli.cache_size);
+                println!(
+                    "Bot connected as {}",
+                    ctx.http.get_current_user().await.unwrap().name
+                );
                 Ok(Data {
-                    edit_cache: AsyncCache::new(1000, 5000, tokio::spawn).unwrap(),
+                    edit_cache: AsyncCache::new(
+                        2000,
+                        cli.edit_cache.get() as i64 * 2000,
+                        tokio::spawn,
+                    )
+                    .unwrap(),
+                    cache: ctx.cache().unwrap().clone(),
                 })
             })
         });
