@@ -54,7 +54,7 @@ impl Db {
         let Ok(Some(value)) = self.db.get(key) else {
             return None
         };
-        let Ok(entry) = (rkyv::from_bytes::<Level>(&value)) else {
+        let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
             return None
         };
         Some(entry)

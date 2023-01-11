@@ -83,7 +83,7 @@ impl Display for ActivityType {
         let msg = match self {
             Self::Watching => "WATCHING",
             Self::Listening => "LISTENING TO",
-            Self::Competing => "COMPETING IN",
+            Self::Competing => "Competing in",
             Self::Playing => "PLAYING",
             Self::Streaming => "STREAMING",
         };
