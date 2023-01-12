@@ -78,7 +78,9 @@ pub async fn handle_new_message<'a>(
             return Ok(());
         }
     };
-    data.cooldown.insert(id, Instant::now(), 50).await;
+    data.cooldown
+        .insert_with_ttl(id, Instant::now(), 50, cooldown)
+        .await;
     let id = ids_to_bytes(
         *message.guild_id.unwrap().as_u64(),
         *message.author.id.as_u64(),

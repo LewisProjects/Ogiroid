@@ -91,12 +91,16 @@ async fn main() {
                         cli.level_cache_size,
                     )
                     .unwrap(),
-                    edit_cache: AsyncCache::new(1000, cli.edit_cache as i64 * 1024, tokio::spawn)
-                        .unwrap(),
+                    edit_cache: AsyncCache::new(
+                        cli.edit_cache as usize * 50,
+                        cli.edit_cache as i64 * 1024,
+                        tokio::spawn,
+                    )
+                    .unwrap(),
 
-                    cooldown: AsyncCache::new(1000, 10000, tokio::spawn).unwrap(),
+                    cooldown: AsyncCache::new(500, 1000, tokio::spawn).unwrap(),
                     deleted_cache: AsyncCache::new(
-                        1000,
+                        cli.deletion_cache as usize * 50,
                         cli.deletion_cache as i64 * 1024,
                         tokio::spawn,
                     )
