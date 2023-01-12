@@ -1,4 +1,6 @@
-# Ogiroid - the most handsome Discord bot!
+# Rougiroid - the even more most handsome-r Discord bot!
+
+[![wakatime](https://wakatime.com/badge/user/142fa03b-8422-4171-9266-2b6d37f60c35/project/2b699b59-a1d3-4528-a67e-e34e2eba6d67.svg)](https://wakatime.com/badge/user/142fa03b-8422-4171-9266-2b6d37f60c35/project/2b699b59-a1d3-4528-a67e-e34e2eba6d67)
 
 <img src="https://media.discordapp.net/attachments/985729550732394536/1002138392554897479/Ogiroid.png?width=1440&height=583" alt="img">
 
