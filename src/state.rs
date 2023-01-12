@@ -80,6 +80,22 @@ impl Db {
             Ok(_) => Ok(()),
         }
     }
+    pub fn guild_records<'a>(&'a self, guild_id: u64) -> impl Iterator<Item = (u64, Level)> + 'a {
+        self.db
+            .prefix_iterator(guild_id.to_le_bytes())
+            .filter_map(|x| {
+                if let Ok((key, value)) = x {
+                    let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
+            return None
+        };
+                    let mut keyarr = [0u8; 8];
+                    keyarr.copy_from_slice(&key[8..]);
+                    Some((u64::from_le_bytes(keyarr), entry))
+                } else {
+                    None
+                }
+            })
+    }
 }
 
 pub fn ids_to_bytes(gid: u64, uid: u64) -> Vec<u8> {

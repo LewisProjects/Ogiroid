@@ -1,4 +1,8 @@
 #![allow(dead_code, unused)]
+use crate::image_utils::create_level_image;
+mod image_utils;
+use image::{ImageBuffer, Rgba};
+use rusttype::Font;
 use std::sync::Arc;
 use stretto::AsyncCache;
 
@@ -23,6 +27,9 @@ pub struct Data {
     db: Db,
     cooldown: AsyncCache<u64, Instant>,
     color: (u8, u8, u8),
+    level_image: Box<ImageBuffer<Rgba<u8>, Vec<u8>>>,
+    font: Font<'static>,
+    http_client: reqwest::Client,
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -57,6 +64,11 @@ async fn main() {
                     colors.next().unwrap(),
                     colors.next().unwrap(),
                 );
+                let font_file = if let Some(path) = cli.font {
+                    std::fs::read(path).unwrap()
+                } else {
+                    include_bytes!("../assets/Cartograph_CF_Regular.ttf").to_vec()
+                };
                 println!(
                     "Bot connected as {}",
                     ctx.http.get_current_user().await.unwrap().name
@@ -84,6 +96,8 @@ async fn main() {
 
                 Ok(Data {
                     color,
+                    level_image: Box::new(create_level_image()),
+                    font: Font::try_from_vec(font_file).unwrap(),
                     db: Db::new(
                         cli.db_path
                             .to_str()
@@ -106,6 +120,7 @@ async fn main() {
                     )
                     .unwrap(),
                     cache: ctx.cache().unwrap().clone(),
+                    http_client: reqwest::Client::new(),
                 })
             })
         });

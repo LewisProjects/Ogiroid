@@ -55,6 +55,13 @@ pub struct Cli {
     #[arg(long = "color", env = "COLOR", default_value = "C0CAF5")]
     /// The color to use in embeds, in HEX format e.g. `FFFFFF`
     pub color_string: String,
+
+    #[arg(short, long, env = "FONT", value_name = "FONT_FILE")]
+    /// The font to use when rendering images
+    pub font: Option<PathBuf>,
+    // #[arg(short, long, env = "FONT", value_name = "FONT_FILE")]
+    // /// The font to use when rendering images
+    // pub font: Option<PathBuf>,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug, PartialEq, PartialOrd, Eq)]
