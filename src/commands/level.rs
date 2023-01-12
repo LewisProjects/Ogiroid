@@ -1,4 +1,7 @@
-use crate::state::ids_to_bytes;
+use std::error::Error as err;
+use std::time::Duration;
+
+use crate::state::{ids_to_bytes, DBFailure};
 use crate::{Data, Db};
 // use byteorder::{ByteOrder, LittleEndian};
 use crate::serenity;
@@ -6,11 +9,13 @@ use crate::Arc;
 use crate::Context;
 use crate::Error;
 use bytecheck::CheckBytes;
+use poise::serenity_prelude::Context as DefContext;
 use poise::serenity_prelude::{Message, MessageType};
 use rkyv::de::deserializers::SharedDeserializeMap;
 use rkyv::validation::validators::DefaultValidator;
 use rkyv::{Archive, Deserialize, Serialize};
 use rocksdb::DB;
+use tokio::time::Instant;
 
 #[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
 #[archive_attr(derive(CheckBytes, Debug))]
@@ -31,13 +36,21 @@ impl Level {
         self.xp += 3.0 * self.boost_factor
     }
 
-    pub fn get_level(&self) -> (u32, u16) {
+    pub fn get_level(&self) -> (u64, u32) {
         let xp = self.xp as u64;
-        ((xp / 1000) as u32, (xp % 1000) as u16)
+        ((xp / 1000), (xp % 1000) as u32)
+    }
+    pub fn xp_for_next_level(_xp_rem: u32) -> u32 {
+        1000
     }
 }
 
-pub fn handle_message(data: &Data, message: &Message) {
+pub async fn handle_new_message<'a>(
+    ctx: &'a DefContext,
+    // f_ctx: FrameworkContext<'a, Data, Box<dyn err + Send + Sync>>,
+    data: &Data,
+    message: &Message,
+) -> Result<(), DBFailure> {
     if message.guild_id.is_none()
         || message.author.bot
         || message.content.len() < 5
@@ -48,24 +61,33 @@ pub fn handle_message(data: &Data, message: &Message) {
         ]
         .contains(&message.kind)
     {
-        return;
+        return Ok(());
     }
+    let id = *message.author.id.as_u64();
+    let cooldown = Duration::new(2, 0);
+    if let Some(last_message) = data.cooldown.get(&id) {
+        let duration_since = last_message.as_ref().elapsed();
+        if duration_since <= cooldown {
+            return Ok(());
+        }
+    };
+    data.cooldown.insert(id, Instant::now(), 50).await;
     let id = ids_to_bytes(
         *message.guild_id.unwrap().as_u64(),
         *message.author.id.as_u64(),
     );
-    let Some(mut level) = data.db.get(id) else {
+    let Some(mut level) = data.db.get(&id) else {
         let mut level = Level::new(0.0, None);
         level.incrase_xp();
-        data.db.put(id, level);
-        return ()
+        data.db.put(&id, level)?;
+        return Ok(())
     };
     level.incrase_xp();
-    data.db.put(id, level);
-    ()
+    data.db.put(&id, level)?;
+    Ok(())
 }
 
-/// Displays your or another user's account creation date
+/// Displays your or another user's level
 #[poise::command(slash_command)]
 pub async fn level(
     ctx: Context<'_>,
@@ -77,11 +99,80 @@ pub async fn level(
     };
     let id = ids_to_bytes(*guild_id.as_u64(), *ctx.author().id.as_u64());
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
+    let data = ctx.data();
+    let level = data.db.get(id).map(|x| x.get_level()).unwrap_or((0, 0));
     let response = format!(
-        "{}'s current XP is {}",
+        "{}'s current level is {}, with {}/{} xp",
         u.name,
-        ctx.data().db.get(id).map(|x| x.xp).unwrap_or(0.0)
+        level.0,
+        level.1,
+        Level::xp_for_next_level(level.1),
     );
     ctx.say(response).await?;
+    Ok(())
+}
+
+const PAGESIZE: usize = 10;
+
+/// Displays the XP server leaderboard
+#[poise::command(slash_command)]
+pub async fn leaderboard(
+    ctx: Context<'_>,
+    #[description = "Leaderboard page"] page: Option<u16>,
+) -> Result<(), Error> {
+    let Some(guild_id) = ctx.guild_id() else {
+        ctx.say("This command can only be executed in a guild").await?;
+        return Ok(());
+    };
+    let page = (page.unwrap_or(1).max(1) - 1) as usize;
+    let data = ctx.data();
+    let mut records = data
+        .db
+        .db
+        .prefix_iterator(guild_id.as_u64().to_le_bytes())
+        .filter_map(|x| {
+            if let Ok((key, value)) = x {
+                let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
+            return None
+        };
+                let mut keyarr = [0u8; 8];
+                keyarr.copy_from_slice(&key[8..]);
+                Some((u64::from_le_bytes(keyarr), entry))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    if page * PAGESIZE + 1 > records.len() {
+        ctx.send(|b| b.ephemeral(true).content("No ranks to see here"))
+            .await;
+        return Ok(());
+    }
+    records.sort_unstable_by_key(|(uid, level)| -level.xp as u32);
+    ctx.send(|b| {
+        b.content(format!(
+            "{:?}",
+            // records.get(0..)
+            records.get((page * PAGESIZE)..((page * PAGESIZE + 10).min(records.len())))
+        ))
+    })
+    .await;
+    // if let Some()
+    // let id = ids_to_bytes(*guild_id.as_u64(), *ctx.author().id.as_u64());
+    // let u = user.as_ref().unwrap_or_else(|| ctx.author());
+    // let level = ctx
+    //     .data()
+    //     .db
+    //     .get(id)
+    //     .map(|x| x.get_level())
+    //     .unwrap_or((0, 0));
+    // let response = format!(
+    //     "{}'s current level is {}, with {}/{} xp",
+    //     u.name,
+    //     level.0,
+    //     level.1,
+    //     Level::xp_for_next_level(level.1),
+    // );
+    // ctx.say(response).await?;
     Ok(())
 }

@@ -6,7 +6,7 @@ use poise::serenity_prelude::Activity;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    #[arg(short, long, value_name = "TOKEN", env = "DISCORD_TOKEN")]
+    #[arg(value_name = "TOKEN", env = "DISCORD_TOKEN")]
     /// The Discord token of the bot to connect to
     pub token: String,
     #[arg(

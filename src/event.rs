@@ -1,5 +1,4 @@
-use crate::commands::{save_deleted, save_edit};
-use crate::handle_message;
+use crate::commands::{handle_new_message, save_deleted, save_edit};
 use crate::Data;
 use poise::serenity_prelude::Context;
 use poise::{event::Event, FrameworkContext};
@@ -12,7 +11,9 @@ pub async fn handle_event<'a, E>(
 ) -> Result<(), E> {
     use Event::*;
     match event {
-        Message { new_message } => handle_message(data, new_message),
+        Message { new_message } => {
+            let _ = handle_new_message(ctx, data, new_message).await;
+        }
         MessageUpdate {
             old_if_available,
             new,

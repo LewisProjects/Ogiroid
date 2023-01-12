@@ -7,6 +7,7 @@ use bytecheck::CheckBytes;
 use rkyv::de::deserializers::SharedDeserializeMap;
 use rkyv::validation::validators::DefaultValidator;
 use rkyv::{Archive, Deserialize, Serialize};
+use rocksdb::SliceTransform;
 use rocksdb::DB;
 
 #[derive(Clone)]
@@ -18,8 +19,15 @@ pub struct Db {
 #[derive(Debug)]
 pub enum DBFailure {
     Error(rocksdb::Error),
-    CfError,
+    // CfError,
     SerError,
+}
+
+fn extractor_fn(key: &[u8]) -> &[u8] {
+    // let mut keyarr = [0u8; 16];
+    // keyarr.copy_from_slice(&key);
+    // &(u128::from_le_bytes(keyarr) >> 64).to_le_bytes()
+    &key[..8]
 }
 
 impl Db {
@@ -32,6 +40,8 @@ impl Db {
             opts.set_row_cache(&cache);
             opts.create_if_missing(true);
             opts.set_max_background_jobs(4);
+            let prefix_extractor = SliceTransform::create("guildid extractor", extractor_fn, None);
+            opts.set_prefix_extractor(prefix_extractor);
             Arc::new(DB::open_cf_descriptors(&opts, path, vec![])?)
         };
         Ok(Db { db, cache })
@@ -72,6 +82,9 @@ impl Db {
     }
 }
 
-pub fn ids_to_bytes(gid: u64, uid: u64) -> [u8; 16] {
-    ((gid as u128) << 64 | uid as u128).to_le_bytes()
+pub fn ids_to_bytes(gid: u64, uid: u64) -> Vec<u8> {
+    // ((gid as u128) << 64 | uid as u128).to_le_bytes()
+    let mut id = gid.to_le_bytes().to_vec();
+    id.append(&mut uid.to_le_bytes().to_vec());
+    id
 }
