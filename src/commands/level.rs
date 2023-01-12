@@ -183,7 +183,7 @@ pub async fn leaderboard(
             false,
         );
     }
-    format_embed::<&str>(&mut embed, Some(ctx), None);
+    format_embed::<&str>(&mut embed, Some(ctx), None, data);
     ctx.send(|b| {
         b.embeds.push(embed);
         b

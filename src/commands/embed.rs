@@ -1,11 +1,12 @@
 use poise::serenity_prelude::{CreateEmbed, Timestamp};
 
-use crate::Context;
+use crate::{Context, Data};
 
 pub fn format_embed<'a, T>(
     embed: &'a mut CreateEmbed,
     ctx: Option<Context<'a>>,
     timestamp: Option<T>,
+    data: &'a Data,
 ) -> &'a mut CreateEmbed
 where
     T: Into<Timestamp>,
@@ -19,6 +20,6 @@ where
         let author = ctx.author();
         embed.footer(|footer| footer.text(&author.name).icon_url(author.face()));
     };
-    embed.color((192, 202, 245));
+    embed.color(data.color);
     embed
 }

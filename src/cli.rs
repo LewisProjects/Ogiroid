@@ -51,6 +51,10 @@ pub struct Cli {
     #[arg(long, env = "LEVEL_CACHE", default_value = "200")]
     /// The number of elements to keep in the LEVELLING DB cache
     pub level_cache_size: usize,
+
+    #[arg(long = "color", env = "COLOR", default_value = "C0CAF5")]
+    /// The color to use in embeds, in HEX format e.g. `FFFFFF`
+    pub color_string: String,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug, PartialEq, PartialOrd, Eq)]

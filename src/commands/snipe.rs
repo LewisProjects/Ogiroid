@@ -96,7 +96,7 @@ pub async fn editsnipe(
                 }
                 build
             });
-            format_embed(&mut embed, Some(ctx), Some(ctx.created_at()));
+            format_embed(&mut embed, Some(ctx), Some(ctx.created_at()), data);
             let before = before.content_safe(&data.cache);
             let mut chunks = before.as_bytes().chunks(1024);
             for (i, line) in chunks.enumerate() {
@@ -150,7 +150,7 @@ pub async fn snipe(
                 })
                 .url("https://github.com/LewisProjects/Ogiroid")
                 .description(message.content_safe(&data.cache));
-            format_embed(&mut embed, Some(ctx), Some(message.timestamp));
+            format_embed(&mut embed, Some(ctx), Some(message.timestamp), data);
             if let Some(attachment) = message.attachments.get(0) {
                 embed.image(&attachment.url);
             }

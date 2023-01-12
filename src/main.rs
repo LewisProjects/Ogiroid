@@ -22,6 +22,7 @@ pub struct Data {
     cache: Arc<Cache>,
     db: Db,
     cooldown: AsyncCache<u64, Instant>,
+    color: (u8, u8, u8),
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -43,6 +44,19 @@ async fn main() {
         )
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
+                let len = cli.color_string.len();
+                if !matches!(len, 3 | 6) {
+                    panic!("--color only accepts a string in the format of `FFFFFF`")
+                };
+                let mut colors = (0..=2).map(|i| {
+                    u8::from_str_radix(&cli.color_string[(i * 2)..][..2], 16)
+                        .expect("encountered non-HEX chars when parsing the value of --color")
+                });
+                let color = (
+                    colors.next().unwrap(),
+                    colors.next().unwrap(),
+                    colors.next().unwrap(),
+                );
                 println!(
                     "Bot connected as {}",
                     ctx.http.get_current_user().await.unwrap().name
@@ -69,6 +83,7 @@ async fn main() {
                 ctx.cache.set_max_messages(cli.cache_size);
 
                 Ok(Data {
+                    color,
                     db: Db::new(
                         cli.db_path
                             .to_str()
