@@ -85,6 +85,6 @@ impl Db {
 pub fn ids_to_bytes(gid: u64, uid: u64) -> Vec<u8> {
     // ((gid as u128) << 64 | uid as u128).to_le_bytes()
     let mut id = gid.to_le_bytes().to_vec();
-    id.append(&mut uid.to_le_bytes().to_vec());
+    id.extend_from_slice(&uid.to_le_bytes());
     id
 }

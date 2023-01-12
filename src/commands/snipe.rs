@@ -3,12 +3,14 @@ use std::str::from_utf8_unchecked;
 use crate::serenity;
 use crate::Data;
 
+use crate::format_embed;
 use crate::Context;
 use crate::Error;
 use poise::serenity_prelude::Context as ContextEv;
 use poise::serenity_prelude::Message;
 use poise::serenity_prelude::MessageUpdateEvent;
 use serenity::model::id::ChannelId;
+
 #[derive(Debug)]
 pub struct Snipe {
     pub before: Message,
@@ -94,6 +96,7 @@ pub async fn editsnipe(
                 }
                 build
             });
+            format_embed(&mut embed, Some(ctx), Some(ctx.created_at()));
             let before = before.content_safe(&data.cache);
             let mut chunks = before.as_bytes().chunks(1024);
             for (i, line) in chunks.enumerate() {
@@ -146,8 +149,8 @@ pub async fn snipe(
                     build
                 })
                 .url("https://github.com/LewisProjects/Ogiroid")
-                .description(message.content_safe(&data.cache))
-                .timestamp(message.timestamp);
+                .description(message.content_safe(&data.cache));
+            format_embed(&mut embed, Some(ctx), Some(message.timestamp));
             if let Some(attachment) = message.attachments.get(0) {
                 embed.image(&attachment.url);
             }

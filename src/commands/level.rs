@@ -4,12 +4,13 @@ use std::time::Duration;
 use crate::state::{ids_to_bytes, DBFailure};
 use crate::{Data, Db};
 // use byteorder::{ByteOrder, LittleEndian};
+use crate::format_embed;
 use crate::serenity;
 use crate::Arc;
 use crate::Context;
 use crate::Error;
 use bytecheck::CheckBytes;
-use poise::serenity_prelude::Context as DefContext;
+use poise::serenity_prelude::{CacheHttp, Context as DefContext, CreateEmbed};
 use poise::serenity_prelude::{Message, MessageType};
 use rkyv::de::deserializers::SharedDeserializeMap;
 use rkyv::validation::validators::DefaultValidator;
@@ -32,8 +33,14 @@ impl Level {
         }
     }
 
-    pub fn incrase_xp(&mut self) {
-        self.xp += 3.0 * self.boost_factor
+    pub fn incrase_xp(&mut self, msg_len: usize) {
+        self.xp += {
+            if msg_len < 50 {
+                2.0
+            } else {
+                4.0
+            }
+        } * self.boost_factor
     }
 
     pub fn get_level(&self) -> (u64, u32) {
@@ -78,11 +85,11 @@ pub async fn handle_new_message<'a>(
     );
     let Some(mut level) = data.db.get(&id) else {
         let mut level = Level::new(0.0, None);
-        level.incrase_xp();
+        level.incrase_xp(message.content.len());
         data.db.put(&id, level)?;
         return Ok(())
     };
-    level.incrase_xp();
+    level.incrase_xp(message.content.len());
     data.db.put(&id, level)?;
     Ok(())
 }
@@ -148,31 +155,39 @@ pub async fn leaderboard(
             .await;
         return Ok(());
     }
-    records.sort_unstable_by_key(|(uid, level)| -level.xp as u32);
+    records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
+    let guild = ctx.partial_guild().await.unwrap();
+
+    let mut embed = CreateEmbed::default();
+    embed.title("Leaderboard");
+    for (i, (user_id, level)) in records
+        .into_iter()
+        .rev()
+        .enumerate()
+        .skip(page * PAGESIZE)
+        .take(10)
+    {
+        let level_parsed = level.get_level();
+        embed.field(
+            guild
+                .member(ctx, user_id)
+                .await
+                .map(|x| format!("{}. {}", i + 1, x.display_name()))
+                .unwrap_or_default()
+                + if user_id == *ctx.author().id.as_u64() {
+                    " ~ You"
+                } else {
+                    ""
+                },
+            format!("Level: {}\nTotal XP: {}", level_parsed.0, level.xp),
+            false,
+        );
+    }
+    format_embed::<&str>(&mut embed, Some(ctx), None);
     ctx.send(|b| {
-        b.content(format!(
-            "{:?}",
-            // records.get(0..)
-            records.get((page * PAGESIZE)..((page * PAGESIZE + 10).min(records.len())))
-        ))
+        b.embeds.push(embed);
+        b
     })
     .await;
-    // if let Some()
-    // let id = ids_to_bytes(*guild_id.as_u64(), *ctx.author().id.as_u64());
-    // let u = user.as_ref().unwrap_or_else(|| ctx.author());
-    // let level = ctx
-    //     .data()
-    //     .db
-    //     .get(id)
-    //     .map(|x| x.get_level())
-    //     .unwrap_or((0, 0));
-    // let response = format!(
-    //     "{}'s current level is {}, with {}/{} xp",
-    //     u.name,
-    //     level.0,
-    //     level.1,
-    //     Level::xp_for_next_level(level.1),
-    // );
-    // ctx.say(response).await?;
     Ok(())
 }
