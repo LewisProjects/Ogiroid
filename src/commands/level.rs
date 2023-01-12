@@ -147,7 +147,7 @@ pub async fn level(
             )
         });
     let Some(cursor) = level_embed(&data,
-&u.name,
+&format!("{}#{}",u.name, u.discriminator),
         &level.get_level().0.to_string(),
         level.xp,
         Level::xp_for_next_level(level.xp as u32),
