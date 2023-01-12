@@ -146,7 +146,17 @@ pub async fn level(
                 ),
             )
         });
-    let Some(cursor) = level_embed(&data, ctx.author().face()).await else {
+    let Some(cursor) = level_embed(&data,
+&u.name,
+        &level.get_level().0.to_string(),
+        level.xp,
+        Level::xp_for_next_level(level.xp as u32),
+        if rank == usize::MAX {
+            "no XP".to_string()
+        } else {
+            (rank + 1).to_string()
+        },
+        ctx.author().face()).await else {
         ctx.send(|b| b.content("Internal error").ephemeral(true))
             .await?;
         return Ok(())
@@ -160,18 +170,7 @@ pub async fn level(
         })
     })
     .await;
-    // let response = format!(
-    //     "User:{}\nLevel: {}\nXp: {}/{}\nRank: {}",
-    //     u.name,
-    //     level.get_level().0,
-    //     level.xp,
-    //     Level::xp_for_next_level(level.xp as u32),
-    //     if rank == usize::MAX {
-    //         "no XP".to_string()
-    //     } else {
-    //         (rank + 1).to_string()
-    //     }
-    // );
+    // let response = format!("User:{}\nLevel: {}\nXp: {}/{}\nRank: {}",);
     // ctx.say(response).await?;
     Ok(())
 }

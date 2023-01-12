@@ -4,14 +4,29 @@ use image::{
     imageops::{invert, overlay, resize},
     ImageBuffer, ImageOutputFormat, Rgba, RgbaImage,
 };
-use imageproc::drawing::{draw_filled_circle_mut, draw_text_mut};
+use imageproc::{
+    drawing::{draw_filled_circle_mut, draw_filled_rect_mut, draw_text_mut},
+    rect::Rect,
+};
 use rusttype::Font;
 
 use crate::Data;
 
 const BACKGROUND: Rgba<u8> = Rgba([255, 255, 255, 255]);
+const FOREGROUND: Rgba<u8> = Rgba([0, 0, 0, 255]);
+const HEIGHT: u32 = 34;
+const LN_SPACE: u32 = 2;
+const SCALE: rusttype::Scale = rusttype::Scale {
+    x: HEIGHT as f32,
+    y: HEIGHT as f32,
+};
+const WIDTH: f32 = HEIGHT as f32 * 0.65;
+const POS: (u32, u32) = (42, 42);
 
-pub fn create_level_image() -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+const RECT_POS: u32 = (POS.1 + (HEIGHT + LN_SPACE) * 4 + LN_SPACE * 2);
+const RECT_SIZE: (u32, u32) = (410, 30);
+
+pub fn create_level_image(font: &Font) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     // image::load_from_memory_with_format(
     //     include_bytes!("../assets/rankcard.png"),
     //     image::ImageFormat::Png,
@@ -20,18 +35,41 @@ pub fn create_level_image() -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     // .to_rgba8()
     let mut image = RgbaImage::from_pixel(720, 256, BACKGROUND);
     let radius = 12;
+
+    ["User:", "Experience:", "Level:", "Rank:"]
+        .into_iter()
+        .enumerate()
+        .for_each(|(i, line)| {
+            draw_text_mut(
+                &mut image,
+                FOREGROUND,
+                POS.0 as i32,
+                POS.1 as i32 + ((HEIGHT + LN_SPACE) as usize * i) as i32,
+                SCALE,
+                font,
+                line,
+            );
+        });
+    draw_filled_rect_mut(
+        &mut image,
+        Rect::at(POS.0 as i32, RECT_POS as i32).of_size(RECT_SIZE.0, RECT_SIZE.1),
+        FOREGROUND,
+    );
     round(&mut image, (radius, radius, radius, radius));
     image
 }
 
-pub async fn level_embed(data: &Data, avatar_url: String) -> Option<Cursor<Vec<u8>>> {
+pub async fn level_embed(
+    data: &Data,
+    username: &str,
+    level: &str,
+    xp: f32,
+    xp_for_next_level: u32,
+    rank: String,
+    avatar_url: String,
+) -> Option<Cursor<Vec<u8>>> {
     let mut image = *data.level_image.clone();
     let font = &data.font;
-    let height = 20.0;
-    let scale = rusttype::Scale {
-        x: height * 1.0,
-        y: height,
-    };
 
     let Ok(response) = data.http_client.get(avatar_url.replace("?size=1024", "?size=256")).send().await else {
         return None
@@ -45,7 +83,7 @@ pub async fn level_embed(data: &Data, avatar_url: String) -> Option<Cursor<Vec<u
         return None
     };
     let size = (189i32, 189i32);
-    // let midpoint = ((size.0 + size.1) / 4) as i64;
+    let midpoint = ((size.0 + size.1) / 4) as i64;
     let mut avatar = resize(
         &avatar,
         size.0 as u32,
@@ -56,15 +94,34 @@ pub async fn level_embed(data: &Data, avatar_url: String) -> Option<Cursor<Vec<u
     round(&mut avatar, (midpoint, midpoint, midpoint, midpoint));
     overlay(&mut image, &avatar, 489, 35);
 
-    draw_text_mut(
+    [
+        ("User:", username),
+        ("Experience:", &format!("{xp}/{xp_for_next_level}")),
+        ("Level:", level),
+        ("Rank:", &format!("#{rank}")),
+    ]
+    .into_iter()
+    .enumerate()
+    .for_each(|(i, (oldline, line))| {
+        draw_text_mut(
+            &mut image,
+            FOREGROUND,
+            POS.0 as i32 + (WIDTH * oldline.len() as f32) as i32,
+            POS.1 as i32 + ((HEIGHT + LN_SPACE) as usize * i) as i32,
+            SCALE,
+            font,
+            &line,
+        );
+    });
+    draw_filled_rect_mut(
         &mut image,
-        Rgba([0u8, 0u8, 0u8, 255u8]),
-        0,
-        0,
-        scale,
-        &font,
-        "test",
+        Rect::at(POS.0 as i32 + 2, RECT_POS as i32 + 2).of_size(
+            ((RECT_SIZE.0 - 4) as f32 * (xp / xp_for_next_level as f32)) as u32,
+            RECT_SIZE.1 - 4,
+        ),
+        BACKGROUND,
     );
+
     let mut cursor = Cursor::new(Vec::new());
     image.write_to(&mut cursor, ImageOutputFormat::Png);
     Some(cursor)

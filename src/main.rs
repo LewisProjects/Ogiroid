@@ -93,11 +93,12 @@ async fn main() {
                 let activity = cli.activity_type.activity(&cli.activity, cli.stream_url);
                 ctx.set_activity(activity).await;
                 ctx.cache.set_max_messages(cli.cache_size);
+                let font = Font::try_from_vec(font_file).unwrap();
 
                 Ok(Data {
                     color,
-                    level_image: Box::new(create_level_image()),
-                    font: Font::try_from_vec(font_file).unwrap(),
+                    level_image: Box::new(create_level_image(&font)),
+                    font,
                     db: Db::new(
                         cli.db_path
                             .to_str()
