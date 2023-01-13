@@ -95,7 +95,7 @@ pub async fn handle_new_message<'a>(
     }
     let id = *message.author.id.as_u64();
     let cooldown = Duration::new(2, 0);
-    if let Some(last_message) = data.cooldown.get_cf(&id, &data.level_cf) {
+    if let Some(last_message) = data.cooldown.get(&id) {
         let duration_since = last_message.as_ref().elapsed();
         if duration_since <= cooldown {
             return Ok(());
