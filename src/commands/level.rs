@@ -95,7 +95,7 @@ pub async fn handle_new_message<'a>(
     }
     let id = *message.author.id.as_u64();
     let cooldown = Duration::new(2, 0);
-    if let Some(last_message) = data.cooldown.get(&id) {
+    if let Some(last_message) = data.cooldown.get_cf(&id, &data.level_cf) {
         let duration_since = last_message.as_ref().elapsed();
         if duration_since <= cooldown {
             return Ok(());
@@ -108,14 +108,14 @@ pub async fn handle_new_message<'a>(
         *message.guild_id.unwrap().as_u64(),
         *message.author.id.as_u64(),
     );
-    let Some(mut level) = data.db.get(&id) else {
+    let Some(mut level) = data.db.get_cf(&id, &data.level_cf) else {
         let mut level = Level::new(0.0, None);
         level.incrase_xp(message.content.len());
-        data.db.put(&id, level)?;
+        data.db.put_cf(&id, level, &data.level_cf)?;
         return Ok(())
     };
     level.incrase_xp(message.content.len());
-    data.db.put(&id, level)?;
+    data.db.put_cf(&id, level, &data.level_cf)?;
     Ok(())
 }
 
@@ -135,10 +135,14 @@ pub async fn level(
     let data = ctx.data();
 
     let (rank, (_, level)) = {
-        if data.db.get_bytes(&id).is_none() {
+        if data.db.get_bytes_cf(&id, &data.level_cf).is_none() {
             (usize::MAX, (user_id, Level::default()))
         } else {
-            let mut records: Vec<_> = data.db.guild_records(*guild_id.as_u64()).collect();
+            let mut records: Vec<_> = data
+                .db
+                .guild_records(*guild_id.as_u64(), &data.level_cf)
+                .expect("Internal DB error: Invalid CF")
+                .collect();
             records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
             records
                 .into_iter()
@@ -203,7 +207,11 @@ pub async fn leaderboard(
     };
     let mut page = (page.unwrap_or(1).max(1) - 1) as usize;
     let data = ctx.data();
-    let mut records: Vec<_> = data.db.guild_records(*guild_id.as_u64()).collect();
+    let mut records: Vec<_> = data
+        .db
+        .guild_records(*guild_id.as_u64(), &data.level_cf)
+        .expect("Internal DB error: invalid CF")
+        .collect();
     if page * PAGESIZE + 1 > records.len() {
         ctx.send(|b| b.ephemeral(true).content("No ranks to see here"))
             .await;
@@ -212,7 +220,7 @@ pub async fn leaderboard(
     let start = Instant::now();
     let cooldown = Duration::from_secs(120);
     records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
-    let guild = ctx.partial_guild().await.unwrap();
+    let guild = ctx.partial_guild().await.ok_or("Failed to open guild")?;
     let author = ctx.author();
 
     let mut embed = CreateEmbed::default();

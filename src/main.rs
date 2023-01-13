@@ -2,6 +2,7 @@
 use crate::image_utils::create_level_image;
 mod image_utils;
 use image::{ImageBuffer, Rgba};
+use rocksdb::BoundColumnFamily;
 use rusttype::Font;
 use std::sync::Arc;
 use stretto::AsyncCache;
@@ -21,15 +22,17 @@ use state::{DBFailure, Db};
 use tokio::time::Instant;
 
 pub struct Data {
-    deleted_cache: AsyncCache<u64, SnipeDel>,
-    edit_cache: AsyncCache<u64, Snipe>,
+    deleted_cache: Box<AsyncCache<u64, SnipeDel>>,
+    edit_cache: Box<AsyncCache<u64, Snipe>>,
     cache: Arc<Cache>,
     db: Db,
-    cooldown: AsyncCache<u64, Instant>,
+    cooldown: Box<AsyncCache<u64, Instant>>,
     color: (u8, u8, u8),
     level_image: Box<ImageBuffer<Rgba<u8>, Vec<u8>>>,
     font: Font<'static>,
+    font_width: f32,
     http_client: reqwest::Client,
+    level_cf: Box<String>,
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -67,8 +70,10 @@ async fn main() {
                 let font_file = if let Some(path) = cli.font {
                     std::fs::read(path).unwrap()
                 } else {
-                    include_bytes!("../assets/Cartograph_CF_Regular.ttf").to_vec()
+                    include_bytes!("../assets/OpenSans-Regular.ttf").to_vec()
                 };
+                let font_bold =
+                    Font::try_from_bytes(include_bytes!("../assets/OpenSans-Bold.ttf")).unwrap();
                 println!(
                     "Bot connected as {}",
                     ctx.http.get_current_user().await.unwrap().name
@@ -95,31 +100,40 @@ async fn main() {
                 ctx.cache.set_max_messages(cli.cache_size);
                 let font = Font::try_from_vec(font_file).unwrap();
 
-                Ok(Data {
-                    color,
-                    level_image: Box::new(create_level_image(&font)),
-                    font,
-                    db: Db::new(
-                        cli.db_path
-                            .to_str()
-                            .expect("--db-path needs to be valid unicode"),
-                        cli.level_cache_size,
-                    )
-                    .unwrap(),
-                    edit_cache: AsyncCache::new(
-                        cli.edit_cache as usize * 50,
-                        cli.edit_cache as i64 * 1024,
-                        tokio::spawn,
-                    )
-                    .unwrap(),
+                let db = Db::new(
+                    cli.db_path
+                        .to_str()
+                        .expect("--db-path needs to be valid unicode"),
+                    cli.level_cache_size,
+                    &[cli.level_cf.clone()],
+                )
+                .unwrap();
 
-                    cooldown: AsyncCache::new(500, 1000, tokio::spawn).unwrap(),
-                    deleted_cache: AsyncCache::new(
-                        cli.deletion_cache as usize * 50,
-                        cli.deletion_cache as i64 * 1024,
-                        tokio::spawn,
-                    )
-                    .unwrap(),
+                Ok(Data {
+                    font_width: cli.font_width,
+                    color,
+                    level_image: Box::new(create_level_image(&font_bold, cli.corner_radius)),
+                    font,
+                    db,
+                    level_cf: Box::new(cli.level_cf),
+                    edit_cache: Box::new(
+                        AsyncCache::new(
+                            cli.edit_cache as usize * 50,
+                            cli.edit_cache as i64 * 1024,
+                            tokio::spawn,
+                        )
+                        .unwrap(),
+                    ),
+
+                    cooldown: Box::new(AsyncCache::new(500, 1000, tokio::spawn).unwrap()),
+                    deleted_cache: Box::new(
+                        AsyncCache::new(
+                            cli.deletion_cache as usize * 50,
+                            cli.deletion_cache as i64 * 1024,
+                            tokio::spawn,
+                        )
+                        .unwrap(),
+                    ),
                     cache: ctx.cache().unwrap().clone(),
                     http_client: reqwest::Client::new(),
                 })

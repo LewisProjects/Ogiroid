@@ -26,7 +26,7 @@ const POS: (u32, u32) = (42, 42);
 const RECT_POS: u32 = (POS.1 + (HEIGHT + LN_SPACE) * 4 + LN_SPACE * 2);
 const RECT_SIZE: (u32, u32) = (410, 30);
 
-pub fn create_level_image(font: &Font) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+pub fn create_level_image(font: &Font, radius: u32) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     // image::load_from_memory_with_format(
     //     include_bytes!("../assets/rankcard.png"),
     //     image::ImageFormat::Png,
@@ -34,7 +34,7 @@ pub fn create_level_image(font: &Font) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     // .unwrap()
     // .to_rgba8()
     let mut image = RgbaImage::from_pixel(720, 256, BACKGROUND);
-    let radius = 12;
+    // let radius = 12;
 
     ["User:", "Experience:", "Level:", "Rank:"]
         .into_iter()
@@ -43,7 +43,7 @@ pub fn create_level_image(font: &Font) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
             draw_text_mut(
                 &mut image,
                 FOREGROUND,
-                POS.0 as i32,
+                POS.0 as i32 - 2,
                 POS.1 as i32 + ((HEIGHT + LN_SPACE) as usize * i) as i32,
                 SCALE,
                 font,
@@ -95,18 +95,18 @@ pub async fn level_embed(
     overlay(&mut image, &avatar, 489, 35);
 
     [
-        ("User:", username),
-        ("Experience:", &format!("{xp}/{xp_for_next_level}")),
-        ("Level:", level),
-        ("Rank:", &format!("#{rank}")),
+        ("User:", username, 0),
+        ("Experience:", &format!("{xp}/{xp_for_next_level}"), 0),
+        ("Level:", level, -2),
+        ("Rank:", &format!("#{rank}"), 8),
     ]
     .into_iter()
     .enumerate()
-    .for_each(|(i, (oldline, line))| {
+    .for_each(|(i, (oldline, line, offset))| {
         draw_text_mut(
             &mut image,
             FOREGROUND,
-            POS.0 as i32 + (WIDTH * oldline.len() as f32) as i32,
+            POS.0 as i32 + (WIDTH * oldline.len() as f32 * data.font_width) as i32 + offset - 2,
             POS.1 as i32 + ((HEIGHT + LN_SPACE) as usize * i) as i32,
             SCALE,
             font,

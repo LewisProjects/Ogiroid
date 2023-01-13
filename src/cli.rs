@@ -48,6 +48,10 @@ pub struct Cli {
     /// The path to the directory to use for storing the DB
     pub db_path: PathBuf,
 
+    #[arg(long, env = "LEVEL_CF", default_value = "level")]
+    /// The RocksDB ColumnFamily to store levels in
+    pub level_cf: String,
+
     #[arg(long, env = "LEVEL_CACHE", default_value = "200")]
     /// The number of elements to keep in the LEVELLING DB cache
     pub level_cache_size: usize,
@@ -56,12 +60,22 @@ pub struct Cli {
     /// The color to use in embeds, in HEX format e.g. `FFFFFF`
     pub color_string: String,
 
-    #[arg(short, long, env = "FONT", value_name = "FONT_FILE")]
+    #[arg(short = 'w', long, env = "FONT", value_name = "FONT_FILE")]
     /// The font to use when rendering images
     pub font: Option<PathBuf>,
-    // #[arg(short, long, env = "FONT", value_name = "FONT_FILE")]
-    // /// The font to use when rendering images
-    // pub font: Option<PathBuf>,
+    #[arg(
+        short,
+        long,
+        env = "FONT_WIDTH",
+        value_name = "WIDTH",
+        default_value = "0.6"
+    )]
+    /// The font width
+    pub font_width: f32,
+
+    #[arg(long, env = "CORNER_RADIUS", default_value = "12")]
+    /// The radius of the corners on image embeds
+    pub corner_radius: u32,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug, PartialEq, PartialOrd, Eq)]

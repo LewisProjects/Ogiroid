@@ -7,6 +7,8 @@ use bytecheck::CheckBytes;
 use rkyv::de::deserializers::SharedDeserializeMap;
 use rkyv::validation::validators::DefaultValidator;
 use rkyv::{Archive, Deserialize, Serialize};
+use rocksdb::ColumnFamilyDescriptor;
+use rocksdb::Options;
 use rocksdb::SliceTransform;
 use rocksdb::DB;
 
@@ -31,7 +33,11 @@ fn extractor_fn(key: &[u8]) -> &[u8] {
 }
 
 impl Db {
-    pub fn new(path: &str, cache_capacity: usize) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(
+        path: &str,
+        cache_capacity: usize,
+        cf_names: &[String],
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let cache = rocksdb::Cache::new_lru_cache(128)?;
         let db = {
             let mut opts = rocksdb::Options::default();
@@ -42,7 +48,13 @@ impl Db {
             opts.set_max_background_jobs(4);
             let prefix_extractor = SliceTransform::create("guildid extractor", extractor_fn, None);
             opts.set_prefix_extractor(prefix_extractor);
-            Arc::new(DB::open_cf_descriptors(&opts, path, vec![])?)
+            Arc::new(DB::open_cf_descriptors(
+                &opts,
+                path,
+                cf_names
+                    .into_iter()
+                    .map(|x| ColumnFamilyDescriptor::new(x, Options::default())),
+            )?)
         };
         Ok(Db { db, cache })
     }
@@ -57,11 +69,37 @@ impl Db {
             return None};
         Some(value)
     }
+    pub fn get_bytes_cf<'a, K>(&'a self, key: K, cf: &str) -> Option<Vec<u8>>
+    where
+        K: AsRef<[u8]>,
+    {
+        let Some(cf) = self.db.cf_handle(cf) else {
+            return None
+        };
+        let Ok(Some(value)) = self.db.get_cf(&cf, key) else {
+            return None};
+        Some(value)
+    }
     pub fn get<'a, K>(&'a self, key: K) -> Option<Level>
     where
         K: AsRef<[u8]>,
     {
         let Ok(Some(value)) = self.db.get(key) else {
+            return None
+        };
+        let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
+            return None
+        };
+        Some(entry)
+    }
+    pub fn get_cf<'a, K>(&'a self, key: K, cf: &str) -> Option<Level>
+    where
+        K: AsRef<[u8]>,
+    {
+        let Some(cf) = self.db.cf_handle(cf) else {
+            return None
+        };
+        let Ok(Some(value)) = self.db.get_cf(&cf, key) else {
             return None
         };
         let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
@@ -80,9 +118,28 @@ impl Db {
             Ok(_) => Ok(()),
         }
     }
-    pub fn guild_records<'a>(&'a self, guild_id: u64) -> impl Iterator<Item = (u64, Level)> + 'a {
-        self.db
-            .prefix_iterator(guild_id.to_le_bytes())
+    pub fn put_cf<'a, K>(&'a self, key: K, value: Level, cf: &str) -> Result<(), DBFailure>
+    where
+        K: AsRef<[u8]>,
+    {
+        let cf = self.db.cf_handle(cf).ok_or(DBFailure::SerError)?;
+        let Ok(value) = rkyv::to_bytes::<_, 256>(&value) else {
+            return Err(DBFailure::SerError)};
+        match self.db.put_cf(&cf, key, value) {
+            Err(error) => Err(DBFailure::Error(error)),
+            Ok(_) => Ok(()),
+        }
+    }
+    pub fn guild_records<'a>(
+        &'a self,
+        guild_id: u64,
+        cf: &str,
+    ) -> Option<impl Iterator<Item = (u64, Level)> + 'a> {
+        let Some(cf) = self.db.cf_handle(cf) else {
+            return None
+        };
+        Some(self.db
+            .prefix_iterator_cf(&cf, guild_id.to_le_bytes())
             .filter_map(|x| {
                 if let Ok((key, value)) = x {
                     let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
@@ -94,7 +151,7 @@ impl Db {
                 } else {
                     None
                 }
-            })
+            }))
     }
 }
 
