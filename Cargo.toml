@@ -18,6 +18,7 @@ imageproc = "0.23.0"
 image = "0.24.5"
 rusttype = "0.9.3"
 reqwest = { version = "0.11.13", features = ["gzip", "deflate"] }
+turborand = "0.8.3"
 [dependencies.rocksdb]
 default-features = false
 features = ["lz4", "multi-threaded-cf"]

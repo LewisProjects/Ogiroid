@@ -42,7 +42,14 @@ async fn main() {
     let cli = Cli::parse();
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![level(), editsnipe(), snipe(), leaderboard()],
+            commands: vec![
+                level(),
+                editsnipe(),
+                snipe(),
+                leaderboard(),
+                set_level(),
+                set_xp_booster(),
+            ],
             event_handler: |ctx, event, framework_context, data| {
                 Box::pin(handle_event(ctx, event, framework_context, data))
             },

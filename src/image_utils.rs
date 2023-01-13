@@ -27,12 +27,7 @@ const RECT_POS: u32 = (POS.1 + (HEIGHT + LN_SPACE) * 4 + LN_SPACE * 2);
 const RECT_SIZE: (u32, u32) = (410, 30);
 
 pub fn create_level_image(font: &Font, radius: u32) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
-    // image::load_from_memory_with_format(
-    //     include_bytes!("../assets/rankcard.png"),
-    //     image::ImageFormat::Png,
-    // )
-    // .unwrap()
-    // .to_rgba8()
+    // let mut image = image::open("assets/winterrankcard.png").unwrap().to_rgba8();
     let mut image = RgbaImage::from_pixel(720, 256, BACKGROUND);
     // let radius = 12;
 
@@ -106,7 +101,7 @@ pub async fn level_embed(
         draw_text_mut(
             &mut image,
             FOREGROUND,
-            POS.0 as i32 + (WIDTH * oldline.len() as f32 * data.font_width) as i32 + offset - 2,
+            POS.0 as i32 + (WIDTH * oldline.len() as f32 * data.font_width) as i32 + offset + 3,
             POS.1 as i32 + ((HEIGHT + LN_SPACE) as usize * i) as i32,
             SCALE,
             font,

@@ -1993,7 +1993,7 @@ dependencies = [
 
 [[package]]
 name = "rougiroid"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bytecheck",
  "byteorder",
@@ -2008,6 +2008,7 @@ dependencies = [
  "serde",
  "stretto",
  "tokio",
+ "turborand",
 ]
 
 [[package]]
@@ -2594,6 +2595,16 @@ dependencies = [
  "url",
  "utf-8",
  "webpki",
+]
+
+[[package]]
+name = "turborand"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c966547fb89f2d5bd1736e5caf8a9b1e5473d34e1246799274eaabcac1b8fbe"
+dependencies = [
+ "getrandom 0.2.8",
+ "instant",
 ]
 
 [[package]]
