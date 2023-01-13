@@ -26,12 +26,12 @@ class Password(commands.Cog):
         )
         # try to DM if fails send the password to the channel
         try:
-            await inter.author.send(f"Your password is: `{password}`")
+            await inter.author.send(f"Your password is: ||{password}||")
             await inter.response.send_message("Your password has been sent!")
         # If DMs are closed, send the password to the channel
         except:
             await inter.response.send_message(
-                f"Your password is: `{password}`", ephemeral=True
+                f"Your password is: ||{password}||", ephemeral=True
             )
 
 
