@@ -17,10 +17,14 @@ class AI(commands.Cog):
         if profanity.censor(text) != text:
             return await inter.send(f"NSFW requests are not allowed!",
                                     ephemeral=True)
+        if "bot" in inter.channel.name or "command" in inter.channel.name:
+            hidden = False
+        else:
+            hidden = True
         ETA = int(time.time() + 60)
         await inter.send(
             f"Go grab a coffee this may take a while... ETA: <t:{ETA}:R>",
-            ephemeral=True,
+            ephemeral=hidden,
         )
         response = await self.bot.session.post(
             "https://backend.craiyon.com/generate", json={"prompt": text}
