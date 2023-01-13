@@ -13,7 +13,10 @@ use crate::Context;
 use crate::Error;
 use bytecheck::CheckBytes;
 use poise::serenity_prelude::routing::RouteInfo;
-use poise::serenity_prelude::{CacheHttp, Context as DefContext, CreateEmbed};
+use poise::serenity_prelude::{
+    ButtonStyle, CacheHttp, Context as DefContext, CreateButton, CreateComponents, CreateEmbed,
+    PartialGuild, User,
+};
 use poise::serenity_prelude::{Message, MessageType};
 use rkyv::de::deserializers::SharedDeserializeMap;
 use rkyv::validation::validators::DefaultValidator;
@@ -99,7 +102,7 @@ pub async fn handle_new_message<'a>(
         }
     };
     data.cooldown
-        .insert_with_ttl(id, Instant::now(), 50, cooldown)
+        .insert_with_ttl(id, Instant::now(), 1, cooldown)
         .await;
     let id = ids_to_bytes(
         *message.guild_id.unwrap().as_u64(),
@@ -170,6 +173,7 @@ pub async fn level(
         ctx.send(|b| b.content("Internal error").ephemeral(true))
             .await?;
         return Ok(())
+
     };
     // ctx.author_member().await.unwrap().face()
     // ctx.channel_id().send_files(http, files, f)
@@ -197,7 +201,7 @@ pub async fn leaderboard(
         ctx.say("This command can only be executed in a guild").await?;
         return Ok(());
     };
-    let page = (page.unwrap_or(1).max(1) - 1) as usize;
+    let mut page = (page.unwrap_or(1).max(1) - 1) as usize;
     let data = ctx.data();
     let mut records: Vec<_> = data.db.guild_records(*guild_id.as_u64()).collect();
     if page * PAGESIZE + 1 > records.len() {
@@ -205,26 +209,122 @@ pub async fn leaderboard(
             .await;
         return Ok(());
     }
+    let start = Instant::now();
+    let cooldown = Duration::from_secs(120);
     records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
     let guild = ctx.partial_guild().await.unwrap();
+    let author = ctx.author();
 
     let mut embed = CreateEmbed::default();
+    create_leaderboard_embed(ctx, &mut embed, &records, page, &guild, data, author).await;
+
+    let msg = ctx
+        .send(|b| {
+            b.components(|f| {
+                f.create_action_row(|row| {
+                    row.create_button(|button| {
+                        button
+                            .label("⬅️")
+                            .style(ButtonStyle::Secondary)
+                            .custom_id("prev")
+                    });
+                    row.create_button(|button| {
+                        button
+                            .label("➡️")
+                            .style(ButtonStyle::Secondary)
+                            .custom_id("next")
+                    });
+                    row.create_button(|button| {
+                        button
+                            .label("⏮️")
+                            .style(ButtonStyle::Secondary)
+                            .custom_id("start")
+                    })
+                })
+            });
+            b.embeds.push(embed);
+            b
+        })
+        .await
+        .unwrap();
+    // msg.into_message().await.unwrap().await_component_interaction(shard_messenger)
+    while let Some(command) = msg
+        .message()
+        .await
+        .unwrap()
+        .await_component_interaction(ctx)
+        .timeout(cooldown.saturating_sub(start.elapsed()))
+        .author_id(author.id)
+        .await
+    {
+        let new_page = match command.data.custom_id.as_str() {
+            "prev" => page.max(2) - 1,
+            "next" => page + 1,
+            _ => 1,
+        };
+        if new_page == page {
+            continue;
+        }
+        let mut embed = CreateEmbed::default();
+        if create_leaderboard_embed(ctx, &mut embed, &records, page, &guild, data, author)
+            .await
+            .is_none()
+        {
+            continue;
+        };
+        page = new_page;
+        command
+            .create_interaction_response(ctx, |x| {
+                x.kind(serenity::InteractionResponseType::UpdateMessage)
+                    // .interaction_response_data(|f| f.set_embed())
+                    .interaction_response_data(|f| f.set_embed(embed))
+            })
+            .await
+            .unwrap();
+        // command
+        //     .edit_original_interaction_response(ctx, |x| {
+        //         x.set_embed({
+        //             let mut embed = CreateEmbed::default();
+        //             embed.title(format!("works! id: {}", command.as_ref().id));
+        //             embed
+        //         })
+        //     })
+        //     .await
+        //     .unwrap();
+        // ctx.send(|b| b.content("hello!")).await;
+    }
+    Ok(())
+}
+
+async fn create_leaderboard_embed<'a>(
+    ctx: Context<'a>,
+    mut embed: &'a mut CreateEmbed,
+    records: &'a Vec<(u64, Level)>,
+    page: usize,
+    guild: &'a PartialGuild,
+    data: &'a Data,
+    author: &User,
+) -> Option<&'a mut CreateEmbed> {
+    if page * PAGESIZE + 1 > records.len() {
+        return None;
+    };
     embed.title("Leaderboard");
+    // embed.description("");
     for (i, (user_id, level)) in records
-        .into_iter()
+        .iter()
         .rev()
         .enumerate()
         .skip(page * PAGESIZE)
-        .take(10)
+        .take(PAGESIZE)
     {
         let level_parsed = level.get_level();
         embed.field(
             guild
-                .member(ctx, user_id)
+                .member(ctx, *user_id)
                 .await
                 .map(|x| format!("{}. {}", i + 1, x.display_name()))
                 .unwrap_or_default()
-                + if user_id == *ctx.author().id.as_u64() {
+                + if user_id == author.id.as_u64() {
                     " ~ You"
                 } else {
                     ""
@@ -234,10 +334,5 @@ pub async fn leaderboard(
         );
     }
     format_embed::<&str>(&mut embed, Some(ctx), None, data);
-    ctx.send(|b| {
-        b.embeds.push(embed);
-        b
-    })
-    .await;
-    Ok(())
+    Some(embed)
 }
