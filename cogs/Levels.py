@@ -297,8 +297,8 @@ class LevelsController:
         avatar: disnake.Asset = user.display_avatar.with_size(512)
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
-        # with Image.open("utils/data/images/rankcard.png").convert("RGBA") as base: NORMAL VERSION
-        with Image.open("utils/data/images/winterrankcard.png").convert(
+        
+        with Image.open("utils/data/images/rankcard.png").convert(
                 "RGBA"
         ) as base:  # WINTER VERSION
             # make a blank image for the text, initialized to transparent text color
