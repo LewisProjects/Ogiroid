@@ -23,5 +23,9 @@ Wish to Contribute to this bot? Check out our <a href="https://github.com/LewisP
 
 - [x] get a basic bot working in Serenity+Poise, write a ping command
 - rewrite Ogiroid features one by one
+  1.  [x] snipe
+  1.  [x] editsnipe
+  1.  [x] leveling system
+  1.  [x] leveling system image embeds
   1.  [ ] urlshorten
   1.  [ ] paste
