@@ -36,6 +36,15 @@ pub struct Level {
     pub boost_factor: f32,
 }
 
+impl Default for Level {
+    fn default() -> Self {
+        Level {
+            xp: 0.0,
+            boost_factor: 1.0,
+        }
+    }
+}
+
 impl Level {
     pub fn new(xp: f32, boost_factor: Option<f32>) -> Self {
         Level {
@@ -121,31 +130,32 @@ pub async fn level(
     let id = ids_to_bytes(*guild_id.as_u64(), *u.id.as_u64());
     let user_id = *u.id.as_u64();
     let data = ctx.data();
-    if data.db.get_bytes(&id).is_none() {
-        ctx.send(|b| b.content("This user has no XP").ephemeral(true))
-            .await?;
-        return Ok(());
-    };
 
-    let mut records: Vec<_> = data.db.guild_records(*guild_id.as_u64()).collect();
-    records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
-    let (rank, (_, level)) = records
-        .into_iter()
-        .rev()
-        .enumerate()
-        .find(|(i, (uid, _))| *uid == user_id)
-        .unwrap_or_else(|| {
-            (
-                usize::MAX,
-                (
-                    0,
-                    Level {
-                        xp: 0.0,
-                        boost_factor: 1.1,
-                    },
-                ),
-            )
-        });
+    let (rank, (_, level)) = {
+        if data.db.get_bytes(&id).is_none() {
+            (usize::MAX, (user_id, Level::default()))
+        } else {
+            let mut records: Vec<_> = data.db.guild_records(*guild_id.as_u64()).collect();
+            records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
+            records
+                .into_iter()
+                .rev()
+                .enumerate()
+                .find(|(i, (uid, _))| *uid == user_id)
+                .unwrap_or_else(|| {
+                    (
+                        usize::MAX,
+                        (
+                            0,
+                            Level {
+                                xp: 0.0,
+                                boost_factor: 1.1,
+                            },
+                        ),
+                    )
+                })
+        }
+    };
     let Some(cursor) = level_embed(&data,
 &format!("{}#{}",u.name, u.discriminator),
         &level.get_level().0.to_string(),
@@ -156,7 +166,7 @@ pub async fn level(
         } else {
             (rank + 1).to_string()
         },
-        ctx.author().face()).await else {
+        u.face()).await else {
         ctx.send(|b| b.content("Internal error").ephemeral(true))
             .await?;
         return Ok(())

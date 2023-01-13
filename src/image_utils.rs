@@ -116,7 +116,7 @@ pub async fn level_embed(
     draw_filled_rect_mut(
         &mut image,
         Rect::at(POS.0 as i32 + 2, RECT_POS as i32 + 2).of_size(
-            ((RECT_SIZE.0 - 4) as f32 * (xp / xp_for_next_level as f32)) as u32,
+            (((RECT_SIZE.0 - 4) as f32 * (xp / xp_for_next_level as f32)) as u32).max(1),
             RECT_SIZE.1 - 4,
         ),
         BACKGROUND,
@@ -127,7 +127,7 @@ pub async fn level_embed(
     Some(cursor)
 }
 
-pub fn round(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, radius: (u32, u32, u32, u32)) {
+fn round(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, radius: (u32, u32, u32, u32)) {
     let (width, height) = img.dimensions();
     assert!(radius.0 + radius.1 <= width);
     assert!(radius.3 + radius.2 <= width);
