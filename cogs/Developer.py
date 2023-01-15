@@ -107,7 +107,7 @@ class Dev(Cog):
         """Repeats text"""
         await inter.response.defer()
         await (await inter.original_message()).delete()
-        await inter.send(f"{what_to_say}")
+        await inter.channel.send(f"{what_to_say}")
 
     @commands.slash_command()
     @checks.is_dev()
