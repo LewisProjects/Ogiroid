@@ -22,11 +22,11 @@ class CodeExec(Cog, name="Code"):
         name="code",
         description="Run code and get results instantly. Window for code will pop up.",
     )
-    async def code(self, ctx):
+    async def code(self, inter: disnake.ApplicationCommandInteraction):
         """
         Run code and get results instantly
         """
-        await ctx.response.send_modal(modal=CodeModal())
+        await inter.response.send_modal(modal=CodeModal())
 
 
 class CodeModal(disnake.ui.Modal):

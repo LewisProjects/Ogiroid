@@ -10,10 +10,6 @@ from utils.CONSTANTS import status, __VERSION__
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb
 
-global startTime
-startTime = time.time()
-
-
 class plural:
     def __init__(self, value):
         self.value = value
@@ -55,7 +51,7 @@ class Commands(commands.Cog):
     )
     async def ping(self, inter):
         """Shows how fast the bot is replying to you!"""
-        uptime = str(datetime.timedelta(seconds=int(round(time.time() - startTime))))
+        uptime = str(datetime.timedelta(seconds=int(round(time.time() - int(self.bot.uptime.timestamp())))))
         embed = disnake.Embed(
             title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF
         )
