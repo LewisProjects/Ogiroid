@@ -103,11 +103,16 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str):
-        """Repeats text"""
+    async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str, channel: disnake.TextChannel = None, times: int = 1):
+        """Repeats text, optionally in a different channel and a maximum of 10 times"""
         await inter.response.defer()
         await (await inter.original_message()).delete()
-        await inter.channel.send(f"{what_to_say}")
+        t_channel = channel or inter.channel
+        if abs(times) > 1:
+            for _ in range(max(abs(times), 10)):
+                await t_channel.send(what_to_say)
+        else:
+            await t_channel.send(f"{what_to_say}")
 
     @commands.slash_command()
     @checks.is_dev()
