@@ -249,7 +249,7 @@ class Log(Cog):
         for name in list(check):
             names = name[0]
             values = name[1]
-            if values == True:
+            if values:
                 value = True
                 string = str(value)
                 values = string.replace("True", "added")
@@ -344,10 +344,11 @@ class Log(Cog):
 
         embed = Embed(
             title="Server edited",
-            description=message,
             colour=self.bot.config.colors.white,
             timestamp=datetime.now(),
         )
+        if message is not None:
+            embed.description = message
 
         await self.log_channel.send(embed=embed)
 

@@ -14,9 +14,8 @@ class AI(commands.Cog):
 
     @commands.slash_command(description="Generates ai art")
     async def ai_art(self, inter: disnake.ApplicationCommandInteraction, text: str):
-        if profanity.censor(text) != text:
-            return await inter.send(f"NSFW requests are not allowed!",
-                                    ephemeral=True)
+        if profanity.contains_profanity(text):
+            return await inter.send(f"NSFW requests are not allowed!", ephemeral=True)
         if "bot" in inter.channel.name or "command" in inter.channel.name:
             hidden = False
         else:
