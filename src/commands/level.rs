@@ -115,6 +115,7 @@ pub async fn handle_new_message<'a>(
 ) -> Result<(), DBFailure> {
     if message.guild_id.is_none()
         || message.author.bot
+        || message.guild_id.is_none()
         || message.content.len() < 5
         || ![
             MessageType::Regular,
@@ -476,6 +477,7 @@ async fn create_leaderboard_embed<'a>(
     };
     embed.title("Leaderboard");
     // embed.description("");
+    let cache = ctx.cache().unwrap();
     for (i, (user_id, level)) in records
         .iter()
         .rev()
@@ -485,11 +487,20 @@ async fn create_leaderboard_embed<'a>(
     {
         let (level, xp, next_level_xp) = level.get_level();
         embed.field(
-            guild
-                .member(ctx, *user_id)
-                .await
-                .map(|x| format!("{}. {}", i + 1, x.display_name()))
-                .unwrap_or_default()
+            if let Some(user) = cache.user(*user_id) {
+                format!("{}. {}", i + 1, user.name)
+            } else {
+                guild
+                    .member(ctx, *user_id)
+                    .await
+                    .map(|x| format!("{}. {}", i + 1, x.display_name()))
+                    .unwrap_or_default()}
+            // ctx.http().get_user(*user_id).await.unwrap_or_default().name
+            // guild
+            //     .member(ctx, *user_id)
+            //     .await
+            //     .map(|x| format!("{}. {}", i + 1, x.display_name()))
+            //     .unwrap_or_default()
                 + if user_id == author.id.as_u64() {
                     " ~ You"
                 } else {

@@ -2,13 +2,15 @@
 use crate::image_utils::create_level_image;
 mod image_utils;
 use image::{ImageBuffer, Rgba};
+use reqwest::RequestBuilder;
 use rocksdb::BoundColumnFamily;
 use rusttype::Font;
 use std::sync::Arc;
 use stretto::AsyncCache;
 
 use poise::serenity_prelude::{
-    self as serenity, ActivityButton, CacheHttp, CreateButton, GuildId, MessageActivity,
+    self as serenity, request::Request, ActivityButton, CacheHttp, CreateButton, GuildId,
+    MessageActivity,
 };
 mod cli;
 use cli::{Cli, Parser};
@@ -38,6 +40,11 @@ pub struct Data {
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 
+// /// Displays the XP server leaderboard
+// #[poise::command(slash_command)]
+// pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
+// }
+
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
@@ -57,6 +64,7 @@ async fn main() {
                 leaderboard(),
                 set_level(),
                 set_xp_booster(),
+                // ping(),
             ],
             event_handler: |ctx, event, framework_context, data| {
                 Box::pin(handle_event(ctx, event, framework_context, data))
