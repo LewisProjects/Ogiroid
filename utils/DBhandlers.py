@@ -291,7 +291,6 @@ class TagManager:
         self.session = self.bot.session
         self.names = {"tags": [], "aliases": []}
         self.cache = AsyncTTL(timings.DAY / 2)  # cache tags for 12 hrs
-        # self.pool = self.bot.pool todo re-add
 
     async def startup(self):
         await self.bot.wait_until_ready()

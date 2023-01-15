@@ -1,10 +1,8 @@
 import asyncio
-import json
 from datetime import datetime
 from os import listdir
 
 import aiosqlite
-import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
@@ -37,7 +35,6 @@ class OGIROID(commands.InteractionBot):
         self.commands_ran = {}
         self.total_commands_ran = 0
         self.db = None
-        self.pool: asyncpg.Pool = None
         self.blacklist: BlacklistHandler = None
         self.add_app_command_check(
             self.blacklist_check, slash_commands=True, call_once=True
@@ -126,16 +123,6 @@ class OGIROID(commands.InteractionBot):
         self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
         await self.blacklist.startup()
 
-    async def ensure_db_uri_can_run(self) -> bool:
-        connection: asyncpg.Connection = await asyncpg.connect(
-            user=self.config.Database.user,
-            password=self.config.Database.password,
-            database=self.config.Database.database,
-            host=self.config.Database.host,
-            port=self.config.Database.port,
-        )
-        await connection.close()
-        return True
 
     async def start(self, *args, **kwargs):
         async with aiosqlite.connect("data.db") as self.db:
@@ -145,36 +132,7 @@ class OGIROID(commands.InteractionBot):
                 if file.endswith(".sql"):
                     with open(f"migrations/{file}", "r") as migration_sql:
                         await self.db.executescript(migration_sql.read())
-            # self.pool: asyncpg.Pool = await self.create_pool() todo re-add
             await super().start(*args, **kwargs)
-
-    async def create_pool(self) -> asyncpg.Pool:
-        def _encode_jsonb(value):
-            return json.dumps(value)
-
-        def _decode_jsonb(value):
-            return json.loads(value)
-
-        async def init(con):
-            await con.set_type_codec(
-                "jsonb",
-                schema="pg_catalog",
-                encoder=_encode_jsonb,
-                decoder=_decode_jsonb,
-                format="text",
-            )
-
-        return await asyncpg.create_pool(
-            user=self.config.Database.user,
-            password=self.config.Database.password,
-            database=self.config.Database.database,
-            host=self.config.Database.host,
-            port=self.config.Database.port,
-            init=init,
-            command_timeout=60,
-            max_size=20,
-            min_size=20,
-        )
 
     @property
     def ready_(self):
