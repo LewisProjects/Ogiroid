@@ -18,7 +18,7 @@ use poise::serenity_prelude::routing::RouteInfo;
 use poise::serenity_prelude::{
     ButtonStyle, CacheHttp, Context as DefContext, CreateButton, CreateComponents, CreateEmbed,
     Emoji, EmojiId, EmojiIdentifier, Guild, Mentionable, MessageBuilder, PartialGuild,
-    ReactionType, User,
+    ReactionType, User, UserId,
 };
 use poise::serenity_prelude::{Message, MessageType};
 use rkyv::de::deserializers::SharedDeserializeMap;
@@ -487,15 +487,16 @@ async fn create_leaderboard_embed<'a>(
     {
         let (level, xp, next_level_xp) = level.get_level();
         embed.field(
-            if let Some(user) = cache.user(*user_id) {
-                format!("{}. {}", i + 1, user.name)
-            } else {
-                guild
-                    .member(ctx, *user_id)
-                    .await
-                    .map(|x| format!("{}. {}", i + 1, x.display_name()))
-                    .unwrap_or_default()}
-            // ctx.http().get_user(*user_id).await.unwrap_or_default().name
+            // UserId::from(user_id).to_user(ctx).await.map(|x|format!("{}"))
+            // if let Some(user) = cache.user(*user_id) {
+            //     format!("{}. {}", i + 1, user.name)
+            // } else {
+            //     guild
+            //         .member(ctx, *user_id)
+            //         .await
+            //         .map(|x| format!("{}. {}", i + 1, x.display_name()))
+            //         .unwrap_or_default()}
+            ctx.http().get_user(*user_id).await.unwrap_or_default().name
             // guild
             //     .member(ctx, *user_id)
             //     .await
