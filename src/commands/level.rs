@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::error::Error as err;
 use std::io::Cursor;
+use std::str::FromStr;
 use std::time::Duration;
 
 use crate::image_utils::level_embed;
@@ -16,7 +17,8 @@ use bytecheck::CheckBytes;
 use poise::serenity_prelude::routing::RouteInfo;
 use poise::serenity_prelude::{
     ButtonStyle, CacheHttp, Context as DefContext, CreateButton, CreateComponents, CreateEmbed,
-    Mentionable, MessageBuilder, PartialGuild, User,
+    Emoji, EmojiId, EmojiIdentifier, Guild, Mentionable, MessageBuilder, PartialGuild,
+    ReactionType, User,
 };
 use poise::serenity_prelude::{Message, MessageType};
 use rkyv::de::deserializers::SharedDeserializeMap;
@@ -35,64 +37,73 @@ use imageproc::rect::Rect;
 use turborand::rng::Rng;
 use turborand::TurboRand;
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Copy, Clone)]
 #[archive_attr(derive(CheckBytes, Debug))]
 pub struct Level {
-    pub xp: f32,
+    pub level: u32,
+    pub xp: u32,
     pub boost_factor: f32,
 }
 
 impl Default for Level {
     fn default() -> Self {
         Level {
-            xp: 0.0,
+            level: 0,
+            xp: 0,
             boost_factor: 1.0,
         }
     }
 }
 
 impl Level {
-    pub fn new(xp: f32, boost_factor: Option<f32>) -> Self {
+    pub fn new(level: u32) -> Self {
         Level {
-            xp,
-            boost_factor: boost_factor.unwrap_or(1.0),
+            level,
+            ..Default::default()
         }
     }
 
-    pub fn incrase_xp(&mut self, msg_len: usize) -> Option<u32> {
+    pub fn increase_xp(&mut self, msg_len: usize, server_boost: Option<f32>) -> bool {
         let rand = Rng::new();
-        let (level, next_level_xp) = self.get_level();
+        let (level, xp, next_level_xp) = self.get_level();
         if rand.sample(&[0, 1, 2]).unwrap() != &0 {
-            return None;
+            return false;
         }
-        self.xp += *{
-            if msg_len < 50 {
+        self.xp += {
+            *if msg_len < 50 {
                 rand.sample(&POSSIBLE_XP[..30])
             } else {
                 rand.sample(&POSSIBLE_XP)
             }
-        }
-        .unwrap() as f32
-            * self.boost_factor;
-        if next_level_xp > 4 && self.xp >= next_level_xp as f32 {
-            Some(level + 1)
+            .unwrap() as f32
+                * self.boost_factor
+                * server_boost.unwrap_or(1.0)
+        } as u32;
+        if self.xp as u32 >= next_level_xp && next_level_xp != 0 {
+            self.level = (self.level + 1).min(LEVELS.len() as u32);
+            self.xp = 0;
+            true
         } else {
-            None
+            false
         }
     }
 
-    pub fn get_level(&self) -> (u32, u32) {
-        let xp = self.xp as u32;
-        let (level, _) = LEVELS
-            .iter()
-            .take_while(|&&x| x <= xp)
-            .enumerate()
-            .last()
-            .unwrap_or((0, &0));
-        (level as u32, LEVELS.get(level + 1).map(|x| *x).unwrap_or(0))
+    pub fn get_level(&self) -> (u32, u32, u32) {
+        // let xp = self.xp as u32;
+        // let (level, _) = LEVELS
+        //     .iter()
+        //     .take_while(|&&x| x <= xp)
+        //     .enumerate()
+        //     .last()
+        //     .unwrap_or((0, &0));
+        // (level as u32, LEVELS.get(level + 1).map(|x| *x).unwrap_or(0))
+        (self.level, self.xp, self.xp_for_next_level())
     }
-    pub fn xp_for_next_level(level: usize) -> u32 {
-        LEVELS.get(level + 1).map(|x| *x).unwrap_or(0)
+    pub fn xp_for_next_level(&self) -> u32 {
+        LEVELS
+            .get((self.level + 1) as usize)
+            .map(|x| *x)
+            .unwrap_or(0)
     }
 }
 
@@ -129,15 +140,17 @@ pub async fn handle_new_message<'a>(
         *message.guild_id.unwrap().as_u64(),
         *message.author.id.as_u64(),
     );
-    let Some(mut level) = data.db.get_cf(&id, &data.level_cf) else {
-        let mut level = Level::new(0.0, None);
-        level.incrase_xp(message.content.len());
-        data.db.put_cf(&id, level, &data.level_cf)?;
+    // let server_boost = data.db.get(key)
+    let Some(mut level) = data.db.get_cf::<_,Level>(&id, &data.level_cf) else {
+        let mut level = Level::new(0);
+        level.increase_xp(message.content.len(), None);
+        data.db.put_cf(&id, level, &data.level_cf).unwrap();
         return Ok(())
     };
-    let levelup = level.incrase_xp(message.content.len());
-    data.db.put_cf(&id, level, &data.level_cf)?;
-    if let Some(new_level) = levelup {
+    let levelup = level.increase_xp(message.content.len(), None);
+    let curlevel = level.level;
+    data.db.put_cf(&id, level, &data.level_cf).unwrap();
+    if levelup {
         message
             .reply(
                 ctx,
@@ -151,7 +164,7 @@ pub async fn handle_new_message<'a>(
                             .unwrap_or(Cow::Borrowed(&message.author.name.clone())),
                     )
                     .push(" has leveled up to level ")
-                    .push(new_level)
+                    .push(curlevel)
                     .push("! WOOOOOOOOOOOO")
                     .build(),
             )
@@ -164,7 +177,7 @@ pub async fn handle_new_message<'a>(
 #[poise::command(slash_command, required_permissions = "MODERATE_MEMBERS")]
 pub async fn set_level(
     ctx: Context<'_>,
-    #[description = "new XP"] xp: f32,
+    #[description = "XP"] xp: u32,
     #[description = "Selected user"] user: Option<serenity::User>,
 ) -> Result<(), Error> {
     let Some(guild_id) = ctx.guild_id() else {
@@ -174,23 +187,43 @@ pub async fn set_level(
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
     let data = ctx.data();
     let id = ids_to_bytes(*guild_id.as_u64(), *u.id.as_u64());
-    let boost_factor = if let Some(level) = data.db.get_cf(&id, &data.level_cf) {
-        level.boost_factor
-    } else {
-        1.0
+    // let boost_factor = if let Some(level) = data.db.get_cf::<_, Level>(&id, &data.level_cf) {
+    //     level.boost_factor
+    // } else {
+    //     1.0
+    // };
+    let (level, level_xp) = unsafe {
+        LEVELS_TOTALXP
+            .iter()
+            .take_while(|&&total| xp >= total)
+            .enumerate()
+            .last()
+            .map(|(x, y)| (x as u32, *y))
+            .unwrap_or((0, 0))
     };
-    data.db
-        .put_cf(&id, Level { xp, boost_factor }, &data.level_cf)
-        .unwrap();
+    let xp = xp - level_xp;
+    data.db.put_cf(
+        &id,
+        Level {
+            level,
+            // boost_factor,
+            xp,
+            ..Default::default()
+        },
+        &data.level_cf,
+    );
     ctx.send(|b| {
         b.embed(|embed| {
-            let mut embed = embed
-                .title("Success")
-                .description(format!("Successfully set {}'s XP to {}", u.name, xp));
+            let mut embed = embed.title("Success").description(format!(
+                "Successfully set {}'s level to {} with {xp} additional xp",
+                u.name, level
+            ));
             format_embed::<&str>(&mut embed, Some(ctx), None, data);
             embed
         })
-    });
+        .ephemeral(true)
+    })
+    .await?;
     Ok(())
 }
 
@@ -208,13 +241,20 @@ pub async fn set_xp_booster(
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
     let data = ctx.data();
     let id = ids_to_bytes(*guild_id.as_u64(), *u.id.as_u64());
-    let xp = if let Some(level) = data.db.get_cf(&id, &data.level_cf) {
-        level.xp
+    let (xp, level) = if let Some(level) = data.db.get_cf::<_, Level>(&id, &data.level_cf) {
+        (level.xp, level.level)
     } else {
-        0.0
+        (0, 0)
     };
-    data.db
-        .put_cf(&id, Level { xp, boost_factor }, &data.level_cf);
+    data.db.put_cf(
+        &id,
+        Level {
+            level,
+            xp,
+            boost_factor,
+        },
+        &data.level_cf,
+    );
     Ok(())
 }
 
@@ -224,6 +264,7 @@ pub async fn level(
     ctx: Context<'_>,
     #[description = "Selected user"] user: Option<serenity::User>,
 ) -> Result<(), Error> {
+    ctx.defer().await;
     let Some(guild_id) = ctx.guild_id() else {
         ctx.say("This command can only be executed in a guild").await?;
         return Ok(());
@@ -242,7 +283,7 @@ pub async fn level(
                 .guild_records(*guild_id.as_u64(), &data.level_cf)
                 .expect("Internal DB error: Invalid CF")
                 .collect();
-            records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
+            records.sort_unstable_by_key(|(uid, level)| (level.xp, level.level));
             records
                 .into_iter()
                 .rev()
@@ -254,15 +295,16 @@ pub async fn level(
                         (
                             0,
                             Level {
-                                xp: 0.0,
-                                boost_factor: 1.1,
+                                level: 0,
+                                xp: 0,
+                                boost_factor: 1.0,
                             },
                         ),
                     )
                 })
         }
     };
-    let ((level, next_level_xp), xp) = (level.get_level(), level.xp);
+    let (level, xp, next_level_xp) = level.get_level();
     let Some(cursor) = level_embed(&data,
 &format!("{}#{}",u.name, u.discriminator),
         &level.to_string(),
@@ -305,6 +347,7 @@ pub async fn leaderboard(
         ctx.say("This command can only be executed in a guild").await?;
         return Ok(());
     };
+    ctx.defer().await;
     let mut page = (page.unwrap_or(1).max(1) - 1) as usize;
     let data = ctx.data();
     let mut records: Vec<_> = data
@@ -314,13 +357,14 @@ pub async fn leaderboard(
         .collect();
     if page * PAGESIZE + 1 > records.len() {
         ctx.send(|b| b.ephemeral(true).content("No ranks to see here"))
-            .await;
+            .await?;
         return Ok(());
     }
     let start = Instant::now();
     let cooldown = Duration::from_secs(120);
-    records.sort_unstable_by_key(|(uid, level)| level.xp as u32);
-    let guild = ctx.partial_guild().await.ok_or("Failed to open guild")?;
+    records.sort_unstable_by_key(|(uid, level)| (level.level, level.xp));
+    // let guild = ctx.partial_guild().await.ok_or("Failed to open guild")?;
+    let guild = ctx.guild().unwrap();
     let author = ctx.author();
 
     let mut embed = CreateEmbed::default();
@@ -330,24 +374,23 @@ pub async fn leaderboard(
         .send(|b| {
             b.components(|f| {
                 f.create_action_row(|row| {
-                    row.create_button(|button| {
-                        button
-                            .label("⬅️")
-                            .style(ButtonStyle::Secondary)
-                            .custom_id("prev")
-                    });
-                    row.create_button(|button| {
-                        button
-                            .label("➡️")
-                            .style(ButtonStyle::Secondary)
-                            .custom_id("next")
-                    });
-                    row.create_button(|button| {
-                        button
-                            .label("⏮️")
-                            .style(ButtonStyle::Secondary)
-                            .custom_id("start")
-                    })
+                    for (emoji, id) in [('⬅', "prev"), ('➡', "next"), ('⏪', "start")].into_iter()
+                    // .map(|(e, id)| {
+                    //     (
+                    //         EmojiIdentifier::from((e))
+                    //             .expect("Failed to parse emojii from string"),
+                    //         id,
+                    //     )
+                    // })
+                    {
+                        row.create_button(|button| {
+                            button
+                                .emoji(emoji)
+                                .style(ButtonStyle::Secondary)
+                                .custom_id(id)
+                        });
+                    }
+                    row
                 })
             });
             b.embeds.push(embed);
@@ -356,50 +399,65 @@ pub async fn leaderboard(
         .await
         .unwrap();
     // msg.into_message().await.unwrap().await_component_interaction(shard_messenger)
+    let msg = msg.message().await.unwrap();
     while let Some(command) = msg
-        .message()
-        .await
-        .unwrap()
         .await_component_interaction(ctx)
         .timeout(cooldown.saturating_sub(start.elapsed()))
         .author_id(author.id)
         .await
     {
+        command.defer(ctx).await.unwrap();
         let new_page = match command.data.custom_id.as_str() {
-            "prev" => page.max(2) - 1,
+            "prev" => page.max(1) - 1,
             "next" => page + 1,
-            _ => 1,
+            _ => 0,
         };
         if new_page == page {
+            command
+                .create_followup_message(ctx, |x| {
+                    x.embed(|e| e.description("No more pages to see"))
+                        .ephemeral(true)
+                })
+                .await
+                .unwrap();
             continue;
         }
         let mut embed = CreateEmbed::default();
-        if create_leaderboard_embed(ctx, &mut embed, &records, page, &guild, data, author)
+        if create_leaderboard_embed(ctx, &mut embed, &records, new_page, &guild, data, author)
             .await
             .is_none()
         {
+            command
+                .create_followup_message(ctx, |x| {
+                    x.embed(|e| e.description("No more pages to see"))
+                        .ephemeral(true)
+                })
+                .await
+                .unwrap();
             continue;
         };
         page = new_page;
-        command
-            .create_interaction_response(ctx, |x| {
-                x.kind(serenity::InteractionResponseType::UpdateMessage)
-                    // .interaction_response_data(|f| f.set_embed())
-                    .interaction_response_data(|f| f.set_embed(embed))
-            })
-            .await
-            .unwrap();
+        if let Ok(mut response) = command.get_interaction_response(ctx).await {
+            response.edit(ctx, |m| m.set_embed(embed)).await;
+        } else {
+            // command
+            //     .create_followup_message(ctx, |x| x.set_embed(embed))
+            //     .await
+            //     .unwrap();
+            command
+                .create_interaction_response(ctx, |x| {
+                    x.kind(serenity::InteractionResponseType::UpdateMessage)
+                        // .interaction_response_data(|f| f.set_embed())
+                        .interaction_response_data(|f| f.set_embed(embed))
+                })
+                .await
+                .unwrap();
+        };
+
         // command
-        //     .edit_original_interaction_response(ctx, |x| {
-        //         x.set_embed({
-        //             let mut embed = CreateEmbed::default();
-        //             embed.title(format!("works! id: {}", command.as_ref().id));
-        //             embed
-        //         })
-        //     })
+        //     .create_followup_message(ctx, |x| x.content("asd").username("wadasd"))
         //     .await
         //     .unwrap();
-        // ctx.send(|b| b.content("hello!")).await;
     }
     Ok(())
 }
@@ -409,11 +467,11 @@ async fn create_leaderboard_embed<'a>(
     mut embed: &'a mut CreateEmbed,
     records: &'a Vec<(u64, Level)>,
     page: usize,
-    guild: &'a PartialGuild,
+    guild: &'a Guild,
     data: &'a Data,
     author: &User,
 ) -> Option<&'a mut CreateEmbed> {
-    if page * PAGESIZE + 1 > records.len() {
+    if page * PAGESIZE >= records.len() {
         return None;
     };
     embed.title("Leaderboard");
@@ -425,7 +483,7 @@ async fn create_leaderboard_embed<'a>(
         .skip(page * PAGESIZE)
         .take(PAGESIZE)
     {
-        let level_parsed = level.get_level();
+        let (level, xp, next_level_xp) = level.get_level();
         embed.field(
             guild
                 .member(ctx, *user_id)
@@ -437,7 +495,11 @@ async fn create_leaderboard_embed<'a>(
                 } else {
                     ""
                 },
-            format!("Level: {}\nTotal XP: {}", level_parsed.0, level.xp),
+            format!(
+                "Level: {}\nTotal XP: {}",
+                level,
+                xp as u64 + unsafe { LEVELS_TOTALXP[level as usize] } as u64
+            ),
             false,
         );
     }
@@ -445,7 +507,7 @@ async fn create_leaderboard_embed<'a>(
     Some(embed)
 }
 
-const LEVELS: [u32; 151] = [
+pub const LEVELS: [u32; 151] = [
     0, 100, 255, 475, 770, 1_150, 1_625, 2_205, 2_900, 3_720, 4_675, 5_775, 7_030, 8_450, 10_045,
     11_825, 13_800, 15_980, 18_375, 20_995, 23_850, 26_950, 30_305, 33_925, 37_820, 42_000, 46_475,
     51_255, 56_350, 61_770, 67_525, 73_625, 80_080, 86_900, 94_095, 101_675, 109_650, 118_030,
@@ -463,6 +525,9 @@ const LEVELS: [u32; 151] = [
     4_520_925, 4_618_900, 4_718_280, 4_819_075, 4_921_295, 5_024_950, 5_130_050, 5_236_605,
     5_344_625, 5_454_120, 5_565_100, 5_677_575, 5_791_555, 5_907_050, 6_024_070, 6_142_625,
 ];
+
+pub static mut LEVELS_TOTALXP: [u32; LEVELS.len()] = LEVELS;
+
 const POSSIBLE_XP: [u8; 101] = [
     10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15,
     16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21,

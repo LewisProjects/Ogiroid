@@ -58,7 +58,7 @@ pub async fn level_embed(
     data: &Data,
     username: &str,
     level: &str,
-    xp: f32,
+    xp: u32,
     xp_for_next_level: u32,
     rank: String,
     avatar_url: String,
@@ -111,7 +111,7 @@ pub async fn level_embed(
     draw_filled_rect_mut(
         &mut image,
         Rect::at(POS.0 as i32 + 2, RECT_POS as i32 + 2).of_size(
-            (((RECT_SIZE.0 - 4) as f32 * (xp / xp_for_next_level as f32)) as u32).max(1),
+            (((RECT_SIZE.0 - 4) as f32 * (xp as f32 / xp_for_next_level as f32)) as u32).max(1),
             RECT_SIZE.1 - 4,
         ),
         BACKGROUND,

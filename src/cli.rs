@@ -52,6 +52,10 @@ pub struct Cli {
     /// The RocksDB ColumnFamily to store levels in
     pub level_cf: String,
 
+    #[arg(long, env = "SERVER_CONFIG_CF", default_value = "servers")]
+    /// The RocksDB ColumnFamily to store per-server configs in
+    pub server_cf: String,
+
     #[arg(long, env = "LEVEL_CACHE", default_value = "200")]
     /// The number of elements to keep in the LEVELLING DB cache
     pub level_cache_size: usize,

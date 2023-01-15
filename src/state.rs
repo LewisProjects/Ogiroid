@@ -80,20 +80,24 @@ impl Db {
             return None};
         Some(value)
     }
-    pub fn get<'a, K>(&'a self, key: K) -> Option<Level>
+    pub fn get<'a, K, T>(&'a self, key: K) -> Option<T>
     where
+        T: rkyv::Archive,
+        <T as Archive>::Archived: Deserialize<T, SharedDeserializeMap>,
         K: AsRef<[u8]>,
     {
         let Ok(Some(value)) = self.db.get(key) else {
             return None
         };
-        let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
+        let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<T>(&value)}) else {
             return None
         };
         Some(entry)
     }
-    pub fn get_cf<'a, K>(&'a self, key: K, cf: &str) -> Option<Level>
+    pub fn get_cf<'a, K, T>(&'a self, key: K, cf: &str) -> Option<T>
     where
+        T: rkyv::Archive,
+        <T as Archive>::Archived: Deserialize<T, SharedDeserializeMap>,
         K: AsRef<[u8]>,
     {
         let Some(cf) = self.db.cf_handle(cf) else {
@@ -102,13 +106,23 @@ impl Db {
         let Ok(Some(value)) = self.db.get_cf(&cf, key) else {
             return None
         };
-        let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<Level>(&value)}) else {
+        let Ok(entry) = (unsafe {rkyv::from_bytes_unchecked::<T>(&value)}) else {
             return None
         };
         Some(entry)
     }
-    pub fn put<'a, K>(&'a self, key: K, value: Level) -> Result<(), DBFailure>
+    pub fn put<'a, K, T>(&'a self, key: K, value: T) -> Result<(), DBFailure>
     where
+        T: rkyv::Serialize<
+            rkyv::ser::serializers::CompositeSerializer<
+                rkyv::ser::serializers::AlignedSerializer<rkyv::AlignedVec>,
+                rkyv::ser::serializers::FallbackScratch<
+                    rkyv::ser::serializers::HeapScratch<256>,
+                    rkyv::ser::serializers::AllocScratch,
+                >,
+                rkyv::ser::serializers::SharedSerializeMap,
+            >,
+        >,
         K: AsRef<[u8]>,
     {
         let Ok(value) = rkyv::to_bytes::<_, 256>(&value) else {
@@ -118,12 +132,22 @@ impl Db {
             Ok(_) => Ok(()),
         }
     }
-    pub fn put_cf<'a, K>(&'a self, key: K, value: Level, cf: &str) -> Result<(), DBFailure>
+    pub fn put_cf<'a, K, T>(&'a self, key: K, value: T, cf: &str) -> Result<(), DBFailure>
     where
+        T: rkyv::Serialize<
+            rkyv::ser::serializers::CompositeSerializer<
+                rkyv::ser::serializers::AlignedSerializer<rkyv::AlignedVec>,
+                rkyv::ser::serializers::FallbackScratch<
+                    rkyv::ser::serializers::HeapScratch<512>,
+                    rkyv::ser::serializers::AllocScratch,
+                >,
+                rkyv::ser::serializers::SharedSerializeMap,
+            >,
+        >,
         K: AsRef<[u8]>,
     {
         let cf = self.db.cf_handle(cf).ok_or(DBFailure::SerError)?;
-        let Ok(value) = rkyv::to_bytes::<_, 256>(&value) else {
+        let Ok(value) = rkyv::to_bytes::<_, 512>(&value) else {
             return Err(DBFailure::SerError)};
         match self.db.put_cf(&cf, key, value) {
             Err(error) => Err(DBFailure::Error(error)),

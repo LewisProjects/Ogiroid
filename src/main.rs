@@ -33,6 +33,7 @@ pub struct Data {
     font_width: f32,
     http_client: reqwest::Client,
     level_cf: Box<String>,
+    server_cf: Box<String>,
 } // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -40,6 +41,13 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+    unsafe {
+        let mut total: u32 = 0;
+        for (i, xp) in LEVELS.iter().enumerate() {
+            total += xp;
+            LEVELS_TOTALXP[i] = total
+        }
+    };
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![
@@ -112,7 +120,7 @@ async fn main() {
                         .to_str()
                         .expect("--db-path needs to be valid unicode"),
                     cli.level_cache_size,
-                    &[cli.level_cf.clone()],
+                    &[cli.level_cf.clone(), cli.server_cf.clone()],
                 )
                 .unwrap();
 
@@ -123,6 +131,7 @@ async fn main() {
                     font,
                     db,
                     level_cf: Box::new(cli.level_cf),
+                    server_cf: Box::new(cli.server_cf),
                     edit_cache: Box::new(
                         AsyncCache::new(
                             cli.edit_cache as usize * 50,

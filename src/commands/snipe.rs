@@ -79,6 +79,7 @@ pub async fn editsnipe(
     ctx: Context<'_>,
     #[description = "Channel"] channel: Option<serenity::ChannelId>,
 ) -> Result<(), Error> {
+    ctx.defer().await;
     let c = channel.unwrap_or_else(|| ctx.channel_id());
     let data = ctx.data();
     let Some(message) = data.edit_cache.get(c.as_u64()) else {
@@ -130,6 +131,7 @@ pub async fn snipe(
     ctx: Context<'_>,
     #[description = "Channel"] channel: Option<serenity::ChannelId>,
 ) -> Result<(), Error> {
+    ctx.defer().await;
     let c = channel.unwrap_or_else(|| ctx.channel_id());
     let data = ctx.data();
     let Some(snipe) = data.deleted_cache.get(c.as_u64()) else {
