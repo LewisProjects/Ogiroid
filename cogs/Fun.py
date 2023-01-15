@@ -476,7 +476,7 @@ class Fun(commands.Cog):
         # checking if url starts with http:// or https://, if it does not, adding https:// towards the start
         if not (url.startswith("http://") or url.startswith("https://")):
             url = f"https://{url}"
-        response = requests.post("https://roman.vm.net.ua/s", url)
+        response = requests.post("https://oxlink.dev/s", url)
         if response.status_code == 201:
             embed = disnake.Embed(
                 color=0xFFFFFF,
