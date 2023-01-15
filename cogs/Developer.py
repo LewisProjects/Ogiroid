@@ -105,6 +105,7 @@ class Dev(Cog):
     @checks.is_dev()
     async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str):
         """Repeats text"""
+        await inter.response.defer()
         await (await inter.original_message()).delete()
         await inter.send(f"{what_to_say}")
 
