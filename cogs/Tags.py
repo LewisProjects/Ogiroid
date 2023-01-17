@@ -40,13 +40,13 @@ class Tags(commands.Cog, name="Tags"):
     def db(self):
         return self.bot.db
 
-    @commands.slash_command()
+    @commands.slash_command(description="Tags base command")
     @commands.guild_only()
     async def tag(self, inter):
         pass
 
     @commands.slash_command(
-        name="t", aliases=["tg"], description="Get a tag", hidden=True
+        name="t", aliases=["tg"], description="An alias for `/tag get`", hidden=True
     )
     async def get_tag(
         self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool = False

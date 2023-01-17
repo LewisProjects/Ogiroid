@@ -62,32 +62,38 @@ class FlagQuizHandler:
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
 
-    async def get_user(self, user_id: int) -> FlagQuizUser:
-        user = await self.cache.get(str(user_id))
+    async def get_user(self, user_id: int, guild_id: int) -> FlagQuizUser:
+        # get cache by combining user_id and guild_id
+        user = await self.cache.get(str(user_id) + str(guild_id))
         if user is not None:
             return user
-        elif await self.exists(user_id):
+        elif await self.exists(user_id, guild_id):
+            # not prone to injection since it's just id's
             async with self.db.execute(
-                f"SELECT * FROM flag_quizz WHERE user_id = {user_id}"
+                f"SELECT * FROM flag_quizz WHERE user_id = {user_id} AND guild_id = {guild_id}"
             ) as cur:
                 rawUserData = await cur.fetchone()
                 user = FlagQuizUser(*rawUserData)
-                await self.cache.set(str(user_id), user)
+                # set unique index by combining user_id and guild_id
+                await self.cache.set(str(user_id) + str(guild_id), user)
                 return user
 
         else:
             raise UserNotFound
 
-    async def exists(self, user_id: int):
+    async def exists(self, user_id: int, guild_id: int) -> bool:
         async with self.db.execute(
-            f"SELECT EXISTS(SELECT 1 FROM flag_quizz WHERE user_id=?)", [user_id]
+            f"SELECT EXISTS(SELECT 1 FROM flag_quizz WHERE user_id=? AND guild_id = ?)",
+            [user_id, guild_id],
         ) as cur:
             return bool((await cur.fetchone())[0])
 
-    async def get_leaderboard(self, order_by="correct"):
+    async def get_leaderboard(
+        self, order_by="correct", guild_id: int = None
+    ) -> List[FlagQuizUser]:
         leaderboard = []
         async with self.db.execute(
-            f"SELECT user_id, tries, correct, completed FROM flag_quizz ORDER BY {order_by} DESC LIMIT 10"
+            f"SELECT user_id, tries, correct, completed, guild_id FROM flag_quizz WHERE guild_id = {guild_id} ORDER BY {order_by} DESC LIMIT 10"
         ) as cur:
             async for row in cur:
                 leaderboard.append(FlagQuizUser(*row))
@@ -104,12 +110,13 @@ class FlagQuizHandler:
         tries: int,
         correct: int,
         user: Optional[FlagQuizUser] = None,
-    ) -> FlagQuizUser:
+        guild_id: int = None,
+    ) -> FlagQuizUser or None:
         if user is not None:
             try:
-                user = await self.get_user(user_id)
+                user = await self.get_user(user_id, guild_id)
             except UserNotFound:
-                await self.add_user(user_id, tries, correct)
+                await self.add_user(user_id, tries, correct, guild_id=guild_id)
                 return
 
         if correct == 199:
@@ -120,19 +127,22 @@ class FlagQuizHandler:
         correct += user.correct
 
         async with self.db.execute(
-            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id}"
+            # not prone to injection since it's just id's
+            f"UPDATE flag_quizz SET tries = {tries}, correct = {correct}, completed = {completed} WHERE user_id = {user_id} AND guild_id = {guild_id}"
         ):
             await self.db.commit()
-        return FlagQuizUser(user_id, tries, correct, completed)
+        return FlagQuizUser(user_id, tries, correct, completed, guild_id)
 
-    async def add_user(self, user_id: int, tries: int = 0, correct: int = 0):
+    async def add_user(
+        self, user_id: int, tries: int = 0, correct: int = 0, guild_id: int = None
+    ):
         if correct == 199:
             completed = 1
         else:
             completed = 0
 
         async with self.db.execute(
-            f"INSERT INTO flag_quizz (user_id, tries, correct, completed) VALUES ({user_id}, {tries}, {correct}, {completed})"
+            f"INSERT INTO flag_quizz (user_id, tries, correct, completed, guild_id) VALUES ({user_id}, {tries}, {correct}, {completed}, {guild_id})"
         ):
             await self.db.commit()
 
@@ -281,7 +291,6 @@ class TagManager:
         self.session = self.bot.session
         self.names = {"tags": [], "aliases": []}
         self.cache = AsyncTTL(timings.DAY / 2)  # cache tags for 12 hrs
-        # self.pool = self.bot.pool todo re-add
 
     async def startup(self):
         await self.bot.wait_until_ready()
@@ -604,35 +613,44 @@ class WarningHandler:
                 return None
             return WarningModel(*content)
 
-    async def get_warnings(self, user_id: int) -> List[WarningModel]:
+    async def get_warnings(self, user_id: int, guild_id: int) -> List[WarningModel]:
         warnings = []
         async with self.db.execute(
-            "SELECT * FROM warnings WHERE user_id = ?", [user_id]
+            "SELECT * FROM warnings WHERE user_id = ? AND guild_id = ?",
+            [user_id, guild_id],
         ) as cur:
             async for row in cur:
                 warnings.append(WarningModel(*row))
         return warnings
 
-    async def create_warning(self, user_id: int, reason: str, moderator_id: int):
+    async def create_warning(
+        self, user_id: int, reason: str, moderator_id: int, guild_id: int
+    ):
         await self.db.execute(
-            "INSERT INTO warnings (user_id, reason, moderator_id) VALUES (?, ?, ?)",
-            [user_id, reason, moderator_id],
+            "INSERT INTO warnings (user_id, reason, moderator_id, guild_id) VALUES (?, ?, ?, ?)",
+            [user_id, reason, moderator_id, guild_id],
         )
         await self.db.commit()
         return True
 
-    async def remove_all_warnings(self, user_id: int) -> bool:
-        warnings = await self.get_warnings(user_id)
+    async def remove_all_warnings(self, user_id: int, guild_id: int) -> bool:
+        warnings = await self.get_warnings(user_id, guild_id)
         if len(warnings) == 0:
             return False
-        await self.db.execute("DELETE FROM warnings WHERE user_id = ?", [user_id])
+        await self.db.execute(
+            "DELETE FROM warnings WHERE user_id = ? AND guild_id = ?",
+            [user_id, guild_id],
+        )
         await self.db.commit()
 
-    async def remove_warning(self, warning_id: int) -> bool:
+    async def remove_warning(self, warning_id: int, guild_id: int) -> bool:
         warning = await self.get_warning(warning_id)
         if warning is None:
             return False
-        await self.db.execute("DELETE FROM warnings WHERE warning_id = ?", [warning_id])
+        await self.db.execute(
+            "DELETE FROM warnings WHERE warning_id = ? AND guild_id = ?",
+            [warning_id, guild_id],
+        )
         await self.db.commit()
         return True
 

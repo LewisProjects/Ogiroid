@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-__VERSION__ = "2.1"
+__VERSION__ = "2.2"
 
 from typing import Final
 
@@ -192,6 +192,7 @@ timezones = [
     "Europe/Sofia",
     "Europe/Tallinn",
     "Europe/Vilnius",
+    "Europe/Tbilisi",
     "Asia/Baghdad",
     "Asia/Kuwait",
     "Africa/Nairobi",
@@ -201,7 +202,6 @@ timezones = [
     "Asia/Baku",
     "Europe/Volgograd",
     "Asia/Muscat",
-    "Asia/Tbilisi",
     "Asia/Yerevan",
     "Asia/Kabul",
     "Asia/Karachi",

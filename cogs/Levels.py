@@ -462,7 +462,7 @@ class Level(commands.Cog):
         if not self.bot.ready_:
             print("[Levels] Ready")
 
-    @commands.slash_command()
+    @commands.slash_command(description="XP boost base command")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def xp_boost(self, inter: ApplicationCommandInteraction):
@@ -472,6 +472,7 @@ class Level(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @xp_boost.sub_command()
     async def active(self, inter: ApplicationCommandInteraction, active: bool):
+        """Enable or disable xp boost"""
         await self.bot.db.execute(
             "UPDATE config SET xp_boost_enabled = ? WHERE guild_id = ?",
             (active, inter.guild.id),
@@ -645,7 +646,7 @@ class Level(commands.Cog):
             inter, text=f"Set {user.mention}'s level to {level}", ephemeral=False
         )
 
-    @commands.slash_command()
+    @commands.slash_command(description="Role rewards base command")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def role_reward(self, inter: ApplicationCommandInteraction):
@@ -655,14 +656,14 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def add(
-            self,
-            inter: ApplicationCommandInteraction,
-            role: Role = Param(name="role", description="what role to give"),
-            level_needed: int = Param(
-                name="level_needed", description="The level needed to get the role"
-            ),
+        self,
+        inter: ApplicationCommandInteraction,
+        role: Role = Param(name="role", description="What role to give"),
+        level_needed: int = Param(
+            name="level_needed", description="The level needed to get the role"
+        ),
     ):
-        """adds a role to the reward list"""
+        """Adds a role to the reward list"""
         if int(level_needed) not in self.levels:
             return await errorEmb(
                 inter, text=f"Level must be within 1-{MAX_LEVEL} found"
@@ -686,11 +687,11 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def remove(
-            self,
-            inter: ApplicationCommandInteraction,
-            role: Role = Param(name="role", description="what role to remove"),
+        self,
+        inter: ApplicationCommandInteraction,
+        role: Role = Param(name="role", description="What role to remove"),
     ):
-        """remove a role reward"""
+        """Remove a role reward"""
         if await self.bot.db.execute(
                 "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
                 (inter.guild.id, role.id),
@@ -708,7 +709,7 @@ class Level(commands.Cog):
 
     @role_reward.sub_command()
     async def list(self, inter: ApplicationCommandInteraction):
-        """list all role rewards"""
+        """List all role rewards"""
         sql = "SELECT * FROM role_rewards WHERE guild_id = ?"
         records = await self.bot.db.execute(sql, (inter.guild.id,))
         records = await records.fetchall()
