@@ -103,7 +103,14 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def say(self, inter: ApplicationCommandInteraction, *, what_to_say: str, channel: disnake.TextChannel = None, times: int = 1):
+    async def say(
+        self,
+        inter: ApplicationCommandInteraction,
+        *,
+        what_to_say: str,
+        channel: disnake.TextChannel = None,
+        times: int = 1,
+    ):
         """Repeats text, optionally in a different channel and a maximum of 10 times"""
         await inter.response.defer()
         await (await inter.original_message()).delete()

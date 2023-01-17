@@ -46,7 +46,7 @@ class Tokens:
 
 
 @dataclass
-class Database: # Todo switch to rockdb info
+class Database:  # Todo switch to rockdb info
     user: str = os.getenv("POSTGRES_USER")
     password: str = os.getenv("POSTGRES_PASSWORD")
     host: str = os.getenv("POSTGRES_HOST")

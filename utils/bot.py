@@ -123,7 +123,6 @@ class OGIROID(commands.InteractionBot):
         self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
         await self.blacklist.startup()
 
-
     async def start(self, *args, **kwargs):
         async with aiosqlite.connect("data.db") as self.db:
             await self.db.executescript(SETUP_SQL)
