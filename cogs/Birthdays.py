@@ -12,20 +12,6 @@ from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
 
 
-async def get_days_until_birthday(user_data) -> (int, str):
-    """returns the days until the next birthday and the next birthday date formatted for discord"""
-    next_birthday = datetime.datetime.strptime(
-        user_data.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y"
-    )
-    if next_birthday < datetime.datetime.now():
-        next_birthday = datetime.datetime.strptime(
-            user_data.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y"
-        )
-    return (
-        next_birthday - datetime.datetime.now()
-    ).days, f"<t:{str(next_birthday.timestamp()).split('.')[0]}:D>"
-
-
 class Birthday(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
@@ -40,7 +26,7 @@ class Birthday(commands.Cog):
     def cog_unload(self):
         self.birthday_check.cancel()
 
-    @commands.slash_command(name="birthday", description="Birthdays base command")
+    @commands.slash_command(name="birthday")
     async def birthday(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
@@ -131,36 +117,17 @@ class Birthday(commands.Cog):
         if birthday is None:
             return await errorEmb(inter, "This user doesn't have a birthday set")
 
-        days, discord_date = await get_days_until_birthday(birthday)
+        next_birthday = datetime.datetime.strptime(
+            birthday.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y"
+        )
+        if next_birthday < datetime.datetime.now():
+            next_birthday = datetime.datetime.strptime(
+                birthday.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y"
+            )
         await QuickEmb(
             inter,
-            f"{user.mention}'s birthday is in {days} Days." f"{discord_date}",
-        ).send()
-
-    @birthday.sub_command(name="next", description="Get the next birthday")
-    async def next(self, inter: disnake.ApplicationCommandInteraction):
-        x = 1000
-        next_birthday = None
-        member = None
-        # loop gets next birthday
-        for user in await self.birthday.get_users():
-            # gets days until birthday and the discord date
-            days, discord_date = await get_days_until_birthday(user)
-            # checks if user is in the guild
-            y = await inter.guild.fetch_member(user.user_id)
-            # compares days to previous highest value
-            if days < x and y is not None:
-                x = days
-                next_birthday = user
-                member = y
-
-        if next_birthday is None:
-            return await errorEmb(inter, "There are no birthdays set")
-
-        days, discord_date = await get_days_until_birthday(next_birthday)
-        await QuickEmb(
-            inter,
-            f"{member.mention}'s birthday is in {days} Days." f"{discord_date}",
+            f"{user.mention}'s birthday is in {(next_birthday - datetime.datetime.now()).days} Days."
+            f" <t:{str(next_birthday.timestamp()).split('.')[0]}:D>",
         ).send()
 
     # @tasks.loop(time=[dt.time(dt.datetime.utcnow().hour, dt.datetime.utcnow().minute, dt.datetime.utcnow().second + 10)])

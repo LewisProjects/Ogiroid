@@ -36,7 +36,7 @@ class Utilities(commands.Cog):
         else:
             result = disnake.Embed(
                 color=disnake.Color.red(),
-                description=sniped_message.content[:1024],
+                description=sniped_message.content,
                 timestamp=sniped_message.created_at,
             )
             result.set_author(
@@ -68,8 +68,8 @@ class Utilities(commands.Cog):
             await inter.send("There are no message edits in this channel to snipe!")
         else:
             result = disnake.Embed(color=disnake.Color.red(), timestamp=after.edited_at)
-            result.add_field(name="Before", value=before.content[:1024], inline=False)
-            result.add_field(name="After", value=after.content[:1024], inline=False)
+            result.add_field(name="Before", value=before.content, inline=False)
+            result.add_field(name="After", value=after.content, inline=False)
             result.set_author(
                 name=after.author.display_name, icon_url=after.author.avatar.url
             )

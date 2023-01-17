@@ -38,7 +38,7 @@ class Fun(commands.Cog):
             self.togetherControl = await DiscordTogether(TOKEN)
 
     @commands.slash_command(
-        name="spotify", description="Show what song a member is listening to on Spotify"
+        name="spotify", description="Show what song a member listening to in Spotify"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -274,7 +274,7 @@ class Fun(commands.Cog):
 
     @commands.slash_command(
         name="askogiroid",
-        description="Ogiroid will guess the character you are thinking of.",
+        description="Ogiroid will guess the character you are thinking off.",
     )
     # Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
     async def askogiroid(self, inter):
@@ -324,12 +324,9 @@ class Fun(commands.Cog):
                 channel = self.bot.get_channel(inter.channel.id)
                 button_click = channel
                 while aki.progression <= 80:
-                    question_number = 0
                     question = disnake.Embed(
                         title="Question", description=q, color=0xFFFFFF
                     )
-                    question_number = question_number + 1
-                    question.set_footer(text=question_number)
                     question.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )

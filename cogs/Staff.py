@@ -148,9 +148,9 @@ class Staff(commands.Cog):
         await sucEmb(inter, "User has been unbanned successfully!")
 
     @commands.slash_command(
-        name="mute", description="'timeout's a user from the server."
+        name="mute", description="Timeout(mute)'s a user from the server."
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     @commands.guild_only()
     async def mute(
         self,
@@ -191,7 +191,7 @@ class Staff(commands.Cog):
     @commands.slash_command(
         name="unmute", description="Unmutes a user from the server."
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     @commands.guild_only()
     async def unmute(
         self,
@@ -210,7 +210,7 @@ class Staff(commands.Cog):
         await sucEmb(inter, "User has been unmuted successfully!")
 
     @commands.slash_command(name="warn", description="Warns a user from the server.")
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     @commands.guild_only()
     async def warn(
         self,
@@ -220,7 +220,7 @@ class Staff(commands.Cog):
     ):
         """Warns a user from the server."""
         await self.warning.create_warning(
-            member.id, reason, moderator_id=inter.author.id, guild_id=inter.guild.id
+            member.id, reason, moderator_id=inter.author.id
         )
         await warning_embed(inter, user=member, reason=reason)
 
@@ -228,19 +228,17 @@ class Staff(commands.Cog):
         name="removewarning",
         description="Removes a warning from a user from the server.",
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     @commands.guild_only()
     async def remove_warning(
         self, inter: ApplicationCommandInteraction, member: disnake.Member
     ):
         """Removes a warning from a user from the server."""
-        warnings = await self.warning.get_warnings(member.id, inter.guild.id)
+        warnings = await self.warning.get_warnings(member.id)
         if len(warnings) == 0:
             return await errorEmb(inter, "User has no warnings!")
         elif len(warnings) == 1:
-            status = await self.warning.remove_warning(
-                warnings[0].warning_id, inter.guild.id
-            )
+            status = await self.warning.remove_warning(warnings[0].warning_id)
             if status:
                 await sucEmb(inter, "Warning has been removed successfully!")
             else:
@@ -266,9 +264,7 @@ class Staff(commands.Cog):
             if id > len(warnings) or id < 1:
                 return await errorEmb(inter, "Invalid warning index!")
 
-            status = await self.warning.remove_warning(
-                warnings[id - 1].warning_id, inter.guild.id
-            )
+            status = await self.warning.remove_warning(warnings[id - 1].warning_id)
             if status:
                 await sucEmb(inter, "Warning has been removed successfully!")
             else:
@@ -283,17 +279,26 @@ class Staff(commands.Cog):
     @commands.slash_command(
         name="warnings", description="Shows the warnings of a user from the server."
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     @commands.guild_only()
     async def warnings(
         self, inter: ApplicationCommandInteraction, member: disnake.Member
     ):
         """Shows the warnings of a user from the server."""
-        warnings = await self.warning.get_warnings(member.id, inter.guild.id)
+        warnings = await self.warning.get_warnings(member.id)
         if not warnings:
             return await QuickEmb(inter, "User has no warnings!").send()
 
         await warnings_embed(inter, member=member, warnings=warnings)
+
+    @commands.slash_command()
+    @commands.has_role("Staff")
+    async def punishments(self, inter: ApplicationCommandInteraction):
+        """Shows the punishments"""
+        return await inter.send(
+            "https://media.discordapp.net/attachments/905182869410955356/985264301591916594/unknown-18.png?width=521&height=683",
+            ephemeral=True,
+        )
 
     @commands.slash_command(description="Steals an emoji from a different server.")
     @commands.guild_only()
@@ -346,8 +351,6 @@ class Staff(commands.Cog):
         except asyncio.TimeoutError:
             return await inter.send("Timed out!")
 
-        image = None
-
         if input_type == "url(image)":
             response = await self.bot.session.get(
                 msg.content.strip().replace("webp", "png")
@@ -368,9 +371,19 @@ class Staff(commands.Cog):
         except ValueError:
             pass
 
+    @commands.slash_command(name="faq")
+    @commands.guild_only()
+    @commands.has_role("Staff")
+    async def faq(self, inter: ApplicationCommandInteraction, person: disnake.Member):
+        """FAQ command for the staff team"""
+        channel = self.bot.get_channel(self.bot.config.channels.reddit_faq)
+        await channel.send(f"{person.mention}", delete_after=2)
+        # Sending Done so this Application didn't respond error can be avoided
+        await inter.send("Done", delete_after=1)
+
     @commands.slash_command(name="prune")
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_role("Staff")
     async def prune(self, inter: ApplicationCommandInteraction, amount: int):
         """Delete messages, max limit set to 25."""
         # Checking if amount > 25:
@@ -382,7 +395,7 @@ class Staff(commands.Cog):
 
     @commands.slash_command(name="channellock")
     @commands.guild_only()
-    @commands.has_permissions(manage_channels=True)
+    @commands.has_role("Staff")
     async def channellock(
         self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None
     ):
@@ -401,7 +414,7 @@ class Staff(commands.Cog):
 
     @commands.slash_command(name="channelunlock")
     @commands.guild_only()
-    @commands.has_permissions(manage_channels=True)
+    @commands.has_role("Staff")
     async def channelunlock(
         self, inter: ApplicationCommandInteraction, channel: disnake.TextChannel = None
     ):
@@ -423,7 +436,7 @@ class Staff(commands.Cog):
         name="addreactionrole", description="Add a reaction based role to a message"
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def add_reaction_role(
         self,
         inter: ApplicationCommandInteraction,
@@ -452,7 +465,7 @@ class Staff(commands.Cog):
         description="Remove a reaction based role from a message",
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def remove_reaction_role(
         self, inter, message_id, emoji: str, role: disnake.Role
     ):
@@ -506,7 +519,7 @@ class Staff(commands.Cog):
         description="Create a Message with Buttons where users click them and get roles.",
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def initialise_message(
         self,
         inter: disnake.ApplicationCommandInteraction,
@@ -567,7 +580,7 @@ class Staff(commands.Cog):
         " Use /initialise-message for that.",
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def add_button(
         self,
         inter,
@@ -633,7 +646,7 @@ class Staff(commands.Cog):
         description="Edit a message the bot sent(Role messages with buttons only).",
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def edit_message(self, inter, message_id, channel: disnake.TextChannel):
         exists = False
         message_id = int(message_id)
@@ -682,7 +695,7 @@ class Staff(commands.Cog):
         description="Delete a message the bot sent(Role messages with buttons only).",
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def delete_message(self, inter, message_id, channel: disnake.TextChannel):
         exists = False
         message_id = int(message_id)
@@ -716,7 +729,7 @@ class Staff(commands.Cog):
         name="remove-button", description="Remove a button from a message."
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def remove_button(
         self,
         inter,
@@ -790,7 +803,7 @@ class Staff(commands.Cog):
 
     @commands.slash_command(name="staffvote", description="Propose a Staff Vote.")
     @commands.guild_only()
-    @commands.has_permissions(ban_members=True)
+    @commands.has_role("Staff")
     async def staffvote(self, inter):
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
@@ -799,7 +812,7 @@ class Staff(commands.Cog):
         name="staffhelp", description="Get the help for the staff commands."
     )
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_role("Staff")
     async def staffhelp(self, inter):
         """Get the help for the staff commands."""
         staff_commands = commands.Cog.get_slash_commands(self)

@@ -37,10 +37,10 @@ class Trivia(commands.Cog, name="Trivia"):
         correct = 0
         tries = 0
         try:
-            user = await self.flag_quiz.get_user(inter.author.id, inter.guild.id)
+            user = await self.flag_quiz.get_user(inter.author.id)
         except UserNotFound:
             await self.flag_quiz.add_user(inter.author.id)
-            user = await self.flag_quiz.get_user(inter.author.id, inter.guild.id)
+            user = await self.flag_quiz.get_user(inter.author.id)
 
         def check(m):
             return (
@@ -54,11 +54,7 @@ class Trivia(commands.Cog, name="Trivia"):
             retry = True
             while retry:
                 user = await self.flag_quiz.add_data(
-                    user_id=inter.author.id,
-                    user=user,
-                    correct=correct,
-                    tries=tries,
-                    guild_id=inter.guild.id,
+                    user_id=inter.author.id, user=user, correct=correct, tries=tries
                 )
                 embed = disnake.Embed(
                     title="Guess the Flag.",
@@ -77,11 +73,7 @@ class Trivia(commands.Cog, name="Trivia"):
                         channel, "Due to no response the quiz ended early."
                     ).error().send()
                     await self.flag_quiz.add_data(
-                        inter.author.id,
-                        tries - 1,
-                        correct,
-                        user=user,
-                        guild_id=inter.guild.id,
+                        inter.author.id, tries - 1, correct, user=user
                     )
                     return
 
@@ -147,20 +139,14 @@ class Trivia(commands.Cog, name="Trivia"):
                         f"Your Score: {correct}/{tries - 1}. Thanks for playing.",
                     ).send()
                     await self.flag_quiz.add_data(
-                        guess.author.id,
-                        tries - 1,
-                        correct,
-                        user=user,
-                        guild_id=inter.guild.id,
+                        guess.author.id, tries - 1, correct, user=user
                     )
                     return
                 # If retry is still True (not changed) then the guess was incorrect
                 elif retry:
                     await errorEmb(inter, "Incorrect")
 
-        await self.flag_quiz.add_data(
-            inter.author.id, tries, correct, user=user, guild_id=inter.guild.id
-        )
+        await self.flag_quiz.add_data(inter.author.id, tries, correct, user=user)
         await channel.send(
             f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}"
         )
@@ -180,9 +166,7 @@ class Trivia(commands.Cog, name="Trivia"):
         ),
     ):
         try:
-            leaderboard = await self.flag_quiz.get_leaderboard(
-                order_by=sortby, guild_id=inter.guild.id
-            )
+            leaderboard = await self.flag_quiz.get_leaderboard(order_by=sortby)
         except UsersNotFound:
             return (
                 await QuickEmb(inter, "No users have taken the quiz yet.")
@@ -221,7 +205,7 @@ class Trivia(commands.Cog, name="Trivia"):
         else:
             user_id = inter.author.id
         try:
-            player = await self.flag_quiz.get_user(user_id, inter.guild.id)
+            player = await self.flag_quiz.get_user(user_id)
         except UserNotFound:
             await errorEmb(
                 inter, "This user never took part in the flag quiz or doesn't exist."
