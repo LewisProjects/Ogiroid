@@ -4,11 +4,14 @@ from collections import Counter
 
 import disnake
 from disnake.ext import commands
-from disnake.utils import format_dt
 
 from utils.CONSTANTS import status, __VERSION__
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb
+
+global startTime
+startTime = time.time()
+
 
 class plural:
     def __init__(self, value):
@@ -51,7 +54,7 @@ class Commands(commands.Cog):
     )
     async def ping(self, inter):
         """Shows how fast the bot is replying to you!"""
-        uptime = str(datetime.timedelta(seconds=int(round(time.time() - int(self.bot.uptime.timestamp())))))
+        uptime = str(datetime.timedelta(seconds=int(round(time.time() - startTime))))
         embed = disnake.Embed(
             title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF
         )
@@ -257,13 +260,11 @@ class Commands(commands.Cog):
         e.add_field(name="ID", value=user.id, inline=False)
         e.add_field(
             name="Joined",
-            value=f'{format_dt(user.joined_at, style="R")}, {format_dt(user.joined_at, style="d")}',
+            value=getattr(user, "joined_at", None).strftime("%m/%d/%Y"),
             inline=False,
         )
         e.add_field(
-            name="Created",
-            value=f'{format_dt(user.created_at, style="R")}, {format_dt(user.created_at, style="d")}',
-            inline=False,
+            name="Created", value=user.created_at.strftime("%m/%d/%Y"), inline=False
         )
 
         voice = getattr(user, "voice", None)

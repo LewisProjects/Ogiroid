@@ -105,7 +105,6 @@ class FlagQuizUser:
     tries: int
     correct: int
     completed: int
-    guild_id: int
 
 
 @dataclass
@@ -122,7 +121,6 @@ class WarningModel:
     user_id: int
     moderator_id: int
     reason: str
-    guild_id: int
 
 
 @dataclass
