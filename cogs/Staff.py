@@ -507,7 +507,7 @@ class Staff(commands.Cog):
     )
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
-    async def initialise_message(
+    async def initialise_message( # todo create better  and clean this section up.
         self,
         inter: disnake.ApplicationCommandInteraction,
         emoji: str = ParamInfo(
@@ -780,18 +780,18 @@ class Staff(commands.Cog):
                 role, reason=f"Clicked button to get role. gave {role.name}"
             )
             await self.reaction_roles.increment_roles_given(message.id, str(emoji))
-            return await sucEmb(inter, "Added Role")
+            return await sucEmb(inter, f"Added Role {role.mention}")
         else:
             await member.remove_roles(
                 role,
                 reason=f"Clicked button while already having the role. removed {role.name}",
             )
-            return await sucEmb(inter, "Removed Role")
+            return await sucEmb(inter, f"Removed Role {role.mention}")
 
     @commands.slash_command(name="staffvote", description="Propose a Staff Vote.")
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    async def staffvote(self, inter):
+    async def staffvote(self, inter): #todo remove
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
 
