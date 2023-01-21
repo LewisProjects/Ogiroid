@@ -139,20 +139,24 @@ class Birthday(commands.Cog):
 
     @birthday.sub_command(name="next", description="Get the next birthday")
     async def next(self, inter: disnake.ApplicationCommandInteraction):
-        x = 1000
-        next_birthday = None
-        member = None
+        upcoming_birthdays = []
         # loop gets next birthday
         for user in await self.birthday.get_users():
             # gets days until birthday and the discord date
             days, discord_date = await get_days_until_birthday(user)
             # checks if user is in the guild
-            y = await inter.guild.fetch_member(user.user_id)
-            # compares days to previous highest value
-            if days < x and y is not None:
-                x = days
-                next_birthday = user
-                member = y
+            upcoming_birthdays.append({"days": days, "user": user, "discord_date": discord_date})
+
+        #sorts birthdays by days
+        upcoming_birthdays.sort(key=lambda x: x["days"])
+        # gets the next birthday's user
+        next_birthday = upcoming_birthdays[0]["user"]
+        # checks if user is in the guild
+        while inter.guild.fetch_member(next_birthday.user_id) is None:
+            upcoming_birthdays.pop(0)
+            next_birthday = upcoming_birthdays[0]["user"]
+
+        member = await self.bot.fetch_user(next_birthday.user_id)
 
         if next_birthday is None:
             return await errorEmb(inter, "There are no birthdays set")
