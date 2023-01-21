@@ -150,7 +150,7 @@ class Staff(commands.Cog):
     @commands.slash_command(
         name="mute", description="'timeout's a user from the server."
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(moderate_members=True)
     @commands.guild_only()
     async def mute(
         self,
@@ -191,7 +191,7 @@ class Staff(commands.Cog):
     @commands.slash_command(
         name="unmute", description="Unmutes a user from the server."
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(moderate_members=True)
     @commands.guild_only()
     async def unmute(
         self,
