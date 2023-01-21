@@ -1,4 +1,4 @@
-from urllib import parse
+from urllib.parse import quote_plus
 
 from disnake.ext import commands
 
@@ -22,7 +22,7 @@ class Search(commands.Cog):
         query: str = commands.Param(description="The query to search for"),
     ):
         """Searches the keyword entered"""
-        query = parse.quote_plus(query.rstrip().rstrip())
+        query = quote_plus(query.rstrip().rstrip())
         if engine == "google":
             await inter.send(f"https://google.com/search?q={query}")
         elif engine == "duckduckgo":
