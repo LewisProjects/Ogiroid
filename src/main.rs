@@ -131,11 +131,15 @@ async fn main() {
                     &[cli.level_cf.clone(), cli.server_cf.clone()],
                 )
                 .unwrap();
+                // let avatar = _ready.user.static_avatar_url();
+                let avatar = _ready.user.face();
 
                 Ok(Data {
                     font_width: cli.font_width,
                     color,
-                    level_image: Box::new(create_level_image(&font_bold, cli.corner_radius)),
+                    level_image: Box::new(
+                        create_level_image(&font_bold, cli.corner_radius, avatar).await,
+                    ),
                     font,
                     db,
                     level_cf: Box::new(cli.level_cf),

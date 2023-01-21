@@ -170,7 +170,7 @@ impl Db {
             return None
         };
                     let mut keyarr = [0u8; 8];
-                    keyarr.copy_from_slice(&key[8..]);
+                    keyarr.copy_from_slice(&key[8..16]);
                     Some((u64::from_le_bytes(keyarr), entry))
                 } else {
                     None

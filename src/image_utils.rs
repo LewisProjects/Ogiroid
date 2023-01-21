@@ -26,10 +26,44 @@ const POS: (u32, u32) = (42, 42);
 const RECT_POS: u32 = (POS.1 + (HEIGHT + LN_SPACE) * 4 + LN_SPACE * 2);
 const RECT_SIZE: (u32, u32) = (410, 30);
 
-pub fn create_level_image(font: &Font, radius: u32) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+pub async fn create_level_image(
+    font: &Font<'_>,
+    radius: u32,
+    avatar: String,
+) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     // let mut image = image::open("assets/winterrankcard.png").unwrap().to_rgba8();
+    let mut client = reqwest::Client::new();
     let mut image = RgbaImage::from_pixel(720, 256, BACKGROUND);
     // let radius = 12;
+
+    if let Ok(response) = client
+        .get(avatar.replace("?size=1024", "?size=256"))
+        .send()
+        .await
+    {
+        if let Ok(avatar) = response.bytes().await {
+            if let Ok(mut avatar) = image::load_from_memory(&avatar).map(|x| x.to_rgba8()) {
+                let size = (40, 40);
+                let midpoint = ((size.0 + size.1) / 4) as i64;
+                let mut avatar = resize(
+                    &avatar,
+                    size.0 as u32,
+                    size.1 as u32,
+                    image::imageops::FilterType::Lanczos3,
+                );
+
+                let midpoint = midpoint as u32;
+                round(&mut avatar, (midpoint, midpoint, midpoint, midpoint));
+                let (x, y) = image.dimensions();
+                overlay(
+                    &mut image,
+                    &avatar,
+                    x as i64 - 10 - size.0 as i64,
+                    y as i64 - 5 - size.1 as i64,
+                );
+            };
+        };
+    };
 
     ["User:", "Experience:", "Level:", "Rank:"]
         .into_iter()
@@ -91,9 +125,17 @@ pub async fn level_embed(
 
     [
         ("User:", username, 0),
-        ("Experience:", &format!("{xp}/{xp_for_next_level}"), 0),
+        ("Experience:", &xp.to_string(), 0),
         ("Level:", level, -2),
-        ("Rank:", &format!("#{rank}"), 8),
+        (
+            "Rank:",
+            &if rank != "None" {
+                format!("#{rank}")
+            } else {
+                rank
+            },
+            8,
+        ),
     ]
     .into_iter()
     .enumerate()

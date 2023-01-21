@@ -58,7 +58,7 @@ pub async fn save_edit<'a>(
     if let Some(old) = old {
         let text = old;
 
-        let id = event.author.as_ref().unwrap().id;
+        let id = new.as_ref().unwrap().author.id;
         let cost = text.content.len() as i64;
         data.edit_cache
             .insert(
