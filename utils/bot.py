@@ -123,7 +123,11 @@ class OGIROID(commands.InteractionBot):
         self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
         await self.blacklist.startup()
 
+    async def load_db(self):
+        pass #todo get started on rocksDB migration
+
     async def start(self, *args, **kwargs):
+        await self.load_db()
         async with aiosqlite.connect("data.db") as self.db:
             await self.db.executescript(SETUP_SQL)
             # run the db migrations in /migrations
