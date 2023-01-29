@@ -33,7 +33,7 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
-    async def pyeval(self, inter, *, body: str):
+    async def eval(self, inter, *, body: str):
         """Evaluates a code snippet"""
         await inter.response.defer()
         env = {
