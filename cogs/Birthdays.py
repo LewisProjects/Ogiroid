@@ -145,9 +145,11 @@ class Birthday(commands.Cog):
             # gets days until birthday and the discord date
             days, discord_date = await get_days_until_birthday(user)
             # checks if user is in the guild
-            upcoming_birthdays.append({"days": days, "user": user, "discord_date": discord_date})
+            upcoming_birthdays.append(
+                {"days": days, "user": user, "discord_date": discord_date}
+            )
 
-        #sorts birthdays by days
+        # sorts birthdays by days
         upcoming_birthdays.sort(key=lambda x: x["days"])
         # gets the next birthday's user
         next_birthday = upcoming_birthdays[0]["user"]

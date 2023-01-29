@@ -507,7 +507,7 @@ class Staff(commands.Cog):
     )
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
-    async def initialise_message( # todo create better  and clean this section up.
+    async def initialise_message(  # todo create better cmd and clean this section up.
         self,
         inter: disnake.ApplicationCommandInteraction,
         emoji: str = ParamInfo(
@@ -791,7 +791,7 @@ class Staff(commands.Cog):
     @commands.slash_command(name="staffvote", description="Propose a Staff Vote.")
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    async def staffvote(self, inter): #todo remove
+    async def staffvote(self, inter):  # todo remove
         """Propose a Staff Vote."""
         await inter.response.send_modal(modal=StaffVote(self.bot))
 

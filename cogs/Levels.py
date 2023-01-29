@@ -27,7 +27,7 @@ from disnake.ext import commands
 from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param, BadArgument
 
 from utils import timeconversions
-from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
+from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL, Colors
 from utils.DBhandlers import ConfigHandler
 from utils.bot import OGIROID
 from utils.config import GConfig
@@ -273,8 +273,14 @@ class LevelsController:
 
         await self.grant_xp(message)
 
-    async def get_user(self, user: Member) -> User:
-        if f"levels_{user.id}_{user.guild.id}" in self.cache:
+    async def get_user(self, user: Member, bypass: bool = False) -> User:
+        """
+        get the user from the database
+        :param user: the user to get
+        :param bypass: bypass the cache and get the user from the database
+        :return: the user
+        """
+        if f"levels_{user.id}_{user.guild.id}" in self.cache and not bypass:
             return self.cache[f"levels_{user.id}_{user.guild.id}"]
 
         record = await self.db.execute(
@@ -380,9 +386,10 @@ class LevelsController:
         """
         await message.channel.send(msg)
 
-    async def get_rank(self, guild_id, user_record) -> int:
+    async def get_rank(
+        self, guild_id, user_record, return_updated: bool = False
+    ) -> (User, int) | int:
         """
-        what to do
         #1. eliminate all the users that have a lower level than the user
         #2. sort the users by xp
         #3. get the index of the user
@@ -399,10 +406,29 @@ class LevelsController:
         if raw_records is None:
             raise UserNotFound
         records = [User(*record) for record in raw_records]
-        sorted_once = sorted(records, key=lambda x: x.xp, reverse=True)
-        sorted_twice = sorted(sorted_once, key=lambda x: x.lvl, reverse=True)
-        rank = sorted_twice.index(user_record) + 1
-        return rank
+        sorted_once = sorted(records, key=lambda x: x.lvl, reverse=True)
+        sorted_twice = sorted(sorted_once, key=lambda x: x.xp, reverse=True)
+
+        try:
+            rank = sorted_twice.index(user_record) + 1
+        except ValueError:
+            user = self.bot.get_guild(guild_id).get_member(user_record.user_id)
+            log_channel = self.bot.get_channel(self.bot.config.channels.logs)
+            emb = Embed(
+                description=f"User {user} not found in Level cache for guild {guild_id} bypassing cache...",
+                color=Colors.red,
+            )
+            await log_channel.send(embed=emb)
+            return await self.get_rank(
+                guild_id,
+                await self.get_user(user, bypass=True),
+                return_updated=return_updated,
+            )
+
+        if return_updated:
+            return user_record, rank
+        else:
+            return rank
 
 
 class Level(commands.Cog):
@@ -554,7 +580,9 @@ class Level(commands.Cog):
                 print("[Levels] User not found")
                 await self.controller.add_user(user, inter.guild)
                 return await self.rank(inter, user)
-            rank = await self.controller.get_rank(inter.guild.id, user_record)
+            user_record, rank = await self.controller.get_rank(
+                inter.guild.id, user_record, return_updated=True
+            )
             image = await self.controller.generate_image_card(
                 user, rank, user_record.xp, user_record.lvl
             )

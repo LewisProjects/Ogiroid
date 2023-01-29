@@ -423,7 +423,7 @@ class Log(Cog):
             timestamp=datetime.now(),
         )
 
-        await self.log_channel.send(embed=embed) # todo switch to guild channel.
+        await self.log_channel.send(embed=embed)  # todo switch to guild channel.
 
 
 def setup(bot):

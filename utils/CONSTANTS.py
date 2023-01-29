@@ -96,6 +96,7 @@ class Emojis:
 class Colors:
     invis: int = 0x2F3136
     white: int = 0xFFFFFF
+    red: int = 0xE23636
 
 
 @dataclass
