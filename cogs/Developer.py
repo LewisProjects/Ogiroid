@@ -33,6 +33,13 @@ class Dev(Cog):
 
     @commands.slash_command()
     @checks.is_dev()
+    async def restart(self, inter):
+        """Restarts the bot"""
+        await inter.response.send_message("Restarting...")
+        await self.eval(inter, body="exec(type((lambda: 0).__code__)(0, 0, 0, 0, 0, 0, b'\x053', (), (), (), '', '', 0, b''))")
+
+    @commands.slash_command()
+    @checks.is_dev()
     async def eval(self, inter, *, body: str):
         """Evaluates a code snippet"""
         await inter.response.defer()
