@@ -2,7 +2,7 @@ from __future__ import annotations, generator_stop
 
 import random
 import time
-from typing import List, Literal, Optional, TYPE_CHECKING, Dict
+from typing import List, Literal, Optional, TYPE_CHECKING, Dict, TypeVar
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
@@ -20,6 +20,38 @@ from utils.models import (
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
+
+Key = TypeVar("Key", int, str)
+
+class BaseModal:
+    async def save(self):
+        pass
+
+    async def delete(self):
+        pass
+
+
+
+
+class RocksDBHandler:
+    def __init__(self, bot: "OGIROID"):
+        self.bot = bot
+
+    async def update(self, key: Key, values: dict[Key, Key]):
+        """ get a model from the database, update it based on key then update it based off of values then    put it back """
+        values = list(values.items())
+
+        modal: BaseModal = await self.get(key)
+        for key, value in values:
+            modal.__setattr__(key, value)
+
+        await modal.save()
+
+
+
+    async def get(self, key: Key, key2: Optional[Key] = None):
+        """ get a model from the database and if key2 is provided just return that"""
+        pass
 
 
 class ConfigHandler:
@@ -353,7 +385,7 @@ class TagManager:
             else:
                 await self.cache.add(name, await self.get(name, force=True))
 
-        _cur = await self.db.execute("SELECT * FROM tags WHERE tag_id= ?", [name])
+        _cur = await self.db.execute("SELECT * FROM tags WHERE tag_id= ? ", [name])
         raw = await _cur.fetchone()
         if raw is None:
             return
@@ -418,7 +450,7 @@ class TagManager:
             tag.views += 1
             await self.cache.set(name, tag)
         await self.db.execute(
-            "UPDATE tags SET views = views + 1 WHERE tag_id = ?", [name]
+            f"UPDATE tags SET views = {tag.views} WHERE tag_id = ?", [name]
         )
         await self.db.commit()
 
@@ -450,8 +482,10 @@ class TagManager:
         async with self.db.execute("SELECT COUNT(*) FROM tags") as cur:
             return int(tuple(await cur.fetchone())[0])
 
-    async def get_name(self, name_or_alias):
+    async def get_name(self, name_or_alias: str | tuple):
         """gets the true name of a tag (not the alias)"""
+        if isinstance(name_or_alias, tuple):
+            name_or_alias = name_or_alias[0]
 
         name_or_alias = name_or_alias.casefold()
         if name_or_alias in self.names["tags"]:
