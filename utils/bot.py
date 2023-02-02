@@ -8,7 +8,7 @@ from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
 
 from utils.CONSTANTS import __VERSION__
-from utils.DBhandlers import BlacklistHandler
+from utils.DBhandlers import BlacklistHandler, RocksDBHandler
 from utils.cache import async_cache
 from utils.config import Config
 from utils.exceptions import UserBlacklisted
@@ -39,6 +39,7 @@ class OGIROID(commands.InteractionBot):
         self.add_app_command_check(
             self.blacklist_check, slash_commands=True, call_once=True
         )
+        self.rdbh: RocksDBHandler = None
 
     async def blacklist_check(self, ctx):
         try:
