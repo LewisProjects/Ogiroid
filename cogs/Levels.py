@@ -499,7 +499,11 @@ class Level(commands.Cog):
     @xp_boost.sub_command()
     async def active(self, inter: ApplicationCommandInteraction, active: bool):
         """Enable or disable xp boost"""
-        await self.bot.rdbh.update(f"config_{inter.guild.id}", values={'xp_boost': active})
+        await self.bot.db.execute(
+            "UPDATE config SET xp_boost_enabled = ? WHERE guild_id = ?",
+            (active, inter.guild.id),
+        )
+        await self.bot.db.commit()
         await inter.response.send_message(
             f"XP Boost is now {'enabled' if active else 'disabled'}"
         )
@@ -508,7 +512,10 @@ class Level(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @xp_boost.sub_command()
     async def get(self, inter: ApplicationCommandInteraction):
-        config = await self.bot.rdbh.get(f"config_{inter.guild.id}")
+        async with self.bot.db.execute(
+            "SELECT * FROM config WHERE guild_id = ?", (inter.guild.id,)
+        ) as cur:
+            config = await cur.fetchone()
         if config is None:
             return await inter.response.send_message(
                 "There is no config setup for this server"
@@ -545,9 +552,11 @@ class Level(commands.Cog):
             return await inter.response.send_message(
                 'Invalid date format: Invalid time provided, try e.g. "tomorrow" or "3 days".'
             )
-
-        await self.bot.rdbh.update(f"config_{inter.guild.id}", values={'xp_boost', amount, 'xp_boost_expiry', expires})
-
+        await self.bot.db.execute(
+            "UPDATE config SET xp_boost = ?, xp_boost_expiry = ? WHERE guild_id = ?",
+            (amount, expires, inter.guild.id),
+        )
+        await self.bot.db.commit()
         await inter.response.send_message(
             f"Successfully set the xp boost to {amount}x it will expire {get_expiry(expires)} "
         )
@@ -731,7 +740,8 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     async def list(self, inter: ApplicationCommandInteraction):
         """List all role rewards"""
-        records = await self.bot.db.execute("SELECT * FROM role_rewards WHERE guild_id = ?", inter.guild.id)
+        sql = "SELECT * FROM role_rewards WHERE guild_id = ?"
+        records = await self.bot.db.execute(sql, (inter.guild.id,))
         records = await records.fetchall()
         if not records:
             return await errorEmb(inter, text="No role rewards found")
