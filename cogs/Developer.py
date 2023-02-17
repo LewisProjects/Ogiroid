@@ -14,6 +14,7 @@ from utils import checks
 from utils.assorted import traceback_maker
 from utils.bot import OGIROID
 from utils.pagination import CreatePaginator
+from utils.shortcuts import errorEmb
 
 
 class Dev(Cog):
@@ -117,16 +118,21 @@ class Dev(Cog):
         what_to_say: str,
         channel: disnake.TextChannel = None,
         times: int = 1,
+        allow_mentions: bool = False,
     ):
         """Repeats text, optionally in a different channel and a maximum of 10 times"""
         await inter.response.defer()
         await (await inter.original_message()).delete()
         t_channel = channel or inter.channel
+        allowed_mentions = disnake.AllowedMentions.none() if not allow_mentions else disnake.AllowedMentions.all()
+        if allow_mentions and times > 1:
+            return await errorEmb(inter, "You can't allow mentions and repeat more than once")
+        print(min(abs(times), 10))
         if abs(times) > 1:
-            for _ in range(max(abs(times), 10)):
-                await t_channel.send(what_to_say)
+            for _ in range(min(abs(times), 10)):
+                await t_channel.send(what_to_say, allowed_mentions=allowed_mentions)
         else:
-            await t_channel.send(f"{what_to_say}")
+            await t_channel.send(f"{what_to_say}", allowed_mentions=allowed_mentions)
 
     @commands.slash_command()
     @checks.is_dev()
