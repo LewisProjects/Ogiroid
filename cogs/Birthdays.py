@@ -174,15 +174,15 @@ class Birthday(commands.Cog):
     @tasks.loop(time=[dt.time(8, 0, 0)])
     # loops every day at 8:00 UTC time
     async def birthday_check(self):
-        channel = self.bot.get_channel(self.bot.config.channels.birthdays)
-        guild = self.bot.get_guild(self.bot.config.guilds.main_guild)
+        channel = await self.bot.fetch_channel(self.bot.config.channels.birthdays)
+        guild = await self.bot.fetch_guild(self.bot.config.guilds.main_guild)
         if channel is None:
             return
         today = dt.datetime.utcnow().strftime("%d/%m")
         # Gets all users from the db
         users = await self.birthday.get_users()
         for user in users:
-            member = await guild.fetch_member(user.user_id)
+            member = await guild.getch_member(user.user_id)
             # if the member is None, the user is not in the server anymore
             if member is None:
                 continue
