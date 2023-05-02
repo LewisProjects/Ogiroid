@@ -165,7 +165,7 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 2, commands.BucketType.user)
     async def joke(self, inter: ApplicationCommandInteraction):
         """Get a random joke!"""
-        response = await self.bot.session.get("https://some-random-api.ml/joke")
+        response = await self.bot.session.get("https://some-random-api.com/joke")
         data = await response.json()
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(

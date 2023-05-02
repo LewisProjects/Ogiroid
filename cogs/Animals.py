@@ -18,7 +18,7 @@ class Animals(commands.Cog):
     @animal.sub_command(name="cat", description="Get a random cat picture")
     async def cat(self, inter):
         """Get a random cat picture!"""
-        response = await self.bot.session.get("https://some-random-api.ml/animal/cat")
+        response = await self.bot.session.get("https://some-random-api.com/animal/cat")
         data = await response.json()
         embed = disnake.Embed(
             title="Cat Picture! 🐱",
@@ -35,7 +35,7 @@ class Animals(commands.Cog):
     @animal.sub_command(name="dog", description="Get a random dog picture")
     async def dog(self, inter):
         """Get a random dog picture!"""
-        response = await self.bot.session.get("https://some-random-api.ml/animal/dog")
+        response = await self.bot.session.get("https://some-random-api.com/animal/dog")
         data = await response.json()
         embed = disnake.Embed(
             title="Dog Picture! 🐶",
@@ -52,7 +52,7 @@ class Animals(commands.Cog):
     @animal.sub_command(name="bird", description="Get a random bird picture")
     async def bird(self, inter):
         """Get a random bird picture!"""
-        response = await self.bot.session.get("https://some-random-api.ml/animal/bird")
+        response = await self.bot.session.get("https://some-random-api.com/animal/bird")
         data = await response.json()
         embed = disnake.Embed(
             title="Bird Picture! 🐦",
@@ -69,7 +69,7 @@ class Animals(commands.Cog):
     @animal.sub_command(name="fox", description="Get a random fox picture")
     async def fox(self, inter):
         """Get a random fox picture!"""
-        response = await self.bot.session.get("https://some-random-api.ml/animal/fox")
+        response = await self.bot.session.get("https://some-random-api.com/animal/fox")
         data = await response.json()
         embed = disnake.Embed(
             title="Fox Picture! 🦊",
@@ -86,7 +86,7 @@ class Animals(commands.Cog):
     @animal.sub_command(name="panda", description="Get a random panda picture")
     async def panda(self, inter):
         """Get a random panda picture!"""
-        response = await self.bot.session.get("https://some-random-api.ml/animal/panda")
+        response = await self.bot.session.get("https://some-random-api.com/animal/panda")
         data = await response.json()
         embed = disnake.Embed(
             title="Panda Picture! 🐼",
@@ -103,7 +103,7 @@ class Animals(commands.Cog):
     @animal.sub_command(name="koala", description="Get a random cat picture")
     async def koala(self, inter):
         """Get a random koala picture!"""
-        response = await self.bot.session.get("https://some-random-api.ml/animal/koala")
+        response = await self.bot.session.get("https://some-random-api.com/animal/koala")
         data = await response.json()
         embed = disnake.Embed(
             title="Koala Picture! 🐨",

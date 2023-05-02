@@ -31,7 +31,7 @@ class ImageCommands(commands.Cog, name="Image"):
         if not member:
             member = inter.author
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/triggered?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
@@ -51,7 +51,7 @@ class ImageCommands(commands.Cog, name="Image"):
             member = inter.author
         impostor = random.choice(["true", "false"])
         apikey = os.getenv("SRA_API_KEY")
-        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
+        uri = f"https://some-random-api.com/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
         resp = await self.bot.session.get(uri)
         if 300 > resp.status >= 200:
             fp = io.BytesIO(await resp.read())
@@ -70,7 +70,7 @@ class ImageCommands(commands.Cog, name="Image"):
         if not member:
             member = inter.author
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/invert/?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
@@ -86,7 +86,7 @@ class ImageCommands(commands.Cog, name="Image"):
         if not member:
             member = inter.author
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/pixelate/?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
@@ -101,7 +101,7 @@ class ImageCommands(commands.Cog, name="Image"):
             member = inter.author
 
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/jail?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
