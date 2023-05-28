@@ -37,7 +37,10 @@ class Dev(Cog):
     async def restart(self, inter):
         """Restarts the bot"""
         await inter.response.send_message("Restarting...")
-        await self.eval(inter, body="exec(type((lambda: 0).__code__)(0, 0, 0, 0, 0, 0, b'\x053', (), (), (), '', '', 0, b''))")
+        await self.eval(
+            inter,
+            body="exec(type((lambda: 0).__code__)(0, 0, 0, 0, 0, 0, b'\x053', (), (), (), '', '', 0, b''))",
+        )
 
     @commands.slash_command()
     @checks.is_dev()
@@ -124,9 +127,15 @@ class Dev(Cog):
         await inter.response.defer()
         await (await inter.original_message()).delete()
         t_channel = channel or inter.channel
-        allowed_mentions = disnake.AllowedMentions.none() if not allow_mentions else disnake.AllowedMentions.all()
+        allowed_mentions = (
+            disnake.AllowedMentions.none()
+            if not allow_mentions
+            else disnake.AllowedMentions.all()
+        )
         if allow_mentions and times > 1:
-            return await errorEmb(inter, "You can't allow mentions and repeat more than once")
+            return await errorEmb(
+                inter, "You can't allow mentions and repeat more than once"
+            )
         print(min(abs(times), 10))
         if abs(times) > 1:
             for _ in range(min(abs(times), 10)):

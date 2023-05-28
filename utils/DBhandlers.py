@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 Key = TypeVar("Key", int, str)
 
+
 class BaseModal:
     async def save(self):
         pass
@@ -31,14 +32,12 @@ class BaseModal:
         pass
 
 
-
-
 class RocksDBHandler:
     def __init__(self, bot: "OGIROID"):
         self.bot = bot
 
     async def update(self, key: Key, values: dict[Key, Key]):
-        """ get a model from the database, update it based on key then update it based off of values then    put it back """
+        """get a model from the database, update it based on key then update it based off of values then    put it back"""
         values = list(values.items())
 
         modal: BaseModal = await self.get(key)
@@ -47,10 +46,8 @@ class RocksDBHandler:
 
         await modal.save()
 
-
-
     async def get(self, key: Key, key2: Optional[Key] = None):
-        """ get a model from the database and if key2 is provided just return that"""
+        """get a model from the database and if key2 is provided just return that"""
         pass
 
 

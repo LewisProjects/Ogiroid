@@ -413,7 +413,6 @@ class Fun(commands.Cog):
         encoded_list = []
 
         for char in text:
-
             for key in self.morse:
                 if key == char.lower():
                     encoded_list.append(self.morse[key])
@@ -427,7 +426,6 @@ class Fun(commands.Cog):
         morse_list = morse_code.split()
 
         for item in morse_list:
-
             for key, value in self.morse.items():
                 if value == item:
                     decoded_list.append(key)

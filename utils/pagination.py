@@ -123,7 +123,6 @@ class LeaderboardView(ui.View):
         set_user: bool = False,
         timeout: float = None,
     ):
-
         self.controller = controller
         self.author = author
         self.CurrentEmbed = 0

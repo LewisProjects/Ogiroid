@@ -460,7 +460,6 @@ class Level(commands.Cog):
         return bool((await query.fetchone())[0])
 
     async def get_role_reward(self, guild: Guild, level: int) -> Role:
-
         query = await self.bot.db.execute(
             "SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?",
             (guild.id, level),
@@ -477,7 +476,6 @@ class Level(commands.Cog):
         try:
             await self.controller.handle_message(message)
         except AttributeError:  # bot has not fully started up yet
-
             await self.bot.wait_until_ready()
             await asyncio.sleep(5)
             await self.on_message(message)
@@ -680,7 +678,6 @@ class Level(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def role_reward(self, inter: ApplicationCommandInteraction):
-
         return
 
     @role_reward.sub_command()

@@ -21,7 +21,6 @@ with open("setup.sql", "r") as sql_file:
 
 class OGIROID(commands.InteractionBot):
     def __init__(self, *args, **kwargs):
-
         super().__init__(
             intents=disnake.Intents.all(),
             command_sync_flags=commands.CommandSyncFlags(sync_commands_debug=True),
@@ -124,7 +123,7 @@ class OGIROID(commands.InteractionBot):
         await self.blacklist.startup()
 
     async def load_db(self):
-        pass #todo get started on rocksDB migration
+        pass  # todo get started on rocksDB migration
 
     async def start(self, *args, **kwargs):
         await self.load_db()

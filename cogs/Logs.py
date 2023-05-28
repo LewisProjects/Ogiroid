@@ -195,7 +195,10 @@ class Log(Cog):
         embed.set_author(name=inter.author, icon_url=inter.author.display_avatar.url)
 
         options = " ".join(
-            [f"{name}: {value}" if value else name for name, value in inter.options.items()]
+            [
+                f"{name}: {value}" if value else name
+                for name, value in inter.options.items()
+            ]
         )
         embed.description = (
             f"`/{inter.data['name']} {options if options != '' else options}`"

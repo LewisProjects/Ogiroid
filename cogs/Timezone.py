@@ -39,7 +39,6 @@ class Timezone(commands.Cog):
             autocomplete=autocomplete_timezones,
         ),
     ):
-
         if timezone is None:
             return await errorEmb(inter, "You need to provide a timezone")
         elif timezone not in timezones:

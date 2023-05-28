@@ -583,7 +583,6 @@ class Staff(commands.Cog):
             description="The channel where the message is sent.",
         ),
     ):
-
         emoji = PartialEmoji.from_str(new_emoji.strip())
         message_id = int(message_id)
 

@@ -80,7 +80,6 @@ Rank #{rank:,d}"""
 
         # status
         try:
-
             if user.status == disnake.Status.online:
                 draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(67, 181, 129))
             elif user.status == disnake.Status.offline:

@@ -86,7 +86,9 @@ class Animals(commands.Cog):
     @animal.sub_command(name="panda", description="Get a random panda picture")
     async def panda(self, inter):
         """Get a random panda picture!"""
-        response = await self.bot.session.get("https://some-random-api.com/animal/panda")
+        response = await self.bot.session.get(
+            "https://some-random-api.com/animal/panda"
+        )
         data = await response.json()
         embed = disnake.Embed(
             title="Panda Picture! 🐼",
@@ -103,7 +105,9 @@ class Animals(commands.Cog):
     @animal.sub_command(name="koala", description="Get a random cat picture")
     async def koala(self, inter):
         """Get a random koala picture!"""
-        response = await self.bot.session.get("https://some-random-api.com/animal/koala")
+        response = await self.bot.session.get(
+            "https://some-random-api.com/animal/koala"
+        )
         data = await response.json()
         embed = disnake.Embed(
             title="Koala Picture! 🐨",
