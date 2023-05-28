@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Optional
 
 import disnake
 from disnake import Embed, ApplicationCommandInteraction
@@ -8,6 +9,7 @@ from disnake.ext import commands
 
 from utils.CONSTANTS import tag_help
 from utils.DBhandlers import TagManager
+from utils.assorted import getPosition
 from utils.bot import OGIROID
 from utils.exceptions import *
 from utils.models import *
@@ -49,14 +51,14 @@ class Tags(commands.Cog, name="Tags"):
         name="t", aliases=["tg"], description="An alias for `/tag get`", hidden=True
     )
     async def get_tag(
-        self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool = False
+            self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool = False
     ):
         return await self.get(inter, name, embeded)
 
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
     async def get(
-        self, inter: ApplicationCommandInteraction, name: str, embeded: bool = False
+            self, inter: ApplicationCommandInteraction, name: str, embeded: bool = False
     ):
         if not name:
             return await errorEmb(inter, "You need to specify a tag name")
@@ -91,11 +93,11 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def create(
-        self,
-        inter: ApplicationCommandInteraction,
-        name,
-        *,
-        content: str = commands.Param(le=1900),
+            self,
+            inter: ApplicationCommandInteraction,
+            name,
+            *,
+            content: str = commands.Param(le=1900),
     ):
         name = name.casefold()
         try:
@@ -131,17 +133,17 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def edit(
-        self,
-        inter: ApplicationCommandInteraction,
-        name,
-        *,
-        content: str = commands.Param(le=1900),
+            self,
+            inter: ApplicationCommandInteraction,
+            name,
+            *,
+            content: str = commands.Param(le=1900),
     ):
         name = await self.tags.get_name(name.casefold())
 
         try:
             if (
-                inter.author.id != (await self.tags.get(name)).owner
+                    inter.author.id != (await self.tags.get(name)).owner
             ) and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You do not have permission to edit this tag"
@@ -160,7 +162,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def transfer(
-        self, inter: ApplicationCommandInteraction, name, new_owner: disnake.Member
+            self, inter: ApplicationCommandInteraction, name, new_owner: disnake.Member
     ):
         try:
             name = name.casefold()
@@ -168,7 +170,7 @@ class Tags(commands.Cog, name="Tags"):
             if new_owner.bot:
                 return await errorEmb(inter, "You can't transfer a tag to a bot!")
             elif (
-                inter.author.id != (await self.tags.get(name)).owner
+                    inter.author.id != (await self.tags.get(name)).owner
             ) and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You must be the owner of the tag to transfer it!"
@@ -194,8 +196,8 @@ class Tags(commands.Cog, name="Tags"):
             if (await self.tags.get(name)).owner == inter.author.id:
                 return await errorEmb(inter, "You already own this tag!")
             elif (
-                inter.author.guild_permissions.manage_messages
-                or inter.author.guild_permissions.administrator
+                    inter.author.guild_permissions.manage_messages
+                    or inter.author.guild_permissions.administrator
             ):
                 await self.tags.transfer(name, inter.author.id)
                 return (
@@ -229,7 +231,7 @@ class Tags(commands.Cog, name="Tags"):
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
             if not inter.author.id == (
-                await self.tags.get(name)
+                    await self.tags.get(name)
             ).owner and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You must be the owner of the tag to delete it!"
@@ -265,17 +267,47 @@ class Tags(commands.Cog, name="Tags"):
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")
 
+    @tag.sub_command(name="leaderboard", description="Lists shows top tags (by views)")
+    @commands.guild_only()
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def leaderboard(self, inter: ApplicationCommandInteraction):
+        try:
+            tags = await self.tags.all(orderby="views", limit=10)
+        except AttributeError:
+            return await errorEmb(inter, "wait for the bot to load")
+        except TagsNotFound:
+            return await errorEmb(inter, "There are no tags")
+
+        lb_string = ""
+        lb_header = "Place  ***-***  Name  ***-***  Total Views ***-*** Owner"
+
+        for i, tag in enumerate(tags):
+            owner: Optional = self.bot.get_user(tag.owner)
+            if owner is None:
+                username = None
+            else:
+                username = owner.display_name
+            lb_string += f"{getPosition(i)} **-** {tag.name} **-** ***{tag.views}*** **-** {username if username is not None else '**Open tag, no owner. use __/tag claim__**'}\n"
+        embed = disnake.Embed(
+            title="Flag Quiz All time Leaderboard",
+            description=f"The top 10 Tags in this server. Sorted by views\n",
+            color=disnake.Color.random(seed=inter.user.id),
+        )
+        embed.add_field(name=lb_header, value=lb_string)
+        await inter.send(embed=embed)
+
+
     @tag.sub_command(name="list", description="Lists tags")
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.channel)
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def list_tags(self, ctx):
+    async def list_tags(self, inter: ApplicationCommandInteraction):
         try:
             tag_count = await self.tags.count()
         except AttributeError:
-            return await errorEmb(ctx, "wait for the bot to load")
+            return await errorEmb(inter, "wait for the bot to load")
         if tag_count == 0:
-            return await errorEmb(ctx, "There are no tags")
+            return await errorEmb(inter, "There are no tags")
 
         tags = await self.tags.all(limit=0)
         tag_embs = []
@@ -316,7 +348,7 @@ class Tags(commands.Cog, name="Tags"):
         start_emb = Embed(title="Tags", color=self.bot.config.colors.invis)
         start_emb.description = f"There are currently {tag_count:,d} tag{'s' if tag_count > 1 else ''}, use the arrows below to navigate through them"
         tag_embs.insert(0, start_emb)
-        await ctx.send(embed=tag_embs[0], view=CreatePaginator(tag_embs, ctx.author.id))
+        await inter.send(embed=tag_embs[0], view=CreatePaginator(tag_embs, inter.author.id))
 
     @tag.sub_command(name="rename", description="Renames a tag")
     @commands.guild_only()
@@ -329,7 +361,7 @@ class Tags(commands.Cog, name="Tags"):
             )  # if the tag doesn't exist, it will raise TagNotFound
             await self.tags.exists(new_name, TagAlreadyExists, should=False)
             if not inter.author.id == (
-                await self.tags.get(name)
+                    await self.tags.get(name)
             ).owner and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You must be the owner of the tag to rename it!"
@@ -386,7 +418,7 @@ class Tags(commands.Cog, name="Tags"):
             alias = alias.casefold()
 
             if not inter.author.id == (
-                await self.tags.get(name)
+                    await self.tags.get(name)
             ).owner and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You must be the owner of the tag to delete it!"
@@ -424,7 +456,7 @@ class Tags(commands.Cog, name="Tags"):
                     inter, "You can't remove the tag's name from itself"
                 )
             elif not inter.author.id == (
-                await self.tags.get(name)
+                    await self.tags.get(name)
             ).owner and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You must be the owner of the tag to delete it!"

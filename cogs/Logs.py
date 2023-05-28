@@ -195,11 +195,10 @@ class Log(Cog):
         embed.set_author(name=inter.author, icon_url=inter.author.display_avatar.url)
 
         options = " ".join(
-            [f"{name}: {value}" for name, value in inter.options.items()]
+            [f"{name}: {value}" if value else name for name, value in inter.options.items()]
         )
-
         embed.description = (
-            f"`/{inter.data['name']}{' ' + options if options != '' else options}`"
+            f"`/{inter.data['name']} {options if options != '' else options}`"
         )
 
         embed.set_footer(text=f"{inter.author.name}#{inter.author.discriminator}")

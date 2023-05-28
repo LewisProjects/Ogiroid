@@ -197,9 +197,7 @@ class Trivia(commands.Cog, name="Trivia"):
 
         leaderboard_string = ""
         leaderboard_header = "Place  ***-***  User  ***-***  Correct Guesses/Total Guesses  ***-***  Completed   "
-        i = 0
-        for user in leaderboard:
-            i += 1
+        for i, user in enumerate(leaderboard):
             username = self.bot.get_user(user.user_id)
             leaderboard_string += f"{getPosition(i)} **-** {username} **-** {user.correct}/{user.tries} **-** {user.completed}\n"
         embed = disnake.Embed(
