@@ -32,7 +32,7 @@ IF NOT EXISTS flag_quizz
     user_id BIGINT,
     tries INTEGER,
     correct INTEGER,
-    completed INTEGER
+    completed INTEGER,
     guild_id INTEGER
 );
 
