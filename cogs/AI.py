@@ -13,9 +13,13 @@ class AI(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(description="Generates ai art")
-    async def ai_art(self, inter: disnake.ApplicationCommandInteraction, text: str):
+    async def ai_art(
+        self, inter: disnake.ApplicationCommandInteraction, text: str
+    ):
         if profanity.contains_profanity(text):
-            return await inter.send(f"NSFW requests are not allowed!", ephemeral=True)
+            return await inter.send(
+                f"NSFW requests are not allowed!", ephemeral=True
+            )
         if "bot" in inter.channel.name or "command" in inter.channel.name:
             hidden = False
         else:
@@ -31,11 +35,15 @@ class AI(commands.Cog):
         r = await response.json()
         raw_images = r["images"]
         images = [
-            disnake.File(BytesIO(base64.decodebytes(i.encode("utf-8"))), "image.png")
+            disnake.File(
+                BytesIO(base64.decodebytes(i.encode("utf-8"))), "image.png"
+            )
             for i in raw_images
         ]
 
-        await inter.edit_original_response(files=images, content="Here you go!")
+        await inter.edit_original_response(
+            files=images, content="Here you go!"
+        )
 
 
 def setup(bot):

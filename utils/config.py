@@ -66,7 +66,9 @@ class Config:
     elif os.getenv("DEVELOPMENT").lower() == "false":
         Development: bool = False
     else:
-        raise ValueError("DEVELOPMENT in secrets.env must be set to true or false")
+        raise ValueError(
+            "DEVELOPMENT in secrets.env must be set to true or false"
+        )
     colors = Colors
     colours = colors
     tokens = Tokens

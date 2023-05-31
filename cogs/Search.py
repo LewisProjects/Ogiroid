@@ -41,7 +41,9 @@ class Search(commands.Cog):
         query = query.rstrip().replace(" ", "+")
         await inter.send(f"https://www.google.com/search?q={query}&btnI")
 
-    @commands.slash_command(description="Returns a StackOverflow search for your query")
+    @commands.slash_command(
+        description="Returns a StackOverflow search for your query"
+    )
     async def stackoverflow(self, inter, query):
         """Searches StackOverflow for the query"""
         query = query.rstrip().replace(" ", "+")

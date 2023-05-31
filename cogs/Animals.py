@@ -10,7 +10,9 @@ class Animals(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
-    @commands.slash_command(description="Gets a random picture of the specified animal")
+    @commands.slash_command(
+        description="Gets a random picture of the specified animal"
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def animal(self, inter):
         pass
@@ -18,7 +20,9 @@ class Animals(commands.Cog):
     @animal.sub_command(name="cat", description="Get a random cat picture")
     async def cat(self, inter):
         """Get a random cat picture!"""
-        response = await self.bot.session.get("https://some-random-api.com/animal/cat")
+        response = await self.bot.session.get(
+            "https://some-random-api.com/animal/cat"
+        )
         data = await response.json()
         embed = disnake.Embed(
             title="Cat Picture! 🐱",
@@ -30,12 +34,16 @@ class Animals(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message(f"**Fun Fact: **" + data["fact"], embed=embed)
+        await inter.response.send_message(
+            f"**Fun Fact: **" + data["fact"], embed=embed
+        )
 
     @animal.sub_command(name="dog", description="Get a random dog picture")
     async def dog(self, inter):
         """Get a random dog picture!"""
-        response = await self.bot.session.get("https://some-random-api.com/animal/dog")
+        response = await self.bot.session.get(
+            "https://some-random-api.com/animal/dog"
+        )
         data = await response.json()
         embed = disnake.Embed(
             title="Dog Picture! 🐶",
@@ -47,12 +55,16 @@ class Animals(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
+        await inter.response.send_message(
+            "**Fun Fact: **" + data["fact"], embed=embed
+        )
 
     @animal.sub_command(name="bird", description="Get a random bird picture")
     async def bird(self, inter):
         """Get a random bird picture!"""
-        response = await self.bot.session.get("https://some-random-api.com/animal/bird")
+        response = await self.bot.session.get(
+            "https://some-random-api.com/animal/bird"
+        )
         data = await response.json()
         embed = disnake.Embed(
             title="Bird Picture! 🐦",
@@ -64,12 +76,16 @@ class Animals(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
+        await inter.response.send_message(
+            "**Fun Fact: **" + data["fact"], embed=embed
+        )
 
     @animal.sub_command(name="fox", description="Get a random fox picture")
     async def fox(self, inter):
         """Get a random fox picture!"""
-        response = await self.bot.session.get("https://some-random-api.com/animal/fox")
+        response = await self.bot.session.get(
+            "https://some-random-api.com/animal/fox"
+        )
         data = await response.json()
         embed = disnake.Embed(
             title="Fox Picture! 🦊",
@@ -81,7 +97,9 @@ class Animals(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
+        await inter.response.send_message(
+            "**Fun Fact: **" + data["fact"], embed=embed
+        )
 
     @animal.sub_command(name="panda", description="Get a random panda picture")
     async def panda(self, inter):
@@ -100,7 +118,9 @@ class Animals(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
+        await inter.response.send_message(
+            "**Fun Fact: **" + data["fact"], embed=embed
+        )
 
     @animal.sub_command(name="koala", description="Get a random cat picture")
     async def koala(self, inter):
@@ -119,7 +139,9 @@ class Animals(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message("**Fun Fact: **" + data["fact"], embed=embed)
+        await inter.response.send_message(
+            "**Fun Fact: **" + data["fact"], embed=embed
+        )
 
 
 def setup(bot):

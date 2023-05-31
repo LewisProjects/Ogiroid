@@ -20,7 +20,9 @@ class Memes(commands.Cog):
         )
 
     @commands.slash_command(
-        name="meme", aliases=["dankmeme"], description="Random meme from r/memes"
+        name="meme",
+        aliases=["dankmeme"],
+        description="Random meme from r/memes",
     )
     async def meme(self, inter):
         """Random meme from r/memes"""

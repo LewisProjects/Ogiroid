@@ -48,28 +48,39 @@ class Tags(commands.Cog, name="Tags"):
         pass
 
     @commands.slash_command(
-        name="t", aliases=["tg"], description="An alias for `/tag get`", hidden=True
+        name="t", description="An alias for `/tag get`", hidden=True
     )
     async def get_tag(
-        self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool = False
+        self,
+        inter: ApplicationCommandInteraction,
+        *,
+        name: str,
+        embedded: Optional[bool] = False,
     ):
-        return await self.get(inter, name, embeded)
+        return await self.get(inter, name, embedded)
 
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
     async def get(
-        self, inter: ApplicationCommandInteraction, name: str, embeded: bool = False
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str,
+        embedded: Optional[bool] = False,
     ):
+        if not embedded:
+            embedded = False
+
         if not name:
             return await errorEmb(inter, "You need to specify a tag name")
         name = name.casefold()
         try:
             tag = await self.tags.get(name)
             await self.tags.increment_views(name)
-            if embeded:
+            if embedded:
                 owner = self.bot.get_user(tag.owner)
                 emb = Embed(
-                    color=disnake.Color.random(seed=hash(tag.name)), title=f"{tag.name}"
+                    color=disnake.Color.random(seed=hash(tag.name)),
+                    title=f"{tag.name}",
                 )
                 emb.set_footer(
                     text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}'
@@ -106,7 +117,9 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, f"tag **{name}** already exists")
 
         if len(content) >= 1900:
-            return await errorEmb(inter, "The tag's content must be under 1900 chars")
+            return await errorEmb(
+                inter, "The tag's content must be under 1900 chars"
+            )
         elif not await self.valid_name(name):
             return (
                 await QuickEmb(
@@ -162,13 +175,18 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def transfer(
-        self, inter: ApplicationCommandInteraction, name, new_owner: disnake.Member
+        self,
+        inter: ApplicationCommandInteraction,
+        name,
+        new_owner: disnake.Member,
     ):
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
             if new_owner.bot:
-                return await errorEmb(inter, "You can't transfer a tag to a bot!")
+                return await errorEmb(
+                    inter, "You can't transfer a tag to a bot!"
+                )
             elif (
                 inter.author.id != (await self.tags.get(name)).owner
             ) and not manage_messages_perms(inter):
@@ -201,7 +219,9 @@ class Tags(commands.Cog, name="Tags"):
             ):
                 await self.tags.transfer(name, inter.author.id)
                 return (
-                    await QuickEmb(inter, f"I have transferred **{name}** to you")
+                    await QuickEmb(
+                        inter, f"I have transferred **{name}** to you"
+                    )
                     .success()
                     .send()
                 )
@@ -260,14 +280,18 @@ class Tags(commands.Cog, name="Tags"):
             emb.add_field(name="Owner", value=owner.mention)
             aliases = await self.tags.get_aliases(name)
             if aliases:
-                emb.add_field(name="Aliases", value=", ".join(tag for tag in aliases))
+                emb.add_field(
+                    name="Aliases", value=", ".join(tag for tag in aliases)
+                )
             emb.add_field(name="Created At", value=f"<t:{tag.created_at}:R>")
             emb.add_field(name="Times Called", value=abs(tag.views))
             await inter.send(embed=emb)
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")
 
-    @tag.sub_command(name="leaderboard", description="Lists shows top tags (by views)")
+    @tag.sub_command(
+        name="leaderboard", description="Lists shows top tags (by views)"
+    )
     @commands.guild_only()
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def leaderboard(self, inter: ApplicationCommandInteraction):
@@ -277,7 +301,6 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, "wait for the bot to load")
         except TagsNotFound:
             return await errorEmb(inter, "There are no tags")
-
         lb_string = ""
         lb_header = "Place  ***-***  Name  ***-***  Total Views ***-*** Owner"
 
@@ -378,7 +401,8 @@ class Tags(commands.Cog, name="Tags"):
                 )
             await self.tags.rename(name, new_name)
             await QuickEmb(
-                inter, f"I have successfully renamed **{name}** to **{new_name}**."
+                inter,
+                f"I have successfully renamed **{name}** to **{new_name}**.",
             ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")
@@ -397,15 +421,21 @@ class Tags(commands.Cog, name="Tags"):
         for cmd, desc in tag_help["public"].items():
             general_cmds += f"**/{cmd}** *~~* {desc}\n\t"
         for cmd, desc in tag_help["owner_only"].items():
-            owner_cmds += f"**/{cmd}** *~~* {desc} (only usable by the tag's owner)\n"
+            owner_cmds += (
+                f"**/{cmd}** *~~* {desc} (only usable by the tag's owner)\n"
+            )
 
         emb.add_field(
             name=f"General commands", value=general_cmds + "\n\n", inline=False
         )
-        emb.add_field(name=f"Tag owner only commands", value=owner_cmds, inline=False)
+        emb.add_field(
+            name=f"Tag owner only commands", value=owner_cmds, inline=False
+        )
         await inter.send(embed=emb)
 
-    @tag.sub_command_group(name="alias", description="Aliases a tag", hidden=True)
+    @tag.sub_command_group(
+        name="alias", description="Aliases a tag", hidden=True
+    )
     @commands.guild_only()
     async def alias(self, inter):
         pass
@@ -443,9 +473,13 @@ class Tags(commands.Cog, name="Tags"):
         except AliasAlreadyExists:
             return await errorEmb(inter, f"alias **{alias}** already exists")
         except AliasLimitReached:
-            return await errorEmb(inter, "You can only have 10 aliases per tag")
+            return await errorEmb(
+                inter, "You can only have 10 aliases per tag"
+            )
 
-    @alias.sub_command(name="remove", description="Removes an alias from a tag")
+    @alias.sub_command(
+        name="remove", description="Removes an alias from a tag"
+    )
     @commands.guild_only()
     async def remove_alias(self, inter, name, alias):
         try:
@@ -464,7 +498,8 @@ class Tags(commands.Cog, name="Tags"):
                 )
             await self.tags.remove_alias(name, alias)
             await QuickEmb(
-                inter, f"I have successfully removed **{alias}** from **{name}**"
+                inter,
+                f"I have successfully removed **{alias}** from **{name}**",
             ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")

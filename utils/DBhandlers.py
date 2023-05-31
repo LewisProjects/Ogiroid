@@ -129,7 +129,9 @@ class FlagQuizHandler:
             if len(leaderboard) == 0:
                 raise UsersNotFound
             leaderboard = sorted(
-                leaderboard, key=lambda x: x.correct + (x.completed * 199), reverse=True
+                leaderboard,
+                key=lambda x: x.correct + (x.completed * 199),
+                reverse=True,
             )  # line might fail lol idk
             return leaderboard
 
@@ -163,7 +165,11 @@ class FlagQuizHandler:
         return FlagQuizUser(user_id, tries, correct, completed, guild_id)
 
     async def add_user(
-        self, user_id: int, tries: int = 0, correct: int = 0, guild_id: int = None
+        self,
+        user_id: int,
+        tries: int = 0,
+        correct: int = 0,
+        guild_id: int = None,
     ):
         if correct == 199:
             completed = 1
@@ -226,7 +232,9 @@ class BlacklistHandler:
                 blacklist.append(BlacklistedUser(*row).fix_db_types())
         if len(blacklist) == 0:
             raise BlacklistNotFound
-        print(f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded")
+        print(
+            f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded"
+        )
         self.blacklist = blacklist
 
     async def get(self, user_id: int) -> BlacklistedUser:
@@ -254,7 +262,9 @@ class BlacklistHandler:
 
     async def remove(self, user_id: int):
         """Removes a user from the blacklist"""
-        await self.db.execute(f"DELETE FROM blacklist WHERE user_id = ?", [user_id])
+        await self.db.execute(
+            f"DELETE FROM blacklist WHERE user_id = ?", [user_id]
+        )
         await self.db.commit()
         self.blacklist.remove(await self.get_user(user_id))
         await self.cache.remove(user_id)
@@ -269,7 +279,9 @@ class BlacklistHandler:
         else:
             return False
 
-    async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
+    async def edit_flags(
+        self, user_id: int, bot: bool, tickets: bool, tags: bool
+    ):
         """Edits the flags (blacklist perms) of a user"""
         await self.db.execute(
             f"UPDATE blacklist SET bot = ?, tickets = ?, tags = ? WHERE user_id = ?",
@@ -287,7 +299,8 @@ class BlacklistHandler:
     async def edit_reason(self, user_id: int, reason: str):
         """Edits the blacklist reason of a user"""
         await self.db.execute(
-            f"UPDATE blacklist SET reason = ? WHERE user_id = ?", [reason, user_id]
+            f"UPDATE blacklist SET reason = ? WHERE user_id = ?",
+            [reason, user_id],
         )
         await self.db.commit()
         indx = await self.get_user_index(user_id)
@@ -299,7 +312,8 @@ class BlacklistHandler:
     async def edit_expiry(self, user_id: int, expires: int):
         """Edits when the blacklist expires of a user"""
         await self.db.execute(
-            f"UPDATE blacklist SET expires = ? WHERE user_id = ?", [expires, user_id]
+            f"UPDATE blacklist SET expires = ? WHERE user_id = ?",
+            [expires, user_id],
         )
         await self.db.commit()
         indx = await self.get_user_index(user_id)
@@ -339,7 +353,9 @@ class TagManager:
         name = await self.get_name(name)
         return await self.cache.get(name)
 
-    async def exists(self, name, exception: TagException, should: bool) -> bool:
+    async def exists(
+        self, name, exception: TagException, should: bool
+    ) -> bool:
         """Returns True if the tag exists"""
         name = name.casefold()
         if await self.cache.exists(name):
@@ -365,13 +381,15 @@ class TagManager:
         )
         await self.db.commit()
         self.names["tags"].append(name)
-        await self.cache.add(name, Tag(name, content, owner, int(time.time()), 0))
+        await self.cache.add(
+            name, Tag(name, content, owner, int(time.time()), 0)
+        )
 
     async def get(self, name, /, force: bool = False) -> Tag:
         """
         Returns the tag object of the tag with the given name or alias
         args:
-            name: the name of the tag
+            name: the name or alias of the tag
             force: if True, will ignore the cache and get the tag from the database
         """
         name = await self.get_name(name)
@@ -382,7 +400,9 @@ class TagManager:
             else:
                 await self.cache.add(name, await self.get(name, force=True))
 
-        _cur = await self.db.execute("SELECT * FROM tags WHERE tag_id= ? ", [name])
+        _cur = await self.db.execute(
+            "SELECT * FROM tags WHERE tag_id = ? ", (name,)
+        )
         raw = await _cur.fetchone()
         if raw is None:
             return
@@ -429,7 +449,8 @@ class TagManager:
         name = await self.get_name(name)
         await self.update(name, "tag_id", new_name)
         async with self.db.execute(
-            f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?", [new_name, name]
+            f"UPDATE tag_relations SET tag_id = ? WHERE tag_id = ?",
+            [new_name, name],
         ):
             await self.db.commit()
 
@@ -442,6 +463,7 @@ class TagManager:
 
     async def increment_views(self, name):
         name = await self.get_name(name)
+
         tag = await self.cache.get(name, default=False)
         if tag:
             tag.views += 1
@@ -463,7 +485,10 @@ class TagManager:
         return tags
 
     async def get_tags_by_owner(
-        self, owner: int, limit=10, orderby: Literal["views", "created_at"] = "views"
+        self,
+        owner: int,
+        limit=10,
+        orderby: Literal["views", "created_at"] = "views",
     ):
         tags = []
         async with self.db.execute(
@@ -482,9 +507,9 @@ class TagManager:
     async def get_name(self, name_or_alias: str | tuple):
         """gets the true name of a tag (not the alias)"""
         if isinstance(name_or_alias, tuple):
-            name_or_alias = name_or_alias[0]
+            return await self.get_name(name_or_alias[0])
 
-        name_or_alias = name_or_alias.casefold()
+        name_or_alias = name_or_alias.casefold()  # todo fix.
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
         _cur = await self.db.execute(
@@ -493,7 +518,7 @@ class TagManager:
         value = await _cur.fetchone()
         if value is None:
             raise TagNotFound(name_or_alias)
-        return value
+        return value[0]
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
@@ -503,7 +528,8 @@ class TagManager:
         elif len(aliases) > 10:
             raise AliasLimitReached
         await self.db.execute(
-            "INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)", [name, alias]
+            "INSERT INTO tag_relations (tag_id, alias) VALUES (?, ?)",
+            [name, alias],
         )
         await self.db.commit()
         self.names["aliases"].append(alias)
@@ -514,7 +540,8 @@ class TagManager:
         if alias not in (await self.get_aliases(name)):
             raise AliasNotFound
         await self.db.execute(
-            "DELETE FROM tag_relations WHERE tag_id = ? AND alias = ?", [name, alias]
+            "DELETE FROM tag_relations WHERE tag_id = ? AND alias = ?",
+            [name, alias],
         )
         await self.db.commit()
         self.names["aliases"].remove(alias)
@@ -529,10 +556,14 @@ class TagManager:
         for alias in aliases:
             self.names["aliases"].remove(alias)
             await self.cache.delete(alias)
-        await self.db.execute("DELETE FROM tag_relations WHERE tag_id = ?", [name])
+        await self.db.execute(
+            "DELETE FROM tag_relations WHERE tag_id = ?", [name]
+        )
         await self.db.commit()
 
-    async def get_aliases(self, name: Optional = None) -> List[str] | TagNotFound:
+    async def get_aliases(
+        self, name: Optional = None
+    ) -> List[str] | TagNotFound:
         if not name:
             async with self.db.execute("SELECT * FROM tag_relations") as cur:
                 content = await cur.fetchall()
@@ -627,7 +658,9 @@ class RolesHandler:
             "DELETE FROM reaction_roles WHERE message_id = ?", [message_id]
         )
         await self.db.commit()
-        self.messages = [msg for msg in self.messages if msg.message_id != message_id]
+        self.messages = [
+            msg for msg in self.messages if msg.message_id != message_id
+        ]
 
 
 class WarningHandler:
@@ -644,7 +677,9 @@ class WarningHandler:
                 return None
             return WarningModel(*content)
 
-    async def get_warnings(self, user_id: int, guild_id: int) -> List[WarningModel]:
+    async def get_warnings(
+        self, user_id: int, guild_id: int
+    ) -> List[WarningModel]:
         warnings = []
         async with self.db.execute(
             "SELECT * FROM warnings WHERE user_id = ? AND guild_id = ?",
@@ -711,7 +746,9 @@ class BirthdayHandler:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute("DELETE FROM birthday WHERE user_id = ?", [user_id])
+        await self.db.execute(
+            "DELETE FROM birthday WHERE user_id = ?", [user_id]
+        )
         await self.db.commit()
         return True
 
@@ -763,7 +800,9 @@ class TimezoneHandler:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute("DELETE FROM timezone WHERE user_id = ?", [user_id])
+        await self.db.execute(
+            "DELETE FROM timezone WHERE user_id = ?", [user_id]
+        )
         await self.db.commit()
         return True
 

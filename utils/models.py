@@ -36,7 +36,12 @@ class User:
     @property
     def total_exp(self):
         return sum(
-            [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1]
+            [
+                exp
+                for exp in [
+                    self.get_exp(lvl) for lvl in range(1, self.lvl + 1)
+                ]
+            ][::-1]
             + [self.xp]
         )
 

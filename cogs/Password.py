@@ -22,7 +22,8 @@ class Password(commands.Cog):
         if length > 100:
             length = 100
         password = "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(length)
+            secrets.choice(string.ascii_letters + string.digits)
+            for _ in range(length)
         )
         # try to DM if fails send the password to the channel
         try:

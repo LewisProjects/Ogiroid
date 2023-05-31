@@ -24,7 +24,9 @@ class Trivia(commands.Cog, name="Trivia"):
     @commands.Cog.listener()
     async def on_ready(self):
         await self.bot.wait_until_ready()
-        self.flag_quiz: FlagQuizHandler = FlagQuizHandler(self.bot, self.bot.db)
+        self.flag_quiz: FlagQuizHandler = FlagQuizHandler(
+            self.bot, self.bot.db
+        )
 
     @commands.slash_command(name="flagquiz", description="Guess the flags.")
     async def guess_the_flag(self, inter):
@@ -37,10 +39,14 @@ class Trivia(commands.Cog, name="Trivia"):
         correct = 0
         tries = 0
         try:
-            user = await self.flag_quiz.get_user(inter.author.id, inter.guild.id)
+            user = await self.flag_quiz.get_user(
+                inter.author.id, inter.guild.id
+            )
         except UserNotFound:
             await self.flag_quiz.add_user(inter.author.id)
-            user = await self.flag_quiz.get_user(inter.author.id, inter.guild.id)
+            user = await self.flag_quiz.get_user(
+                inter.author.id, inter.guild.id
+            )
 
         def check(m):
             return (
@@ -95,7 +101,8 @@ class Trivia(commands.Cog, name="Trivia"):
                             >= 0.7
                         ):
                             await QuickEmb(
-                                channel, f"Correct. The country indeed was {country[0]}"
+                                channel,
+                                f"Correct. The country indeed was {country[0]}",
                             ).success().send()
                             correct += 1
                             retry = False
@@ -115,7 +122,9 @@ class Trivia(commands.Cog, name="Trivia"):
                 if guess.content.lower() == "skip":
                     if type(country) == list:
                         country = country[0]
-                    await QuickEmb(channel, f"The country was {country}").send()
+                    await QuickEmb(
+                        channel, f"The country was {country}"
+                    ).send()
                     retry = False
                 elif guess.content.casefold() == "give up":
                     await guess.reply(
@@ -166,7 +175,8 @@ class Trivia(commands.Cog, name="Trivia"):
         )
 
     @commands.slash_command(
-        name="flagquiz-leaderboard", description="Leaderboard for the flag quiz."
+        name="flagquiz-leaderboard",
+        description="Leaderboard for the flag quiz.",
     )
     async def flag_quiz_leaderboard(
         self,
@@ -222,7 +232,8 @@ class Trivia(commands.Cog, name="Trivia"):
             player = await self.flag_quiz.get_user(user_id, inter.guild.id)
         except UserNotFound:
             await errorEmb(
-                inter, "This user never took part in the flag quiz or doesn't exist."
+                inter,
+                "This user never took part in the flag quiz or doesn't exist.",
             )
             return
 
@@ -278,7 +289,9 @@ class Trivia(commands.Cog, name="Trivia"):
                     "Entertainment: Cartoon & Animations",
                 ],
             ),
-            Option(name="amount", description="Amount of Questions", min_value=1),
+            Option(
+                name="amount", description="Amount of Questions", min_value=1
+            ),
             Option(
                 name="difficulty",
                 description="Difficulty of the questions",
@@ -297,11 +310,18 @@ class Trivia(commands.Cog, name="Trivia"):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def trivia(
-        self, inter, category="Any", difficulty=None, amount: int = 5, kind="multiple"
+        self,
+        inter,
+        category="Any",
+        difficulty=None,
+        amount: int = 5,
+        kind="multiple",
     ):
         if int(amount) <= 1:
             return (
-                await QuickEmb(inter, "The amount of questions needs to be at least 1")
+                await QuickEmb(
+                    inter, "The amount of questions needs to be at least 1"
+                )
                 .error()
                 .send()
             )
@@ -330,13 +350,18 @@ class Trivia(commands.Cog, name="Trivia"):
             )
         data = await response.json()
         embed = disnake.Embed(title="Created Quiz", colour=0xFFFFFF)
-        embed.set_author(name=inter.author, icon_url=inter.author.display_avatar)
+        embed.set_author(
+            name=inter.author, icon_url=inter.author.display_avatar
+        )
         embed.set_thumbnail(url=inter.author.display_avatar)
         embed.add_field(name="Category:", value=category + "   ")
         embed.add_field(
-            name="Difficulty:", value=difficulty if difficulty else "Any Difficulty"
+            name="Difficulty:",
+            value=difficulty if difficulty else "Any Difficulty",
         )
-        embed.add_field(name="Amount of Questions:", value=amount, inline=False)
+        embed.add_field(
+            name="Amount of Questions:", value=amount, inline=False
+        )
         embed.add_field(name="Type:", value=kind, inline=False)
         await inter.send(embed=embed)
 
@@ -353,7 +378,9 @@ class Trivia(commands.Cog, name="Trivia"):
             answers_string = ""
             for i in range(len(answers)):
                 answers_string += f"{emojis[i]}: {html.unescape(answers[i])}\n"
-                components.append(disnake.ui.Button(emoji=emojis[i], custom_id=f"{i}"))
+                components.append(
+                    disnake.ui.Button(emoji=emojis[i], custom_id=f"{i}")
+                )
 
             embed = disnake.Embed(
                 title=html.unescape(question["question"]),
@@ -367,7 +394,9 @@ class Trivia(commands.Cog, name="Trivia"):
                 )
             except asyncio.exceptions.TimeoutError:
                 return (
-                    await QuickEmb(channel, "Due to no response the quiz ended early.")
+                    await QuickEmb(
+                        channel, "Due to no response the quiz ended early."
+                    )
                     .error()
                     .send()
                 )
@@ -399,7 +428,8 @@ class Trivia(commands.Cog, name="Trivia"):
                     ).error().send()
 
         await QuickEmb(
-            channel, f"Thanks for playing. Your final Score is {correct} / {questions}."
+            channel,
+            f"Thanks for playing. Your final Score is {correct} / {questions}.",
         ).send()
 
 

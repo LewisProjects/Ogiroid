@@ -23,7 +23,9 @@ class OGIROID(commands.InteractionBot):
     def __init__(self, *args, **kwargs):
         super().__init__(
             intents=disnake.Intents.all(),
-            command_sync_flags=commands.CommandSyncFlags(sync_commands_debug=True),
+            command_sync_flags=commands.CommandSyncFlags(
+                sync_commands_debug=True
+            ),
             *args,
             **kwargs,
         )
@@ -103,7 +105,9 @@ class OGIROID(commands.InteractionBot):
                 "--------------------------------------------------------------------------------"
             )
             print("Bot is ready! Logged in as: " + self.user.name)
-            print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani")
+            print(
+                "Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani"
+            )
             print(f"Bot version: {__VERSION__}")
             print(
                 "--------------------------------------------------------------------------------"

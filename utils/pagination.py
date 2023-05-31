@@ -81,8 +81,12 @@ class CreatePaginator(ui.View):
                     "You cannot interact with these buttons.", ephemeral=True
                 )
             elif self.CurrentEmbed == len(self.embeds) - 1:
-                return await inter.send("you are already at the end", ephemeral=True)
-            await inter.response.edit_message(embed=self.embeds[self.CurrentEmbed + 1])
+                return await inter.send(
+                    "you are already at the end", ephemeral=True
+                )
+            await inter.response.edit_message(
+                embed=self.embeds[self.CurrentEmbed + 1]
+            )
             self.CurrentEmbed += 1
 
         except:
@@ -96,8 +100,12 @@ class CreatePaginator(ui.View):
                     "You cannot interact with these buttons.", ephemeral=True
                 )
             elif self.CurrentEmbed == len(self.embeds) - 1:
-                return await inter.send("you are already at the end", ephemeral=True)
-            await inter.response.edit_message(embed=self.embeds[len(self.embeds) - 1])
+                return await inter.send(
+                    "you are already at the end", ephemeral=True
+                )
+            await inter.response.edit_message(
+                embed=self.embeds[len(self.embeds) - 1]
+            )
             self.CurrentEmbed = len(self.embeds) - 1
 
         except:
@@ -183,7 +191,9 @@ class LeaderboardView(ui.View):
                     inline=False,
                 )
 
-            embed.set_footer(text=f"{inter.author}", icon_url=inter.author.avatar.url)
+            embed.set_footer(
+                text=f"{inter.author}", icon_url=inter.author.avatar.url
+            )
             embed.timestamp = dt.datetime.now()
             return embed
 
@@ -238,7 +248,9 @@ class LeaderboardView(ui.View):
                     "You cannot interact with these buttons.", ephemeral=True
                 )
             elif await self.at_last_page(inter):
-                return await inter.send("you are already at the end", ephemeral=True)
+                return await inter.send(
+                    "you are already at the end", ephemeral=True
+                )
             await inter.response.edit_message(
                 embed=await self.create_page(inter, self.CurrentEmbed + 1)
             )
@@ -254,7 +266,9 @@ class LeaderboardView(ui.View):
                     "You cannot interact with these buttons.", ephemeral=True
                 )
             elif await self.at_last_page(inter):
-                return await inter.send("you are already at the end", ephemeral=True)
+                return await inter.send(
+                    "you are already at the end", ephemeral=True
+                )
             record_count = await self.controller.get_count(inter.guild.id)
             if (
                 record_count % 10 == 0

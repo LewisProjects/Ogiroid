@@ -31,7 +31,10 @@ class Log(Cog):
                 timestamp=datetime.now(),
             )
 
-            fields = [("Before", before.name, False), ("After", after.name, False)]
+            fields = [
+                ("Before", before.name, False),
+                ("After", after.name, False),
+            ]
 
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
@@ -176,7 +179,9 @@ class Log(Cog):
             n = 0
             while len(message.content) > n:
                 embed.add_field(
-                    name="content", value=message.content[n : n + 1024], inline=False
+                    name="content",
+                    value=message.content[n : n + 1024],
+                    inline=False,
                 )
                 n += 1024
 
@@ -192,7 +197,9 @@ class Log(Cog):
             timestamp=datetime.now(),
         )
 
-        embed.set_author(name=inter.author, icon_url=inter.author.display_avatar.url)
+        embed.set_author(
+            name=inter.author, icon_url=inter.author.display_avatar.url
+        )
 
         options = " ".join(
             [
@@ -204,7 +211,9 @@ class Log(Cog):
             f"`/{inter.data['name']} {options if options != '' else options}`"
         )
 
-        embed.set_footer(text=f"{inter.author.name}#{inter.author.discriminator}")
+        embed.set_footer(
+            text=f"{inter.author.name}#{inter.author.discriminator}"
+        )
         await ogiroid_log_channel.send(embed=embed)
 
     @Cog.listener()
@@ -235,7 +244,9 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_guild_role_update(self, before: disnake.Role, after: disnake.Role):
+    async def on_guild_role_update(
+        self, before: disnake.Role, after: disnake.Role
+    ):
         """Sends a message in log channel when role edites in the server."""
 
         title = "Role edited"
@@ -305,11 +316,13 @@ class Log(Cog):
             )
         elif after_ != before_:
             content = (
-                f"**Added: ** {','.join(added)}\n" f"**Removed: ** {', '.join(removed)}"
+                f"**Added: ** {','.join(added)}\n"
+                f"**Removed: ** {', '.join(removed)}"
             )
         elif after.name != before.name:
             content = (
-                f"**Old name: ** `{before.name}`\n" f"**New name: ** `{after.name}`"
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`"
             )
         else:
             return
@@ -324,7 +337,9 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_guild_update(self, before: disnake.Guild, after: disnake.Guild):
+    async def on_guild_update(
+        self, before: disnake.Guild, after: disnake.Guild
+    ):
         """Sends a message in log channel when guild updates."""
         if before.name != after.name:
             message = (
@@ -371,7 +386,9 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_thread_update(self, before: disnake.Thread, after: disnake.Thread):
+    async def on_thread_update(
+        self, before: disnake.Thread, after: disnake.Thread
+    ):
         """Sends a message in log channel when thread updates."""
         embed = Embed(
             title="Thread name edited",
@@ -425,7 +442,9 @@ class Log(Cog):
             timestamp=datetime.now(),
         )
 
-        await self.log_channel.send(embed=embed)  # todo switch to guild channel.
+        await self.log_channel.send(
+            embed=embed
+        )  # todo switch to guild channel.
 
 
 def setup(bot):

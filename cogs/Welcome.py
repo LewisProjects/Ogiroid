@@ -17,10 +17,14 @@ class Welcome(Cog):
         if member.guild.id != self.bot.config.guilds.main_guild:
             return
         if member.dm_channel is None:
-            introduction = self.bot.get_channel(self.bot.config.channels.introduction)
+            introduction = self.bot.get_channel(
+                self.bot.config.channels.introduction
+            )
             general = self.bot.get_channel(self.bot.config.channels.general)
             roles = self.bot.get_channel(self.bot.config.channels.roles)
-            reddit_bot = self.bot.get_channel(self.bot.config.channels.reddit_bot)
+            reddit_bot = self.bot.get_channel(
+                self.bot.config.channels.reddit_bot
+            )
             rules = self.bot.get_channel(self.bot.config.channels.rules)
 
             await member.create_dm()
@@ -41,7 +45,9 @@ class Welcome(Cog):
                 inline=True,
             )
             embed.add_field(
-                name="Roles:", value=f"Select some roles, {roles.mention}", inline=True
+                name="Roles:",
+                value=f"Select some roles, {roles.mention}",
+                inline=True,
             )
             embed.add_field(
                 name="Reddit Bot Related:",
@@ -49,7 +55,9 @@ class Welcome(Cog):
                 inline=True,
             )
             embed.add_field(
-                name="Rules:", value=f"Checkout the rules, {rules.mention}", inline=True
+                name="Rules:",
+                value=f"Checkout the rules, {rules.mention}",
+                inline=True,
             )
             embed.set_thumbnail(url=member.display_avatar)
             try:
@@ -59,7 +67,14 @@ class Welcome(Cog):
         else:
             pass
 
-        greetings = ["Hello", "Hi", "Greetings", "Hola", "Bonjour", "Konnichiwa"]
+        greetings = [
+            "Hello",
+            "Hi",
+            "Greetings",
+            "Hola",
+            "Bonjour",
+            "Konnichiwa",
+        ]
         secondary_greeting = [
             "Welcome to Lewis Menelaws' Official Discord Server! Feel free to look around & introduce yourself.",
             "Welcome to the server! We wish you have a great time here, make sure you tell us a little bit about yourself.",
