@@ -127,7 +127,7 @@ class OGIROID(commands.InteractionBot):
         await self.blacklist.startup()
 
     async def load_db(self):
-        pass  # todo get started on rocksDB migration
+        pass
 
     async def start(self, *args, **kwargs):
         await self.load_db()
