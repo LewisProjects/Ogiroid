@@ -641,14 +641,14 @@ class Level(commands.Cog):
             user = await self.bot.fetch_user(record.user_id)
             if record.user_id == inter.author.id:
                 embed.add_field(
-                    name=f"{i + 1}. {user} ~ You ",
+                    name=f"{i + 1}. {user.name} ~ You ",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
                 set_user = True
             else:
                 embed.add_field(
-                    name=f"{i + 1}. {user}",
+                    name=f"{i + 1}. {user.name}",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
