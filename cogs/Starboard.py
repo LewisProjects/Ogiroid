@@ -22,8 +22,13 @@ class Starboard(commands.Cog):
         ):
             return
         message = await channel.fetch_message(payload.message_id)
-        starboard_channel = message.guild.get_channel(self.starboard_channel_id)
-        if payload.emoji.name == self.star_emoji and not channel == starboard_channel:
+        starboard_channel = message.guild.get_channel(
+            self.starboard_channel_id
+        )
+        if (
+            payload.emoji.name == self.star_emoji
+            and not channel == starboard_channel
+        ):
             for reaction in message.reactions:
                 if (
                     reaction.emoji == self.star_emoji
@@ -35,7 +40,8 @@ class Starboard(commands.Cog):
                         timestamp=datetime.now(),
                     )
                     embed.set_author(
-                        name=message.author, icon_url=message.author.display_avatar.url
+                        name=message.author,
+                        icon_url=message.author.display_avatar.url,
                     )
                     await starboard_channel.send(embed=embed)
 

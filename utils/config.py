@@ -46,7 +46,7 @@ class Tokens:
 
 
 @dataclass
-class Database:
+class Database:  # Todo switch to rockdb info
     user: str = os.getenv("POSTGRES_USER")
     password: str = os.getenv("POSTGRES_PASSWORD")
     host: str = os.getenv("POSTGRES_HOST")
@@ -66,7 +66,9 @@ class Config:
     elif os.getenv("DEVELOPMENT").lower() == "false":
         Development: bool = False
     else:
-        raise ValueError("DEVELOPMENT in secrets.env must be set to true or false")
+        raise ValueError(
+            "DEVELOPMENT in secrets.env must be set to true or false"
+        )
     colors = Colors
     colours = colors
     tokens = Tokens

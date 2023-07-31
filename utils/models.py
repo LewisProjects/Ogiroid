@@ -36,7 +36,12 @@ class User:
     @property
     def total_exp(self):
         return sum(
-            [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1]
+            [
+                exp
+                for exp in [
+                    self.get_exp(lvl) for lvl in range(1, self.lvl + 1)
+                ]
+            ][::-1]
             + [self.xp]
         )
 
@@ -105,6 +110,7 @@ class FlagQuizUser:
     tries: int
     correct: int
     completed: int
+    guild_id: int
 
 
 @dataclass
@@ -121,6 +127,7 @@ class WarningModel:
     user_id: int
     moderator_id: int
     reason: str
+    guild_id: int
 
 
 @dataclass

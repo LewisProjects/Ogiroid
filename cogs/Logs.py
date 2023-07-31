@@ -31,7 +31,10 @@ class Log(Cog):
                 timestamp=datetime.now(),
             )
 
-            fields = [("Before", before.name, False), ("After", after.name, False)]
+            fields = [
+                ("Before", before.name, False),
+                ("After", after.name, False),
+            ]
 
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
@@ -82,6 +85,20 @@ class Log(Cog):
 
     @Cog.listener()
     async def on_member_update(self, before, after):
+        before_roles = []
+        after_roles = []
+        for role in before.roles:
+            before_roles.append(str(role.mention))
+
+        before_roles.reverse()
+        before_roles.pop()
+
+        for role in after.roles:
+            after_roles.append(str(role.mention))
+
+        after_roles.reverse()
+        after_roles.pop()
+
         if before.display_name != after.display_name:
             embed = Embed(
                 title="Nickname change",
@@ -110,8 +127,8 @@ class Log(Cog):
             )
 
             fields = [
-                ("Before", ", ".join([r.mention for r in before.roles]), False),
-                ("After", ", ".join([r.mention for r in after.roles]), False),
+                ("Before", ", ".join(before_roles), False),
+                ("After", ", ".join(after_roles), False),
             ]
 
             for name, value, inline in fields:
@@ -155,14 +172,19 @@ class Log(Cog):
                 timestamp=datetime.now(),
             )
 
-            fields = [("Content", message.content, False)]
-
-            for name, value, inline in fields:
-                embed.add_field(name=name, value=value, inline=inline)
-
             embed.set_footer(
                 text=f"{message.author.name}#{message.author.discriminator}"
             )
+
+            n = 0
+            while len(message.content) > n:
+                embed.add_field(
+                    name="content",
+                    value=message.content[n : n + 1024],
+                    inline=False,
+                )
+                n += 1024
+
             await self.log_channel.send(embed=embed)
 
     @Cog.listener()
@@ -175,17 +197,23 @@ class Log(Cog):
             timestamp=datetime.now(),
         )
 
-        embed.set_author(name=inter.author, icon_url=inter.author.display_avatar.url)
+        embed.set_author(
+            name=inter.author, icon_url=inter.author.display_avatar.url
+        )
 
         options = " ".join(
-            [f"{name}: {value}" for name, value in inter.options.items()]
+            [
+                f"{name}: {value}" if value else name
+                for name, value in inter.options.items()
+            ]
         )
-
         embed.description = (
-            f"`/{inter.data['name']}{' ' + options if options != '' else options}`"
+            f"`/{inter.data['name']} {options if options != '' else options}`"
         )
 
-        embed.set_footer(text=f"{inter.author.name}#{inter.author.discriminator}")
+        embed.set_footer(
+            text=f"{inter.author.name}#{inter.author.discriminator}"
+        )
         await ogiroid_log_channel.send(embed=embed)
 
     @Cog.listener()
@@ -216,14 +244,87 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_guild_role_update(self, before: disnake.Role, after: disnake.Role):
+    async def on_guild_role_update(
+        self, before: disnake.Role, after: disnake.Role
+    ):
         """Sends a message in log channel when role edites in the server."""
 
         title = "Role edited"
 
-        if before.name != after.name:
-            content = f"**{before.name}** has been named to **{after.name}**"
-        else:  # needs to check perms aswell
+        before_, after_ = [], []
+
+        for before_name in before.permissions:
+            before_.append(before_name)
+
+        for after_name in after.permissions:
+            after_.append(after_name)
+
+        added, removed = [], []
+        check = set(after_) - set(before_)
+
+        for name in list(check):
+            names = name[0]
+            values = name[1]
+            if values:
+                value = True
+                string = str(value)
+                values = string.replace("True", "added")
+            else:
+                value = False
+                string = str(value)
+                values = string.replace("False", "removed")
+
+            names_raw = names.replace("_", " ").replace("guild", "server")
+
+            if "added" in values:
+                added.append(names_raw)
+            else:
+                removed.append(names_raw)
+
+        if len(added) == 0 and len(removed) > 0 and after_ != before_:
+            content = f"**Removed: ** {', '.join(removed)}"
+        elif len(removed) == 0 and len(added) > 0 and after_ != before_:
+            content = f"**Added: ** {','.join(added)}\n"
+        elif (
+            len(added) == 0
+            and len(removed) > 0
+            and after_ != before_
+            and after.name != before.name
+        ):
+            content = (
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`\n"
+                f"**Removed: ** {','.join(removed)}\n"
+            )
+        elif (
+            len(removed) == 0
+            and len(added) > 0
+            and after_ != before_
+            and after.name != before.name
+        ):
+            content = (
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`\n"
+                f"**Added: ** {','.join(added)}\n"
+            )
+        elif after_ != before_ and after.name != before.name:
+            content = (
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`\n"
+                f"**Added: ** {','.join(added)}\n"
+                f"**Removed: ** {', '.join(removed)}"
+            )
+        elif after_ != before_:
+            content = (
+                f"**Added: ** {','.join(added)}\n"
+                f"**Removed: ** {', '.join(removed)}"
+            )
+        elif after.name != before.name:
+            content = (
+                f"**Old name: ** `{before.name}`\n"
+                f"**New name: ** `{after.name}`"
+            )
+        else:
             return
 
         embed = Embed(
@@ -236,7 +337,9 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_guild_update(self, before: disnake.Guild, after: disnake.Guild):
+    async def on_guild_update(
+        self, before: disnake.Guild, after: disnake.Guild
+    ):
         """Sends a message in log channel when guild updates."""
         if before.name != after.name:
             message = (
@@ -256,13 +359,16 @@ class Log(Cog):
                 f"Before: `{before.afk_timeout}`\n"
                 f"After: `{after.afk_timeout}`"
             )
+        else:
+            message = None
 
         embed = Embed(
             title="Server edited",
-            description=message,
             colour=self.bot.config.colors.white,
             timestamp=datetime.now(),
         )
+        if message is not None:
+            embed.description = message
 
         await self.log_channel.send(embed=embed)
 
@@ -280,7 +386,9 @@ class Log(Cog):
         await self.log_channel.send(embed=embed)
 
     @Cog.listener()
-    async def on_thread_update(self, before: disnake.Thread, after: disnake.Thread):
+    async def on_thread_update(
+        self, before: disnake.Thread, after: disnake.Thread
+    ):
         """Sends a message in log channel when thread updates."""
         embed = Embed(
             title="Thread name edited",
@@ -334,7 +442,9 @@ class Log(Cog):
             timestamp=datetime.now(),
         )
 
-        await self.log_channel.send(embed=embed)
+        await self.log_channel.send(
+            embed=embed
+        )  # todo switch to guild channel.
 
 
 def setup(bot):

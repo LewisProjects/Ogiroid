@@ -24,10 +24,16 @@ from disnake import (
     Option,
 )
 from disnake.ext import commands
-from disnake.ext.commands import CooldownMapping, BucketType, Cog, Param, BadArgument
+from disnake.ext.commands import (
+    CooldownMapping,
+    BucketType,
+    Cog,
+    Param,
+    BadArgument,
+)
 
 from utils import timeconversions
-from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL
+from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL, Colors
 from utils.DBhandlers import ConfigHandler
 from utils.bot import OGIROID
 from utils.config import GConfig
@@ -72,7 +78,7 @@ class LevelsController:
         return (await record.fetchone())[0]
 
     async def get_leaderboard(
-            self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None
+        self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None
     ) -> list[User]:
         """get a list of users
         optionally you can specify a range of users to get from the leaderboard e.g. 200, 230
@@ -112,9 +118,12 @@ class LevelsController:
 
         try:
             return sum(
-                [exp for exp in [LEVELS_AND_XP[lvl] for lvl in range(1, level + 1)]][
-                ::-1
-                ]
+                [
+                    exp
+                    for exp in [
+                        LEVELS_AND_XP[lvl] for lvl in range(1, level + 1)
+                    ]
+                ][::-1]
             )
         except KeyError:
             raise ValueError(
@@ -144,12 +153,14 @@ class LevelsController:
             raise LevelingSystemError(
                 "Invalid rate or per. Values must be greater than zero"
             )
-        self._cooldown = CooldownMapping.from_cooldown(rate, per, BucketType.member)
+        self._cooldown = CooldownMapping.from_cooldown(
+            rate, per, BucketType.member
+        )
         self.__rate = rate
         self.__per = per
 
     async def is_in_database(
-            self, member: Union[Member, int], guild: Union[FakeGuild, int] = None
+        self, member: Union[Member, int], guild: Union[FakeGuild, int] = None
     ) -> bool:
         record = await self.db.execute(
             "SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = ? AND guild_id = ? )",
@@ -172,10 +183,12 @@ class LevelsController:
                 lvl=level,
             )
         else:
-            raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
+            raise LevelingSystemError(
+                f'Parameter "level" must be from 0-{MAX_LEVEL}'
+            )
 
     async def _update_record(
-            self, member: Union[Member, int], level: int, xp: int, guild_id: int
+        self, member: Union[Member, int], level: int, xp: int, guild_id: int
     ) -> None:
         self.remove_cached(
             member if isinstance(member, Member) else self.bot.get_user(member)
@@ -187,7 +200,9 @@ class LevelsController:
                 (
                     level,
                     xp,
-                    member.id if isinstance(member, (Member, ClientUser)) else member,
+                    member.id
+                    if isinstance(member, (Member, ClientUser))
+                    else member,
                     guild_id,
                 ),
             )
@@ -234,7 +249,7 @@ class LevelsController:
         boost = 1
         config: GConfig = await self.config_hander.get_config(message.guild.id)
         if message.author.roles.__contains__(
-                message.guild.get_role(self.bot.config.roles.nitro)
+            message.guild.get_role(self.bot.config.roles.nitro)
         ):
             boost = 2
         if config.xp_boost_active:
@@ -253,17 +268,17 @@ class LevelsController:
 
     async def handle_message(self, message: Message):
         if any(
-                [
-                    message.guild is None,
-                    message.author.bot,
-                    message.type
-                    not in [
-                        MessageType.default,
-                        MessageType.reply,
-                        MessageType.thread_starter_message,
-                    ],
-                    message.content.__len__() < 5,
-                ]
+            [
+                message.guild is None,
+                message.author.bot,
+                message.type
+                not in [
+                    MessageType.default,
+                    MessageType.reply,
+                    MessageType.thread_starter_message,
+                ],
+                message.content.__len__() < 5,
+            ]
         ):
             return
         if not random.randint(1, 3) == 1:
@@ -273,8 +288,14 @@ class LevelsController:
 
         await self.grant_xp(message)
 
-    async def get_user(self, user: Member) -> User:
-        if f"levels_{user.id}_{user.guild.id}" in self.cache:
+    async def get_user(self, user: Member, bypass: bool = False) -> User:
+        """
+        get the user from the database
+        :param user: the user to get
+        :param bypass: bypass the cache and get the user from the database
+        :return: the user
+        """
+        if f"levels_{user.id}_{user.guild.id}" in self.cache and not bypass:
             return self.cache[f"levels_{user.id}_{user.guild.id}"]
 
         record = await self.db.execute(
@@ -291,15 +312,15 @@ class LevelsController:
         return User(*raw)
 
     async def generate_image_card(
-            self, user: Member | User, rank: str, xp: int, lvl: int
+        self, user: Member | User, rank: str, xp: int, lvl: int
     ) -> Image:
         """generates an image card for the user"""
         avatar: disnake.Asset = user.display_avatar.with_size(512)
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
-        
+
         with Image.open("utils/data/images/rankcard.png").convert(
-                "RGBA"
+            "RGBA"
         ) as base:  # WINTER VERSION
             # make a blank image for the text, initialized to transparent text color
             txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
@@ -339,7 +360,8 @@ class LevelsController:
                 alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
                 alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
                 alpha.paste(
-                    circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad)
+                    circle.crop((rad, rad, rad * 2, rad * 2)),
+                    (w - rad, h - rad),
                 )
                 im.putalpha(alpha)
                 return im
@@ -361,7 +383,9 @@ class LevelsController:
             d.text((115, 96), str(lvl), font=fnt, fill=(0, 0, 0, 255))
             # Rank
             d.text((113, 130), f"#{rank}", font=fnt, fill=(0, 0, 0, 255))
-            d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
+            d.rectangle(
+                (44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255)
+            )
             txt.paste(avatar_img, (489, 23))
 
             out = Image.alpha_composite(base, txt)
@@ -380,9 +404,10 @@ class LevelsController:
         """
         await message.channel.send(msg)
 
-    async def get_rank(self, guild_id, user_record) -> int:
+    async def get_rank(
+        self, guild_id, user_record, return_updated: bool = False
+    ) -> (User, int) | int:
         """
-        what to do
         #1. eliminate all the users that have a lower level than the user
         #2. sort the users by xp
         #3. get the index of the user
@@ -399,10 +424,29 @@ class LevelsController:
         if raw_records is None:
             raise UserNotFound
         records = [User(*record) for record in raw_records]
-        sorted_once = sorted(records, key=lambda x: x.xp, reverse=True)
-        sorted_twice = sorted(sorted_once, key=lambda x: x.lvl, reverse=True)
-        rank = sorted_twice.index(user_record) + 1
-        return rank
+        sorted_once = sorted(records, key=lambda x: x.lvl, reverse=True)
+        sorted_twice = sorted(sorted_once, key=lambda x: x.xp, reverse=True)
+
+        try:
+            rank = sorted_twice.index(user_record) + 1
+        except ValueError:
+            user = self.bot.get_guild(guild_id).get_member(user_record.user_id)
+            log_channel = self.bot.get_channel(self.bot.config.channels.logs)
+            emb = Embed(
+                description=f"User {user} not found in Level cache for guild {guild_id} bypassing cache...",
+                color=Colors.red,
+            )
+            await log_channel.send(embed=emb)
+            return await self.get_rank(
+                guild_id,
+                await self.get_user(user, bypass=True),
+                return_updated=return_updated,
+            )
+
+        if return_updated:
+            return user_record, rank
+        else:
+            return rank
 
 
 class Level(commands.Cog):
@@ -424,7 +468,9 @@ class Level(commands.Cog):
         if await self.is_role_reward(msg.guild, level):
             role = await self.get_role_reward(msg.guild, level)
             if role is not None:
-                await msg.author.add_roles(role, reason=f"Level up to level {level}")
+                await msg.author.add_roles(
+                    role, reason=f"Level up to level {level}"
+                )
 
     async def is_role_reward(self, guild: Guild, level: int) -> bool:
         query = await self.bot.db.execute(
@@ -434,7 +480,6 @@ class Level(commands.Cog):
         return bool((await query.fetchone())[0])
 
     async def get_role_reward(self, guild: Guild, level: int) -> Role:
-
         query = await self.bot.db.execute(
             "SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?",
             (guild.id, level),
@@ -451,7 +496,6 @@ class Level(commands.Cog):
         try:
             await self.controller.handle_message(message)
         except AttributeError:  # bot has not fully started up yet
-
             await self.bot.wait_until_ready()
             await asyncio.sleep(5)
             await self.on_message(message)
@@ -462,7 +506,7 @@ class Level(commands.Cog):
         if not self.bot.ready_:
             print("[Levels] Ready")
 
-    @commands.slash_command()
+    @commands.slash_command(description="XP boost base command")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def xp_boost(self, inter: ApplicationCommandInteraction):
@@ -472,6 +516,7 @@ class Level(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @xp_boost.sub_command()
     async def active(self, inter: ApplicationCommandInteraction, active: bool):
+        """Enable or disable xp boost"""
         await self.bot.db.execute(
             "UPDATE config SET xp_boost_enabled = ? WHERE guild_id = ?",
             (active, inter.guild.id),
@@ -486,17 +531,19 @@ class Level(commands.Cog):
     @xp_boost.sub_command()
     async def get(self, inter: ApplicationCommandInteraction):
         async with self.bot.db.execute(
-                "SELECT * FROM config WHERE guild_id = ?", (inter.guild.id,)
+            "SELECT * FROM config WHERE guild_id = ?", (inter.guild.id,)
         ) as cur:
             config = await cur.fetchone()
         if config is None:
-            return await inter.response.send_message("There is no config setup for this server")
+            return await inter.response.send_message(
+                "There is no config setup for this server"
+            )
         emb = Embed(
             title="XP Boost",
             description=f"XP Boost is currently {'enabled' if config[4] else 'disabled'}",
             color=0x2F3136,
         )
-        emb.add_field(name="Multiplier", value=str(config[1]) + 'x')
+        emb.add_field(name="Multiplier", value=str(config[1]) + "x")
         emb.add_field(name="Duration", value=get_expiry(config[2]))
         await inter.response.send_message(embed=emb)
 
@@ -504,17 +551,17 @@ class Level(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @xp_boost.sub_command()
     async def set(
-            self,
-            inter: ApplicationCommandInteraction,
-            amount=Option(
-                name="amount",
-                type=Union[float, int],
-                required=True,
-                description="The amount to boost by",
-                max_value=10,
-                min_value=0.1,
-            ),
-            expires: str = "Never",
+        self,
+        inter: ApplicationCommandInteraction,
+        amount=Option(
+            name="amount",
+            type=Union[float, int],
+            required=True,
+            description="The amount to boost by",
+            max_value=10,
+            min_value=0.1,
+        ),
+        expires: str = "Never",
     ):
         """Set the xp boost for the server and optionally set an expiration date"""
         try:
@@ -535,23 +582,27 @@ class Level(commands.Cog):
     @commands.slash_command()
     @commands.guild_only()
     async def rank(
-            self, inter: ApplicationCommandInteraction, user: Optional[Member] = None
+        self,
+        inter: ApplicationCommandInteraction,
+        user: Optional[Member] = None,
     ):
         """
         Get the rank of a user in the server or yourself if no user is specified
 
         """
         user = user if user is not None else inter.author
-        await inter.response.defer()
-        if user.bot:
+        if user.bot or user.system:
             return await errorEmb(inter, text="Bots can't rank up!")
+        await inter.response.defer()
         try:
             user_record = await self.controller.get_user(user)
             if not user_record:
                 print("[Levels] User not found")
                 await self.controller.add_user(user, inter.guild)
                 return await self.rank(inter, user)
-            rank = await self.controller.get_rank(inter.guild.id, user_record)
+            user_record, rank = await self.controller.get_rank(
+                inter.guild.id, user_record, return_updated=True
+            )
             image = await self.controller.generate_image_card(
                 user, rank, user_record.xp, user_record.lvl
             )
@@ -574,7 +625,9 @@ class Level(commands.Cog):
         await inter.response.defer()
         limit = 10
         set_user = False
-        records = await self.controller.get_leaderboard(inter.guild, limit=limit)
+        records = await self.controller.get_leaderboard(
+            inter.guild, limit=limit
+        )
         try:
             cmd_user = await self.controller.get_user(inter.author)
         except UserNotFound:
@@ -588,14 +641,14 @@ class Level(commands.Cog):
             user = await self.bot.fetch_user(record.user_id)
             if record.user_id == inter.author.id:
                 embed.add_field(
-                    name=f"{i + 1}. {user} ~ You ",
+                    name=f"{i + 1}. {user.name} ~ You ",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
                 set_user = True
             else:
                 embed.add_field(
-                    name=f"{i + 1}. {user}",
+                    name=f"{i + 1}. {user.name}",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
@@ -615,7 +668,9 @@ class Level(commands.Cog):
         await inter.send(
             embed=embed,
             view=LeaderboardView(
-                controller=self.controller, firstemb=embed, author=inter.author.id
+                controller=self.controller,
+                firstemb=embed,
+                author=inter.author.id,
             ),
         )
 
@@ -623,10 +678,12 @@ class Level(commands.Cog):
     @commands.guild_only()
     @commands.has_any_role("Staff", "staff")
     async def set_lvl(
-            self,
-            inter: ApplicationCommandInteraction,
-            user: Member,
-            level: int = Param(description="The level to set the user to", le=100, ge=0),
+        self,
+        inter: ApplicationCommandInteraction,
+        user: Member,
+        level: int = Param(
+            description="The level to set the user to", le=100, ge=0
+        ),
     ):
         """
         Set a user's level
@@ -642,38 +699,41 @@ class Level(commands.Cog):
         except LevelingSystemError:
             return await errorEmb(inter, text="Invalid mofo")
         await sucEmb(
-            inter, text=f"Set {user.mention}'s level to {level}", ephemeral=False
+            inter,
+            text=f"Set {user.mention}'s level to {level}",
+            ephemeral=False,
         )
 
-    @commands.slash_command()
+    @commands.slash_command(description="Role rewards base command")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def role_reward(self, inter: ApplicationCommandInteraction):
-
         return
 
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def add(
-            self,
-            inter: ApplicationCommandInteraction,
-            role: Role = Param(name="role", description="what role to give"),
-            level_needed: int = Param(
-                name="level_needed", description="The level needed to get the role"
-            ),
+        self,
+        inter: ApplicationCommandInteraction,
+        role: Role = Param(name="role", description="What role to give"),
+        level_needed: int = Param(
+            name="level_needed", description="The level needed to get the role"
+        ),
     ):
-        """adds a role to the reward list"""
+        """Adds a role to the reward list"""
         if int(level_needed) not in self.levels:
             return await errorEmb(
                 inter, text=f"Level must be within 1-{MAX_LEVEL} found"
             )
 
         if await self.bot.db.execute(
-                "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
-                (inter.guild.id, role.id),
+            "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
+            (inter.guild.id, role.id),
         ):
             sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
-            await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
+            await self.bot.db.execute(
+                sql, (inter.guild.id, role.id, level_needed)
+            )
             await self.bot.db.commit()
             return await sucEmb(
                 inter,
@@ -686,14 +746,14 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)
     async def remove(
-            self,
-            inter: ApplicationCommandInteraction,
-            role: Role = Param(name="role", description="what role to remove"),
+        self,
+        inter: ApplicationCommandInteraction,
+        role: Role = Param(name="role", description="What role to remove"),
     ):
-        """remove a role reward"""
+        """Remove a role reward"""
         if await self.bot.db.execute(
-                "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
-                (inter.guild.id, role.id),
+            "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
+            (inter.guild.id, role.id),
         ):
             sql = "DELETE FROM role_rewards WHERE guild_id = ? AND role_id = ?"
             await self.bot.db.execute(sql, (inter.guild.id, role.id))
@@ -708,7 +768,7 @@ class Level(commands.Cog):
 
     @role_reward.sub_command()
     async def list(self, inter: ApplicationCommandInteraction):
-        """list all role rewards"""
+        """List all role rewards"""
         sql = "SELECT * FROM role_rewards WHERE guild_id = ?"
         records = await self.bot.db.execute(sql, (inter.guild.id,))
         records = await records.fetchall()

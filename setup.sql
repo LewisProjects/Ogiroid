@@ -32,7 +32,8 @@ IF NOT EXISTS flag_quizz
     user_id BIGINT,
     tries INTEGER,
     correct INTEGER,
-    completed INTEGER
+    completed INTEGER,
+    guild_id INTEGER
 );
 
 CREATE TABLE
@@ -60,7 +61,8 @@ IF NOT EXISTS warnings
     warning_id SERIAL PRIMARY KEY,
     user_id BIGINT,
     moderator_id BIGINT,
-    reason TEXT
+    reason TEXT,
+    guild_id BIGINT
 );
 
 CREATE TABLE

@@ -60,11 +60,15 @@ class Info(commands.Cog):
         else:
             await inter.send(embed=e)
 
-    @commands.slash_command(description="stats about the commands that have been ran")
+    @commands.slash_command(
+        description="Stats about the commands that have been ran"
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdstats(self, inter):
         cmdsran = self.bot.commands_ran
-        sortdict = dict(sorted(cmdsran.items(), key=lambda x: x[1], reverse=True))
+        sortdict = dict(
+            sorted(cmdsran.items(), key=lambda x: x[1], reverse=True)
+        )
         value_iterator = iter(sortdict.values())
         key_iterator = iter(sortdict.keys())
         emby = disnake.Embed(

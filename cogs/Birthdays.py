@@ -12,6 +12,20 @@ from utils.exceptions import UserAlreadyExists, UserNotFound
 from utils.shortcuts import QuickEmb, sucEmb, errorEmb
 
 
+async def get_days_until_birthday(user_data) -> (int, str):
+    """returns the days until the next birthday and the next birthday date formatted for discord"""
+    next_birthday = datetime.datetime.strptime(
+        user_data.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y"
+    )
+    if next_birthday < datetime.datetime.now():
+        next_birthday = datetime.datetime.strptime(
+            user_data.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y"
+        )
+    return (
+        next_birthday - datetime.datetime.now()
+    ).days, f"<t:{str(next_birthday.timestamp()).split('.')[0]}:D>"
+
+
 class Birthday(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
@@ -21,17 +35,22 @@ class Birthday(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.bot.ready_:
-            self.birthday: BirthdayHandler = BirthdayHandler(self.bot, self.bot.db)
+            self.birthday: BirthdayHandler = BirthdayHandler(
+                self.bot, self.bot.db
+            )
 
     def cog_unload(self):
         self.birthday_check.cancel()
 
-    @commands.slash_command(name="birthday")
+    @commands.slash_command(
+        name="birthday", description="Birthdays base command"
+    )
     async def birthday(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
     @birthday.sub_command(
-        name="set", description="Set your birthday. Cant be removed without Staff."
+        name="set",
+        description="Set your birthday. Cant be removed without Staff.",
     )
     async def set(
         self,
@@ -49,7 +68,9 @@ class Birthday(commands.Cog):
         ),
     ):
         if month is None or day is None:
-            return await errorEmb(inter, "You need to provide a month and a day")
+            return await errorEmb(
+                inter, "You need to provide a month and a day"
+            )
         if day < 1 or day > 31:
             return await errorEmb(inter, "The day must be between 1 and 31")
 
@@ -63,7 +84,8 @@ class Birthday(commands.Cog):
 
     @commands.has_permissions(manage_roles=True)
     @birthday.sub_command(
-        name="edit", description="Edit a users birthday. Can only be done by Staff."
+        name="edit",
+        description="Edit a users birthday. Can only be done by Staff.",
     )
     async def edit(
         self,
@@ -82,13 +104,18 @@ class Birthday(commands.Cog):
     ):
         try:
             await self.birthday.update_user(user.id, f"{day}/{month}")
-            return await sucEmb(inter, f"Birthday has been updated to {day}/{month}")
+            return await sucEmb(
+                inter, f"Birthday has been updated to {day}/{month}"
+            )
         except UserNotFound:
-            return await errorEmb(inter, "The User doesn't have a birthday set")
+            return await errorEmb(
+                inter, "The User doesn't have a birthday set"
+            )
 
     @commands.has_permissions(manage_roles=True)
     @birthday.sub_command(
-        name="remove", description="Remove a birthday. Can only be done by Staff."
+        name="remove",
+        description="Remove a birthday. Can only be done by Staff.",
     )
     async def remove(
         self,
@@ -100,13 +127,17 @@ class Birthday(commands.Cog):
         try:
             await self.birthday.delete_user(user.id)
         except UserNotFound:
-            return await errorEmb(inter, "This user doesn't have a birthday set")
+            return await errorEmb(
+                inter, "This user doesn't have a birthday set"
+            )
 
         await sucEmb(inter, "The birthday has been removed")
 
     @birthday.sub_command(name="get", description="Get the birthday of a user")
     async def get(
-        self, inter, user: disnake.User = commands.Param(name="user", default=None)
+        self,
+        inter,
+        user: disnake.User = commands.Param(name="user", default=None),
     ):
         if user is None:
             user = inter.author
@@ -115,19 +146,47 @@ class Birthday(commands.Cog):
 
         birthday = await self.birthday.get_user(user.id)
         if birthday is None:
-            return await errorEmb(inter, "This user doesn't have a birthday set")
-
-        next_birthday = datetime.datetime.strptime(
-            birthday.birthday + f"/{dt.datetime.now().year}", "%d/%m/%Y"
-        )
-        if next_birthday < datetime.datetime.now():
-            next_birthday = datetime.datetime.strptime(
-                birthday.birthday + f"/{dt.datetime.now().year + 1}", "%d/%m/%Y"
+            return await errorEmb(
+                inter, "This user doesn't have a birthday set"
             )
+
+        days, discord_date = await get_days_until_birthday(birthday)
         await QuickEmb(
             inter,
-            f"{user.mention}'s birthday is in {(next_birthday - datetime.datetime.now()).days} Days."
-            f" <t:{str(next_birthday.timestamp()).split('.')[0]}:D>",
+            f"{user.mention}'s birthday is in {days} Days." f"{discord_date}",
+        ).send()
+
+    @birthday.sub_command(name="next", description="Get the next birthday")
+    async def next(self, inter: disnake.ApplicationCommandInteraction):
+        upcoming_birthdays = []
+        # loop gets next birthday
+        for user in await self.birthday.get_users():
+            # gets days until birthday and the discord date
+            days, discord_date = await get_days_until_birthday(user)
+            # checks if user is in the guild
+            upcoming_birthdays.append(
+                {"days": days, "user": user, "discord_date": discord_date}
+            )
+
+        # sorts birthdays by days
+        upcoming_birthdays.sort(key=lambda x: x["days"])
+        # gets the next birthday's user
+        next_birthday = upcoming_birthdays[0]["user"]
+        # checks if user is in the guild
+        while await inter.guild.fetch_member(next_birthday.user_id) is None:
+            upcoming_birthdays.pop(0)
+            next_birthday = upcoming_birthdays[0]["user"]
+
+        member = await self.bot.fetch_user(next_birthday.user_id)
+
+        if next_birthday is None:
+            return await errorEmb(inter, "There are no birthdays set")
+
+        days, discord_date = await get_days_until_birthday(next_birthday)
+        await QuickEmb(
+            inter,
+            f"{member.mention}'s birthday is in {days} Days."
+            f"{discord_date}",
         ).send()
 
     # @tasks.loop(time=[dt.time(dt.datetime.utcnow().hour, dt.datetime.utcnow().minute, dt.datetime.utcnow().second + 10)])
@@ -135,22 +194,26 @@ class Birthday(commands.Cog):
     @tasks.loop(time=[dt.time(8, 0, 0)])
     # loops every day at 8:00 UTC time
     async def birthday_check(self):
-        channel = self.bot.get_channel(self.bot.config.channels.birthdays)
-        guild = self.bot.get_guild(self.bot.config.guilds.main_guild)
+        channel = await self.bot.fetch_channel(
+            self.bot.config.channels.birthdays
+        )
+        guild = await self.bot.fetch_guild(self.bot.config.guilds.main_guild)
         if channel is None:
             return
         today = dt.datetime.utcnow().strftime("%d/%m")
         # Gets all users from the db
         users = await self.birthday.get_users()
         for user in users:
-            member = await guild.fetch_member(user.user_id)
+            member = await guild.getch_member(user.user_id)
             # if the member is None, the user is not in the server anymore
             if member is None:
                 continue
 
             # if the birthday is today, congratulate the user
             if user.birthday == today:
-                await member.add_roles(guild.get_role(self.bot.config.roles.birthday))
+                await member.add_roles(
+                    guild.get_role(self.bot.config.roles.birthday)
+                )
                 congrats_msg = await channel.send(
                     f"{random.choice(congrats_messages)} {member.mention}! 🎂"
                 )

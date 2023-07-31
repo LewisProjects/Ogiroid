@@ -66,11 +66,15 @@ class BugModal(disnake.ui.Modal):
         )
 
         embed.add_field(
-            name="Expected Result: ", value=inter.text_values["expected"], inline=False
+            name="Expected Result: ",
+            value=inter.text_values["expected"],
+            inline=False,
         )
 
         embed.add_field(
-            name="Actual Result:", value=inter.text_values["actual"], inline=False
+            name="Actual Result:",
+            value=inter.text_values["actual"],
+            inline=False,
         )
 
         embed.add_field(
@@ -86,7 +90,9 @@ class BugModal(disnake.ui.Modal):
                 self.bot.config.channels.bug_report_reddit_bot
             )
         else:
-            channel = self.bot.get_channel(self.bot.config.channels.bug_report_ogiroid)
+            channel = self.bot.get_channel(
+                self.bot.config.channels.bug_report_ogiroid
+            )
 
         await channel.send(embed=embed)
         await inter.send(
@@ -135,10 +141,14 @@ class SuggestionModal(disnake.ui.Modal):
 
         embed.add_field(name="Type:", value=suggestion_type)
 
-        embed.add_field(name="Title:", value=inter.text_values["title"], inline=False)
+        embed.add_field(
+            name="Title:", value=inter.text_values["title"], inline=False
+        )
 
         embed.add_field(
-            name="Description:", value=inter.text_values["description"], inline=False
+            name="Description:",
+            value=inter.text_values["description"],
+            inline=False,
         )
 
         if suggestion_type == "Reddit-Bot":
@@ -146,7 +156,9 @@ class SuggestionModal(disnake.ui.Modal):
                 self.bot.config.channels.suggestion_reddit_bot
             )
         else:
-            channel = self.bot.get_channel(self.bot.config.channels.suggestion_ogiroid)
+            channel = self.bot.get_channel(
+                self.bot.config.channels.suggestion_ogiroid
+            )
         await channel.send(embed=embed)
         await inter.response.send_message(
             "Sent suggestion.\nThank you for your suggestion.", ephemeral=True
@@ -172,8 +184,12 @@ class BotSupport(commands.Cog, name="Bot Support"):
         ],
         connectors={"for": "bug_report_for"},
     )
-    async def bug(self, inter: ApplicationCommandInteraction, bug_report_for: str):
-        await inter.response.send_modal(modal=BugModal(self.bot, bug_report_for))
+    async def bug(
+        self, inter: ApplicationCommandInteraction, bug_report_for: str
+    ):
+        await inter.response.send_modal(
+            modal=BugModal(self.bot, bug_report_for)
+        )
 
     @commands.slash_command(
         name="suggest",
@@ -189,7 +205,9 @@ class BotSupport(commands.Cog, name="Bot Support"):
         connectors={"for": "suggestion_for"},
     )
     async def suggestion(self, inter, suggestion_for: str):
-        await inter.response.send_modal(modal=SuggestionModal(self.bot, suggestion_for))
+        await inter.response.send_modal(
+            modal=SuggestionModal(self.bot, suggestion_for)
+        )
 
 
 def setup(bot):

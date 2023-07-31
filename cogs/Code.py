@@ -22,11 +22,11 @@ class CodeExec(Cog, name="Code"):
         name="code",
         description="Run code and get results instantly. Window for code will pop up.",
     )
-    async def code(self, ctx):
+    async def code(self, inter: disnake.ApplicationCommandInteraction):
         """
         Run code and get results instantly
         """
-        await ctx.response.send_modal(modal=CodeModal())
+        await inter.response.send_modal(modal=CodeModal())
 
 
 class CodeModal(disnake.ui.Modal):
@@ -70,11 +70,15 @@ class CodeModal(disnake.ui.Modal):
         )
         embed.add_field(
             name="Code",
-            value=f"```{language}\n" f"{inter.text_values['code'][:999]}\n" f"```",
+            value=f"```{language}\n"
+            f"{inter.text_values['code'][:999]}\n"
+            f"```",
             inline=False,
         )
         await inter.response.send_message(embed=embed)
-        result = await self.run_code(lang=language, code=inter.text_values["code"])
+        result = await self.run_code(
+            lang=language, code=inter.text_values["code"]
+        )
         await self._send_result(inter, result)
 
     @staticmethod
@@ -94,14 +98,18 @@ class CodeModal(disnake.ui.Modal):
         # if len(output) > 2000: HAVE TO FIX THIS!!!!
         # url = await create_guest_paste_bin(self.session, output)
         # return await ctx.reply("Your output was too long, so here's the pastebin link " + url)
-        embed = Embed(title=f"Ran your {result['language']} code", color=0xFFFFFF)
+        embed = Embed(
+            title=f"Ran your {result['language']} code", color=0xFFFFFF
+        )
         output = output[:500].strip()
         shortened = len(output) > 500
         lines = output.splitlines()
         shortened = shortened or (len(lines) > 15)
         output = "\n".join(lines[:15])
         output += shortened * "\n\n**Output shortened**"
-        embed.add_field(name="Output", value=f"```\n{output}\n```" or "**<No output>**")
+        embed.add_field(
+            name="Output", value=f"```\n{output}\n```" or "**<No output>**"
+        )
 
         await inter.send(embed=embed)
 

@@ -35,7 +35,9 @@ class ShortTime:
         re.VERBOSE,
     )
 
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(
+        self, argument: str, *, now: Optional[datetime.datetime] = None
+    ):
         match = self.compiled.fullmatch(argument)
         if match is None or not match.group(0):
             raise commands.BadArgument("invalid time provided")
@@ -52,7 +54,9 @@ class ShortTime:
 class HumanTime:
     calendar = pdt.Calendar(version=pdt.VERSION_CONTEXT_STYLE)
 
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(
+        self, argument: str, *, now: Optional[datetime.datetime] = None
+    ):
         now = now or datetime.datetime.utcnow()
         dt, status = self.calendar.parseDT(argument, sourceTime=now)
         if not status.hasDateOrTime:
@@ -78,7 +82,9 @@ class HumanTime:
 
 
 class Time(HumanTime):
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(
+        self, argument: str, *, now: Optional[datetime.datetime] = None
+    ):
         try:
             o = ShortTime(argument, now=now)
         except Exception:
@@ -89,7 +95,9 @@ class Time(HumanTime):
 
 
 class FutureTime(Time):
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(
+        self, argument: str, *, now: Optional[datetime.datetime] = None
+    ):
         super().__init__(argument, now=now)
 
         if self._past:
@@ -106,7 +114,9 @@ class FriendlyTimeResult:
         self.dt = dt
         self.arg = ""
 
-    async def ensure_constraints(self, now: datetime.datetime, remaining: str) -> None:
+    async def ensure_constraints(
+        self, now: datetime.datetime, remaining: str
+    ) -> None:
         if self.dt.replace(tzinfo=None) < now.replace(tzinfo=None):
             raise commands.BadArgument("This time is in the past.")
 
@@ -194,7 +204,9 @@ def format_relative(dt: datetime.datetime) -> str:
 async def convert(argument: str) -> FriendlyTimeResult:
     try:
         if argument.casefold() == "never":
-            return FriendlyTimeResult(datetime.datetime.fromtimestamp(9999999999))
+            return FriendlyTimeResult(
+                datetime.datetime.fromtimestamp(9999999999)
+            )
         calendar = HumanTime.calendar
         regex = ShortTime.compiled
         now = datetime.datetime.fromtimestamp(int(time.time()))
@@ -251,7 +263,9 @@ async def convert(argument: str) -> FriendlyTimeResult:
             if begin == 1:
                 # check if it's quoted:
                 if argument[0] != '"':
-                    raise commands.BadArgument("Expected quote before time input...")
+                    raise commands.BadArgument(
+                        "Expected quote before time input..."
+                    )
                 if not (end < len(argument) and argument[end] == '"'):
                     raise commands.BadArgument(
                         "If the time is quoted, you must unquote it."
