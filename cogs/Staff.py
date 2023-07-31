@@ -881,6 +881,13 @@ class Staff(commands.Cog):
 
         await inter.send(embed=emb)
 
+    @commands.slash_command(name="anonymous_dm", description="Send an anonymous dm to a user.")
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def anonymous_dm(self, inter, user: disnake.Member, *, message: str):
+        """Send an anonymous dm to a user."""
+        await user.send(message)
+        await sucEmb(inter, "Sent!")
 
 def setup(bot):
     bot.add_cog(Staff(bot))
