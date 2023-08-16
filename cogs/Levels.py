@@ -540,7 +540,7 @@ class Level(commands.Cog):
             )
         emb = Embed(
             title="XP Boost",
-            description=f"XP Boost is currently {'enabled' if config[4] else 'disabled'}",
+            description=f"XP Boost is currently {'enabled' if config[3] else 'disabled'}",
             color=0x2F3136,
         )
         emb.add_field(name="Multiplier", value=str(config[1]) + "x")
