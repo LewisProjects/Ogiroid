@@ -173,7 +173,7 @@ class Birthday(commands.Cog):
         # gets the next birthday's user
         next_birthday = upcoming_birthdays[0]["user"]
         # checks if user is in the guild
-        while await inter.guild.fetch_member(next_birthday.user_id) is None:
+        while next_birthday.user_id not in inter.guild.members:
             upcoming_birthdays.pop(0)
             next_birthday = upcoming_birthdays[0]["user"]
 
