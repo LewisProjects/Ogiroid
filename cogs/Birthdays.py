@@ -173,8 +173,12 @@ class Birthday(commands.Cog):
         # gets the next birthday's user
         next_birthday = upcoming_birthdays[0]["user"]
         # checks if user is in the guild
-        while next_birthday.user_id not in inter.guild.members:
+        while await inter.guild.getch_member(next_birthday.user_id) is None:
             upcoming_birthdays.pop(0)
+            if len(upcoming_birthdays) == 0:
+                return await errorEmb(
+                    inter, "There are no birthdays set in this guild"
+                )
             next_birthday = upcoming_birthdays[0]["user"]
 
         member = await self.bot.fetch_user(next_birthday.user_id)
