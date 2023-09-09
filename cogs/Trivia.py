@@ -43,7 +43,7 @@ class Trivia(commands.Cog, name="Trivia"):
                 inter.author.id, inter.guild.id
             )
         except UserNotFound:
-            await self.flag_quiz.add_user(inter.author.id)
+            await self.flag_quiz.add_user(user_id=inter.author.id, guild_id=inter.guild.id)
             user = await self.flag_quiz.get_user(
                 inter.author.id, inter.guild.id
             )

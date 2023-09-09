@@ -167,9 +167,9 @@ class FlagQuizHandler:
     async def add_user(
         self,
         user_id: int,
+        guild_id: int,
         tries: int = 0,
-        correct: int = 0,
-        guild_id: int = None,
+        correct: int = 0
     ):
         if correct == 199:
             completed = 1
