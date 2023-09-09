@@ -4,6 +4,7 @@ from disnake.ext import commands
 from disnake.ext.commands import Cog
 
 from utils.bot import OGIROID
+from utils.shortcuts import sucEmb, errorEmb
 
 
 class Utilities(commands.Cog):
@@ -33,10 +34,15 @@ class Utilities(commands.Cog):
         try:
             sniped_message = self.delete_snipes[inter.channel]
         except KeyError:
-            await inter.send(
-                "There are no deleted messages in this channel to snipe!"
+            await errorEmb(
+                inter, "There are no deleted messages in this channel to snipe!"
             )
         else:
+            if not sniped_message:
+                await errorEmb(
+                    inter, "There are no deleted messages in this channel to snipe!"
+                )
+                return
             result = disnake.Embed(
                 color=disnake.Color.red(),
                 description=sniped_message.content[:1024],
@@ -68,19 +74,11 @@ class Utilities(commands.Cog):
         try:
             before, after = self.edit_snipes[inter.channel]
         except KeyError:
-            await inter.send(
-                "There are no message edits in this channel to snipe!"
-            )
+            await inter.send("There are no message edits in this channel to snipe!")
         else:
-            result = disnake.Embed(
-                color=disnake.Color.red(), timestamp=after.edited_at
-            )
-            result.add_field(
-                name="Before", value=before.content[:1024], inline=False
-            )
-            result.add_field(
-                name="After", value=after.content[:1024], inline=False
-            )
+            result = disnake.Embed(color=disnake.Color.red(), timestamp=after.edited_at)
+            result.add_field(name="Before", value=before.content[:1024], inline=False)
+            result.add_field(name="After", value=after.content[:1024], inline=False)
             result.set_author(
                 name=after.author.display_name,
                 icon_url=after.author.avatar.url,
@@ -92,6 +90,14 @@ class Utilities(commands.Cog):
                 await inter.send(embed=result)
             else:
                 await inter.send(embed=result, delete_after=15)
+
+    @commands.slash_command(name="clearsnipe", description="Clears the snipe cache")
+    @commands.has_permissions(manage_messages=True)
+    async def clearsnipe(self, inter: ApplicationCommandInteraction):
+        self.delete_snipes[inter.channel] = None
+        self.edit_snipes[inter.channel] = None
+        self.delete_snipes_attachments[inter.channel] = None
+        await sucEmb(inter, "Snipe cache cleared!")
 
 
 def setup(bot: commands.Bot):
