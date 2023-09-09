@@ -38,7 +38,7 @@ class Utilities(commands.Cog):
                 inter, "There are no deleted messages in this channel to snipe!"
             )
         else:
-            if not sniped_message:
+            if not sniped_message or not sniped_message.content:
                 await errorEmb(
                     inter, "There are no deleted messages in this channel to snipe!"
                 )
