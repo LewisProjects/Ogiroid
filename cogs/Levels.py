@@ -530,6 +530,9 @@ class Level(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @xp_boost.sub_command()
     async def get(self, inter: ApplicationCommandInteraction):
+        """
+        gets the current xp boost for the bot
+        """
         async with self.bot.db.execute(
             "SELECT * FROM config WHERE guild_id = ?", (inter.guild.id,)
         ) as cur:
