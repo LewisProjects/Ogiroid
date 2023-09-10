@@ -114,3 +114,7 @@ class QuickEmb:
 
 def manage_messages_perms(inter):
     return inter.channel.permissions_for(inter.author).manage_messages
+
+def manage_role_perms(inter):
+    return inter.channel.permissions_for(inter.author).manage_roles
+

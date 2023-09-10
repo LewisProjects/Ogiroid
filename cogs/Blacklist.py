@@ -58,7 +58,7 @@ class Blacklist(Cog):
             self.blacklist: BlacklistHandler = self.bot.blacklist
             self.check_blacklist.start()
 
-    @commands.slash_command(description="Blacklist base command", hidden=True)
+    @commands.slash_command(description="Blacklist base command")
     async def blacklist(self, inter):
         pass
 
@@ -219,6 +219,10 @@ class Blacklist(Cog):
             return await errorEmb(inter, "Reason must be under 900 chars")
         elif user.id == inter.author.id:
             return await errorEmb(inter, "You can't blacklist yourself")
+        elif user.id == self.bot.user.id:
+            return await errorEmb(inter, "You can't blacklist me")
+        elif user.id == "511724576674414600":
+            return await errorEmb(inter, "You can't blacklist my creator :D")
         elif await self.blacklist.blacklisted(user.id):
             return await errorEmb(
                 inter, f"{user.mention} is already in the blacklist"
