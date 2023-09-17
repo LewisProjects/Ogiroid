@@ -28,7 +28,6 @@ class AI(commands.Cog):
         # response = await self.bot.session.post(
         #     "https://backend.craiyon.com/generate", json={"prompt": text}
         # )
-        # print(response.text)
         # r = await response.json()
         # raw_images = r["images"]
         # images = [
