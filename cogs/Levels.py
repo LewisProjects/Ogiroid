@@ -547,7 +547,7 @@ class Level(commands.Cog):
             color=0x2F3136,
         )
         emb.add_field(name="Multiplier", value=str(config[1]) + "x")
-        emb.add_field(name="Duration", value=get_expiry(config[2]))
+        emb.add_field(name="Expires", value=get_expiry(config[2]))
         await inter.response.send_message(embed=emb)
 
     @commands.guild_only()
