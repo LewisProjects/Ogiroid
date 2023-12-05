@@ -71,12 +71,15 @@ class Roles:
     yt_announcements: int = 1010237178036633670
     birthday: int = 1044883332548280360
     nitro: int = 970695593913647144
+    lvl_5: int = 1018062723214491668
 
     @classmethod
     def dev(cls):
         cls.staff: int = 985943266115584010
         cls.yt_announcements: int = 1007202835957563412  # dummy role
         cls.birthday: int = 1007202835957563412  # dummy role
+        cls.nitro: int = 1007202835957563412  # dummy role
+        cls.lvl_5: int = 1007202835957563412  # dummy role
         return cls
 
 

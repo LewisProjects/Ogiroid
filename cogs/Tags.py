@@ -4,6 +4,7 @@ import re
 from typing import Optional
 
 import disnake
+from better_profanity import profanity
 from disnake import Embed, ApplicationCommandInteraction
 from disnake.ext import commands
 
@@ -111,6 +112,10 @@ class Tags(commands.Cog, name="Tags"):
         content: str = commands.Param(le=1900),
     ):
         name = name.casefold()
+
+        if not self.bot.config.roles.lvl_5 in [role.id for role in inter.author.roles]:
+            return await errorEmb(inter, "You must be Level 5 to make tags")
+
         try:
             await self.tags.exists(name, TagAlreadyExists, should=False)
         except TagAlreadyExists:
@@ -123,6 +128,9 @@ class Tags(commands.Cog, name="Tags"):
             content,
         ):
             return await errorEmb(inter, "You can't make a tag with an invite")
+        # if content contains slurs or severe profanity
+        elif profanity.contains_profanity(content):
+            return await errorEmb(inter, "You can't make a tag with slurs or profanity")
         elif not await self.valid_name(name):
             return (
                 await QuickEmb(
