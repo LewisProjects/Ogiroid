@@ -126,7 +126,7 @@ class Tags(commands.Cog, name="Tags"):
         elif re.match(
             "(https|http)://(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?",
             content,
-        ):
+        ) or re.match("(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?", content):
             return await errorEmb(inter, "You can't make a tag with an invite")
         # if content contains slurs or severe profanity
         elif profanity.contains_profanity(content):
