@@ -123,6 +123,8 @@ def status(stat):
     return statuses[stat]
 
 
+BAN_APPEAL_LINK = "https://forms.gle/jZ569ePNs6rfazA39"
+
 congrats_messages = [
     "Happy Birthday",
     "Today is the Birthday of",
