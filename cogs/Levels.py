@@ -118,12 +118,9 @@ class LevelsController:
 
         try:
             return sum(
-                [
-                    exp
-                    for exp in [
-                        LEVELS_AND_XP[lvl] for lvl in range(1, level + 1)
-                    ]
-                ][::-1]
+                [exp for exp in [LEVELS_AND_XP[lvl] for lvl in range(1, level + 1)]][
+                    ::-1
+                ]
             )
         except KeyError:
             raise ValueError(
@@ -153,9 +150,7 @@ class LevelsController:
             raise LevelingSystemError(
                 "Invalid rate or per. Values must be greater than zero"
             )
-        self._cooldown = CooldownMapping.from_cooldown(
-            rate, per, BucketType.member
-        )
+        self._cooldown = CooldownMapping.from_cooldown(rate, per, BucketType.member)
         self.__rate = rate
         self.__per = per
 
@@ -183,9 +178,7 @@ class LevelsController:
                 lvl=level,
             )
         else:
-            raise LevelingSystemError(
-                f'Parameter "level" must be from 0-{MAX_LEVEL}'
-            )
+            raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
 
     async def _update_record(
         self, member: Union[Member, int], level: int, xp: int, guild_id: int
@@ -200,9 +193,7 @@ class LevelsController:
                 (
                     level,
                     xp,
-                    member.id
-                    if isinstance(member, (Member, ClientUser))
-                    else member,
+                    member.id if isinstance(member, (Member, ClientUser)) else member,
                     guild_id,
                 ),
             )
@@ -383,9 +374,7 @@ class LevelsController:
             d.text((115, 96), str(lvl), font=fnt, fill=(0, 0, 0, 255))
             # Rank
             d.text((113, 130), f"#{rank}", font=fnt, fill=(0, 0, 0, 255))
-            d.rectangle(
-                (44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255)
-            )
+            d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
             txt.paste(avatar_img, (489, 23))
 
             out = Image.alpha_composite(base, txt)
@@ -468,9 +457,7 @@ class Level(commands.Cog):
         if await self.is_role_reward(msg.guild, level):
             role = await self.get_role_reward(msg.guild, level)
             if role is not None:
-                await msg.author.add_roles(
-                    role, reason=f"Level up to level {level}"
-                )
+                await msg.author.add_roles(role, reason=f"Level up to level {level}")
 
     async def is_role_reward(self, guild: Guild, level: int) -> bool:
         query = await self.bot.db.execute(
@@ -628,9 +615,8 @@ class Level(commands.Cog):
         await inter.response.defer()
         limit = 10
         set_user = False
-        records = await self.controller.get_leaderboard(
-            inter.guild, limit=limit
-        )
+        # get a few more users than limit so in case user is not in server the leaderboard is still full
+        records = await self.controller.get_leaderboard(inter.guild, limit=limit + 5)
         try:
             cmd_user = await self.controller.get_user(inter.author)
         except UserNotFound:
@@ -640,21 +626,32 @@ class Level(commands.Cog):
             return await errorEmb(inter, text="No records found!")
         embed = Embed(title="Leaderboard", color=0x00FF00)
 
-        for i, record in enumerate(records):
+        j = 0
+        for i in range(len(records)):
+            if i == len(records) or j == limit:
+                break
+            record = records[i]
             user = await self.bot.fetch_user(record.user_id)
+            # check if the user is in the server
+            if user not in inter.guild.members:
+                records.pop(i)
+                continue
+
             if record.user_id == inter.author.id:
                 embed.add_field(
-                    name=f"{i + 1}. {user.name} ~ You ",
+                    name=f"{j + 1}. {user.name} ~ You ",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
                 set_user = True
             else:
                 embed.add_field(
-                    name=f"{i + 1}. {user.name}",
+                    name=f"{j + 1}. {user.name}",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
+
+            j += 1
         if not set_user:
             rank = await self.controller.get_rank(inter.guild.id, cmd_user)
             embed.add_field(
@@ -684,9 +681,7 @@ class Level(commands.Cog):
         self,
         inter: ApplicationCommandInteraction,
         user: Member,
-        level: int = Param(
-            description="The level to set the user to", le=100, ge=0
-        ),
+        level: int = Param(description="The level to set the user to", le=100, ge=0),
     ):
         """
         Set a user's level
@@ -734,9 +729,7 @@ class Level(commands.Cog):
             (inter.guild.id, role.id),
         ):
             sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
-            await self.bot.db.execute(
-                sql, (inter.guild.id, role.id, level_needed)
-            )
+            await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
             await self.bot.db.commit()
             return await sucEmb(
                 inter,
