@@ -310,7 +310,7 @@ class LevelsController:
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
 
-        with Image.open("utils/data/images/rankcard.png").convert(
+        with Image.open("utils/data/images/winterrankcard.png").convert(
             "RGBA"
         ) as base:  # WINTER VERSION
             # make a blank image for the text, initialized to transparent text color
@@ -615,8 +615,7 @@ class Level(commands.Cog):
         await inter.response.defer()
         limit = 10
         set_user = False
-        # get a few more users than limit so in case user is not in server the leaderboard is still full
-        records = await self.controller.get_leaderboard(inter.guild, limit=limit + 5)
+        records = await self.controller.get_leaderboard(inter.guild, limit=limit)
         try:
             cmd_user = await self.controller.get_user(inter.author)
         except UserNotFound:
@@ -626,32 +625,21 @@ class Level(commands.Cog):
             return await errorEmb(inter, text="No records found!")
         embed = Embed(title="Leaderboard", color=0x00FF00)
 
-        j = 0
-        for i in range(len(records)):
-            if i == len(records) or j == limit:
-                break
-            record = records[i]
+        for i, record in enumerate(records):
             user = await self.bot.fetch_user(record.user_id)
-            # check if the user is in the server
-            if user not in inter.guild.members:
-                records.pop(i)
-                continue
-
             if record.user_id == inter.author.id:
                 embed.add_field(
-                    name=f"{j + 1}. {user.name} ~ You ",
+                    name=f"{i + 1}. {user.name} ~ You ",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
                 set_user = True
             else:
                 embed.add_field(
-                    name=f"{j + 1}. {user.name}",
+                    name=f"{i + 1}. {user.name}",
                     value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
-
-            j += 1
         if not set_user:
             rank = await self.controller.get_rank(inter.guild.id, cmd_user)
             embed.add_field(
