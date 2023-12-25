@@ -455,10 +455,12 @@ class Staff(commands.Cog):
         await inter.send(f"🔓 Unlocked {channel.mention} successfully!")
 
     # Reaction Roles with buttons:
-    @commands.slash_command(
-        name="addreactionrole",
-        description="Add a reaction based role to a message",
-    )
+    @commands.slash_command(name="role", description="Reaction Role Base Command")
+    async def role(self, inter):
+        """Reaction Role Base Command"""
+        pass
+
+    @role.sub_command(name="add", description="Add a reaction based role to a message")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def add_reaction_role(
@@ -484,9 +486,8 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, f"Added!")
 
-    @commands.slash_command(
-        name="removereactionrole",
-        description="Remove a reaction based role from a message",
+    @role.sub_command(
+        name="remove", description="Remove a reaction based role from a message"
     )
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
@@ -538,8 +539,8 @@ class Staff(commands.Cog):
                     guild.get_role(message.role_id)
                 )
 
-    @commands.slash_command(
-        name="initialise-message",
+    @role.sub_command(
+        name="create-button",
         description="Create a Message with Buttons where users click them and get roles.",
     )
     @commands.guild_only()
@@ -596,13 +597,13 @@ class Staff(commands.Cog):
 
         await sucEmb(
             inter,
-            "Successfully created message. To add more buttons use `/add_button`",
+            "Successfully created message. To add more buttons use `/role add-button`",
         )
 
-    @commands.slash_command(
+    @role.sub_command(
         name="add-button",
         description="Add a button to a previously created message."
-        " Use /initialise-message for that.",
+        " Use /role create-button for that.",
     )
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
@@ -665,7 +666,7 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "Added Button")
 
-    @commands.slash_command(
+    @role.sub_command(
         name="edit-message",
         description="Edit a message the bot sent(Role messages with buttons only).",
     )
@@ -682,7 +683,7 @@ class Staff(commands.Cog):
             return await errorEmb(
                 inter,
                 "The message does not exist in the Database to initialise a message use"
-                " ``/initialise-message``.",
+                " ``/role create-button``.",
             )
 
         message = await channel.fetch_message(message_id)
@@ -714,7 +715,7 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "Edited!")
 
-    @commands.slash_command(
+    @role.sub_command(
         name="delete-message",
         description="Delete a message the bot sent(Role messages with buttons only).",
     )
@@ -731,7 +732,7 @@ class Staff(commands.Cog):
             return await errorEmb(
                 inter,
                 "The message does not exist in the Database to initialise a message use"
-                " ``/initialise-message``.",
+                " ``/role create-button``.",
             )
 
         await self.reaction_roles.remove_messages(message_id)
@@ -749,7 +750,7 @@ class Staff(commands.Cog):
 
         await sucEmb(inter, "Deleted!")
 
-    @commands.slash_command(
+    @role.sub_command(
         name="remove-button", description="Remove a button from a message."
     )
     @commands.guild_only()
