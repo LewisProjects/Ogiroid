@@ -14,6 +14,7 @@ from disnake.ext.commands import ParamInfo
 
 from utils.DBhandlers import RolesHandler, WarningHandler
 from utils.bot import OGIROID
+from utils.CONSTANTS import BAN_APPEAL_LINK
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
 from utils.shortcuts import (
     sucEmb,
@@ -109,10 +110,14 @@ class Staff(commands.Cog):
         if dm_user:
             try:
                 if reason is None:
-                    await user.send(f"You have been banned from {inter.guild.name}")
+                    await user.send(
+                        f"You have been banned from {inter.guild.name}.\nBan Appeal: {BAN_APPEAL_LINK}",
+                        suppress_embeds=True,
+                    )
                 else:
                     await user.send(
-                        f"You have been banned from {inter.guild.name} for {reason}"
+                        f"You have been banned from {inter.guild.name} for {reason}.\nBan Appeal: {BAN_APPEAL_LINK}",
+                        suppress_embeds=True,
                     )
             except disnake.errors.Forbidden:
                 pass
