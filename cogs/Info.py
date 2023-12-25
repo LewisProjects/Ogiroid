@@ -61,15 +61,11 @@ class Info(commands.Cog):
         else:
             await inter.send(embed=e)
 
-    @commands.slash_command(
-        description="Stats about the commands that have been ran"
-    )
+    @commands.slash_command(description="Stats about the commands that have been ran")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdstats(self, inter):
         cmdsran = self.bot.commands_ran
-        sortdict = dict(
-            sorted(cmdsran.items(), key=lambda x: x[1], reverse=True)
-        )
+        sortdict = dict(sorted(cmdsran.items(), key=lambda x: x[1], reverse=True))
         value_iterator = iter(sortdict.values())
         key_iterator = iter(sortdict.keys())
         emby = disnake.Embed(
@@ -92,24 +88,24 @@ class Info(commands.Cog):
         )
 
         await inter.send(embed=emby)
-    @commands.slash_command(
-        description="Display current price of BTC"
-    )
+
+    @commands.slash_command(description="Display current price of BTC")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def btc(self, inter):
-        response = requests.get('https://shoppy.gg/api/v1/public/ticker')
+        response = requests.get("https://shoppy.gg/api/v1/public/ticker")
         data = response.json()
-        for ticker in data.get('ticker', []):
-            if ticker.get('coin') == 'BTC':
-                btc_prices = ticker.get('value', {})
-        btc_price_usd = btc_prices.get('USD')
+        btc_prices = []
+        for ticker in data.get("ticker", []):
+            if ticker.get("coin") == "BTC":
+                btc_prices = ticker.get("value", {})
+        btc_price_usd = btc_prices.get("USD")
 
-        embbtc = disnake.Embed(
+        embed = disnake.Embed(
             title=f"Current BTC Price",
             description=f"Bitcoin (USD): ${btc_price_usd}",
-            color=disnake.Color.white,
+            color=self.bot.config.colors.white,
         )
-        await inter.send(embed=embbtc)
+        await inter.send(embed=embed)
 
 
 def setup(bot):
