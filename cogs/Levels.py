@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import datetime as dt
 import io
 import random
@@ -310,9 +311,12 @@ class LevelsController:
         # this for loop finds the closest level to the xp and defines the values accordingly
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
 
-        with Image.open("utils/data/images/winterrankcard.png").convert(
-            "RGBA"
-        ) as base:  # WINTER VERSION
+        card = "utils/data/images/rankcard.png"
+        if datetime.datetime.now().month == 12 or datetime.datetime.now().month == 1:
+            # winter version
+            card = "utils/data/images/winterrankcard.png"
+
+        with Image.open(card).convert("RGBA") as base:
             # make a blank image for the text, initialized to transparent text color
             txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
 
