@@ -5,6 +5,7 @@ from utils.bot import OGIROID
 from utils.exceptions import CityNotFound
 from utils.shortcuts import errorEmb
 from utils.wrappers.OpenWeatherMap import OpenWeatherAPI
+import requests
 
 
 class Info(commands.Cog):
@@ -91,6 +92,24 @@ class Info(commands.Cog):
         )
 
         await inter.send(embed=emby)
+    @commands.slash_command(
+        description="Display current price of BTC"
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def btc(self, inter):
+        response = requests.get('https://shoppy.gg/api/v1/public/ticker')
+        data = response.json()
+        for ticker in data.get('ticker', []):
+            if ticker.get('coin') == 'BTC':
+                btc_prices = ticker.get('value', {})
+        btc_price_usd = btc_prices.get('USD')
+
+        embbtc = disnake.Embed(
+            title=f"Current BTC Price",
+            description=f"Bitcoin (USD): ${btc_price_usd}",
+            color=disnake.Color.white,
+        )
+        await inter.send(embed=embbtc)
 
 
 def setup(bot):
