@@ -6,6 +6,7 @@ import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
+from disnake.ext.commands.interaction_bot_base import CFT
 
 from utils.CONSTANTS import __VERSION__
 from utils.DBhandlers import BlacklistHandler
@@ -32,7 +33,7 @@ class OGIROID(commands.InteractionBot):
         self.session = HTTPSession(loop=self.loop)
         self.config = Config()
         self.commands_ran = {}
-        self.total_commands_ran = 0
+        self.total_commands_ran = {}
         self.db = None
         self.blacklist: BlacklistHandler = None
         self.add_app_command_check(
@@ -48,13 +49,6 @@ class OGIROID(commands.InteractionBot):
             return True
         except AttributeError:
             pass  # DB hasn't loaded yet
-
-    async def on_command(self, ctx):
-        self.total_commands_ran += 1
-        try:
-            self.commands_ran[ctx.command.qualified_name] += 1
-        except KeyError:
-            self.commands_ran[ctx.command.qualified_name] = 1
 
     @async_cache(maxsize=0)
     async def on_slash_command(self, inter: ApplicationCommandInteraction):
@@ -84,11 +78,19 @@ class OGIROID(commands.InteractionBot):
                 break
 
         COMMAND_NAME = " ".join([command.name for command in COMMAND_STRUCT])
-        self.total_commands_ran += 1
+
         try:
-            self.commands_ran[COMMAND_NAME] += 1
+            self.total_commands_ran[inter.guild.id] += 1
         except KeyError:
-            self.commands_ran[COMMAND_NAME] = 1
+            self.total_commands_ran[inter.guild.id] = 1
+
+        if self.commands_ran.get(inter.guild.id) is None:
+            self.commands_ran[inter.guild.id] = {}
+
+        try:
+            self.commands_ran[inter.guild.id][COMMAND_NAME] += 1
+        except KeyError:
+            self.commands_ran[inter.guild.id][COMMAND_NAME] = 1
 
     async def on_ready(self):
         if not self._ready_:
@@ -117,8 +119,8 @@ class OGIROID(commands.InteractionBot):
             print("Bot reconnected")
 
     async def _setup(self):
-        for command in self.application_commands:
-            self.commands_ran[f"{command.qualified_name}"] = 0
+        # for command in self.application_commands:
+        #     self.commands_ran[f"{command.qualified_name}"] = 0
         self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
         await self.blacklist.startup()
 
