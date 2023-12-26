@@ -3,6 +3,7 @@ from datetime import datetime
 from os import listdir
 
 import aiosqlite
+import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
@@ -23,9 +24,7 @@ class OGIROID(commands.InteractionBot):
     def __init__(self, *args, **kwargs):
         super().__init__(
             intents=disnake.Intents.all(),
-            command_sync_flags=commands.CommandSyncFlags(
-                sync_commands_debug=True
-            ),
+            command_sync_flags=commands.CommandSyncFlags(sync_commands_debug=True),
             *args,
             **kwargs,
         )
@@ -105,9 +104,7 @@ class OGIROID(commands.InteractionBot):
                 "--------------------------------------------------------------------------------"
             )
             print("Bot is ready! Logged in as: " + self.user.name)
-            print(
-                "Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani"
-            )
+            print("Bot devs: HarryDaDev | FreebieII | JasonLovesDoggo | Levani")
             print(f"Bot version: {__VERSION__}")
             print(
                 "--------------------------------------------------------------------------------"
@@ -130,15 +127,14 @@ class OGIROID(commands.InteractionBot):
         pass
 
     async def start(self, *args, **kwargs):
-        await self.load_db()
-        async with aiosqlite.connect("data.db") as self.db:
-            await self.db.executescript(SETUP_SQL)
-            # run the db migrations in /migrations
-            for file in listdir("migrations"):
-                if file.endswith(".sql"):
-                    with open(f"migrations/{file}", "r") as migration_sql:
-                        await self.db.executescript(migration_sql.read())
-            await super().start(*args, **kwargs)
+        self.db = await asyncpg.create_pool(self.config.Database.connection_string)
+        await self.db.execute(SETUP_SQL)
+        # run the db migrations in /migrations
+        for file in listdir("migrations"):
+            if file.endswith(".sql"):
+                with open(f"migrations/{file}", "r") as migration_sql:
+                    await self.db.execute(migration_sql.read())
+        await super().start(*args, **kwargs)
 
     @property
     def ready_(self):
