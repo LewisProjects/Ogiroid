@@ -60,7 +60,7 @@ class Stats(commands.Cog):
             description=f"{total_commands_ran} Commands ran in total.\n",
             color=self.bot.config.colors.white,
         )
-        if len(cmdsran) == 0:
+        if len(cmdsran) < 2:
             return await inter.send(
                 embed=disnake.Embed(
                     title=f"{self.bot.user.display_name} command Stats",
