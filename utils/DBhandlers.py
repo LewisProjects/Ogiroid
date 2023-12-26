@@ -473,6 +473,8 @@ class TagManager:
             raise AliasAlreadyExists
         elif len(aliases) > 10:
             raise AliasLimitReached
+        elif alias in self.names["tags"] or alias in self.names["aliases"]:
+            raise TagAlreadyExists
         await self.db.execute(
             "INSERT INTO tag_relations (tag_id, alias) VALUES ($1, $2)", name, alias
         )
