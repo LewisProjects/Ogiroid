@@ -601,6 +601,7 @@ class Staff(commands.Cog):
         msg = await channel.send(text, view=view)
 
         await self.reaction_roles.create_message(msg.id, role.id, str(emoji))
+        await inter.delete_original_response()
 
         await sucEmb(
             inter,
