@@ -503,6 +503,7 @@ class Level(commands.Cog):
     @xp_boost.sub_command()
     async def active(self, inter: ApplicationCommandInteraction, active: bool):
         """Enable or disable xp boost"""
+        await inter.response.defer()
         await self.bot.db.execute(
             "UPDATE config SET xp_boost_enabled = $1 WHERE guild_id = $2",
             active,
@@ -519,6 +520,7 @@ class Level(commands.Cog):
         """
         gets the current xp boost for the bot
         """
+        await inter.response.defer()
         config = await self.bot.db.fetchrow(
             "SELECT * FROM config WHERE guild_id = $1", inter.guild.id
         )
@@ -552,6 +554,7 @@ class Level(commands.Cog):
         expires: str = "Never",
     ):
         """Set the xp boost for the server and optionally set an expiration date"""
+        await inter.response.defer()
         try:
             expires = (await timeconversions.convert(expires)).dt.timestamp()
         except BadArgument:
@@ -579,6 +582,7 @@ class Level(commands.Cog):
         Get the rank of a user in the server or yourself if no user is specified
 
         """
+        await inter.response.defer()
         user = user if user is not None else inter.author
         if user.bot or user.system:
             return await errorEmb(inter, text="Bots can't rank up!")
@@ -610,7 +614,6 @@ class Level(commands.Cog):
         """
         Get the leaderboard of the server
         """
-
         await inter.response.defer()
         limit = 10
         set_user = False
@@ -673,6 +676,7 @@ class Level(commands.Cog):
         """
         Set a user's level
         """
+        await inter.response.defer()
         if not level >= 0 and level < MAX_LEVEL:
             return await errorEmb(
                 inter, text=f"Level must be between 0 and {MAX_LEVEL}"
@@ -706,6 +710,7 @@ class Level(commands.Cog):
         ),
     ):
         """Adds a role to the reward list"""
+        await inter.response.defer()
         if int(level_needed) not in self.levels:
             return await errorEmb(
                 inter, text=f"Level must be within 1-{MAX_LEVEL} found"
@@ -739,6 +744,7 @@ class Level(commands.Cog):
         role: Role = Param(name="role", description="What role to remove"),
     ):
         """Remove a role reward"""
+        await inter.response.defer()
         record = await self.bot.db.fetchrow(
             "SELECT 1 FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
             inter.guild.id,
@@ -760,6 +766,7 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     async def list(self, inter: ApplicationCommandInteraction):
         """List all role rewards"""
+        await inter.response.defer()
         records = await self.bot.db.fetch(
             "SELECT * FROM role_rewards WHERE guild_id = $1", inter.guild.id
         )

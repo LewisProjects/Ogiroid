@@ -35,16 +35,12 @@ class Birthday(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.bot.ready_:
-            self.birthday: BirthdayHandler = BirthdayHandler(
-                self.bot, self.bot.db
-            )
+            self.birthday: BirthdayHandler = BirthdayHandler(self.bot, self.bot.db)
 
     def cog_unload(self):
         self.birthday_check.cancel()
 
-    @commands.slash_command(
-        name="birthday", description="Birthdays base command"
-    )
+    @commands.slash_command(name="birthday", description="Birthdays base command")
     async def birthday(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
@@ -67,10 +63,9 @@ class Birthday(commands.Cog):
             choices=months,
         ),
     ):
+        await inter.response.defer()
         if month is None or day is None:
-            return await errorEmb(
-                inter, "You need to provide a month and a day"
-            )
+            return await errorEmb(inter, "You need to provide a month and a day")
         if day < 1 or day > 31:
             return await errorEmb(inter, "The day must be between 1 and 31")
 
@@ -102,15 +97,12 @@ class Birthday(commands.Cog):
             name="user", description="User to edit the birthday of."
         ),
     ):
+        await inter.response.defer()
         try:
             await self.birthday.update_user(user.id, f"{day}/{month}")
-            return await sucEmb(
-                inter, f"Birthday has been updated to {day}/{month}"
-            )
+            return await sucEmb(inter, f"Birthday has been updated to {day}/{month}")
         except UserNotFound:
-            return await errorEmb(
-                inter, "The User doesn't have a birthday set"
-            )
+            return await errorEmb(inter, "The User doesn't have a birthday set")
 
     @commands.has_permissions(manage_roles=True)
     @birthday.sub_command(
@@ -124,12 +116,11 @@ class Birthday(commands.Cog):
             name="user", description="Removes the birthday of this user"
         ),
     ):
+        await inter.response.defer()
         try:
             await self.birthday.delete_user(user.id)
         except UserNotFound:
-            return await errorEmb(
-                inter, "This user doesn't have a birthday set"
-            )
+            return await errorEmb(inter, "This user doesn't have a birthday set")
 
         await sucEmb(inter, "The birthday has been removed")
 
@@ -139,6 +130,7 @@ class Birthday(commands.Cog):
         inter,
         user: disnake.User = commands.Param(name="user", default=None),
     ):
+        await inter.response.defer()
         if user is None:
             user = inter.author
         else:
@@ -146,9 +138,7 @@ class Birthday(commands.Cog):
 
         birthday = await self.birthday.get_user(user.id)
         if birthday is None:
-            return await errorEmb(
-                inter, "This user doesn't have a birthday set"
-            )
+            return await errorEmb(inter, "This user doesn't have a birthday set")
 
         days, discord_date = await get_days_until_birthday(birthday)
         await QuickEmb(
@@ -158,6 +148,7 @@ class Birthday(commands.Cog):
 
     @birthday.sub_command(name="next", description="Get the next birthday")
     async def next(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.defer()
         upcoming_birthdays = []
         # loop gets next birthday
         for user in await self.birthday.get_users():
@@ -176,9 +167,7 @@ class Birthday(commands.Cog):
         while await inter.guild.getch_member(next_birthday.user_id) is None:
             upcoming_birthdays.pop(0)
             if len(upcoming_birthdays) == 0:
-                return await errorEmb(
-                    inter, "There are no birthdays set in this guild"
-                )
+                return await errorEmb(inter, "There are no birthdays set in this guild")
             next_birthday = upcoming_birthdays[0]["user"]
 
         member = await self.bot.fetch_user(next_birthday.user_id)
@@ -189,8 +178,7 @@ class Birthday(commands.Cog):
         days, discord_date = await get_days_until_birthday(next_birthday)
         await QuickEmb(
             inter,
-            f"{member.mention}'s birthday is in {days} Days."
-            f"{discord_date}",
+            f"{member.mention}'s birthday is in {days} Days." f"{discord_date}",
         ).send()
 
     # @tasks.loop(time=[dt.time(dt.datetime.utcnow().hour, dt.datetime.utcnow().minute, dt.datetime.utcnow().second + 10)])
@@ -198,9 +186,7 @@ class Birthday(commands.Cog):
     @tasks.loop(time=[dt.time(8, 0, 0)])
     # loops every day at 8:00 UTC time
     async def birthday_check(self):
-        channel = await self.bot.fetch_channel(
-            self.bot.config.channels.birthdays
-        )
+        channel = await self.bot.fetch_channel(self.bot.config.channels.birthdays)
         guild = await self.bot.fetch_guild(self.bot.config.guilds.main_guild)
         if channel is None:
             return
@@ -215,9 +201,7 @@ class Birthday(commands.Cog):
 
             # if the birthday is today, congratulate the user
             if user.birthday == today:
-                await member.add_roles(
-                    guild.get_role(self.bot.config.roles.birthday)
-                )
+                await member.add_roles(guild.get_role(self.bot.config.roles.birthday))
                 congrats_msg = await channel.send(
                     f"{random.choice(congrats_messages)} {member.mention}! 🎂"
                 )
