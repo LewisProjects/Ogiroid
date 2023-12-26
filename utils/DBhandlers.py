@@ -361,8 +361,12 @@ class TagManager:
         self, orderby: Literal["views", "created_at"] = "views", limit=10
     ) -> List[Tag]:
         tags = []
+        if orderby not in ["views", "created_at"]:
+            raise ValueError("Invalid orderby value")
+
         records = await self.db.fetch(
-            f"SELECT * FROM tags ORDER BY {orderby} DESC LIMIT {limit}"
+            f"SELECT * FROM tags ORDER BY {orderby} DESC"
+            + (f" LIMIT {limit}" if limit > 1 else "")
         )
         for record in records:
             tags.append(Tag(*record))
