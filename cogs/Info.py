@@ -61,34 +61,6 @@ class Info(commands.Cog):
         else:
             await inter.send(embed=e)
 
-    @commands.slash_command(description="Stats about the commands that have been ran")
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def cmdstats(self, inter):
-        cmdsran = self.bot.commands_ran
-        sortdict = dict(sorted(cmdsran.items(), key=lambda x: x[1], reverse=True))
-        value_iterator = iter(sortdict.values())
-        key_iterator = iter(sortdict.keys())
-        emby = disnake.Embed(
-            title=f"{self.bot.user.display_name} command Stats",
-            description=f"{self.bot.total_commands_ran} Commands ran this boot\n",
-            color=disnake.Color.random(),
-        )
-        emby.add_field(
-            name="Top 10 commands ran",
-            value=f"🥇: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🥈: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🥉: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n"
-            f"🏅: /{next(key_iterator)} ({next(value_iterator)} uses)\n",
-        )
-
-        await inter.send(embed=emby)
-
     @commands.slash_command(description="Display current price of BTC")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def btc(self, inter):

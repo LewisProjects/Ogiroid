@@ -96,4 +96,16 @@ CREATE TABLE IF NOT EXISTS config
     UNIQUE(guild_id)
 );
 
-DROP TABLE IF EXISTS xp_boosts_user;
+CREATE TABLE IF NOT EXISTS commands
+(
+    guild_id BIGINT,
+    command TEXT,
+    command_used INTEGER DEFAULT 0,
+    UNIQUE (guild_id, command)
+);
+
+CREATE TABLE IF NOT EXISTS total_commands
+(
+    guild_id  BIGINT UNIQUE,
+    total_commands_used INTEGER DEFAULT 0
+);
