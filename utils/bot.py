@@ -2,7 +2,6 @@ import asyncio
 from datetime import datetime
 from os import listdir
 
-import aiosqlite
 import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
@@ -130,10 +129,10 @@ class OGIROID(commands.InteractionBot):
         self.db = await asyncpg.create_pool(self.config.Database.connection_string)
         await self.db.execute(SETUP_SQL)
         # run the db migrations in /migrations
-        for file in listdir("migrations"):
-            if file.endswith(".sql"):
-                with open(f"migrations/{file}", "r") as migration_sql:
-                    await self.db.execute(migration_sql.read())
+        # for file in listdir("migrations"):
+        #     if file.endswith(".sql"):
+        #         with open(f"migrations/{file}", "r") as migration_sql:
+        #             await self.db.execute(migration_sql.read())
         await super().start(*args, **kwargs)
 
     @property
