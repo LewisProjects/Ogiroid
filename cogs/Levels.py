@@ -586,7 +586,6 @@ class Level(commands.Cog):
         user = user if user is not None else inter.author
         if user.bot or user.system:
             return await errorEmb(inter, text="Bots can't rank up!")
-        await inter.response.defer()
         try:
             user_record = await self.controller.get_user(user)
             if not user_record:
