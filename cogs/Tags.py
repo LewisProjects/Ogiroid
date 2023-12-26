@@ -469,6 +469,8 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, f"tag **{name}** does not exist")
         except AliasAlreadyExists:
             return await errorEmb(inter, f"alias **{alias}** already exists")
+        except TagAlreadyExists:
+            return await errorEmb(inter, f"tag **{alias}** already exists")
         except AliasLimitReached:
             return await errorEmb(inter, "You can only have 10 aliases per tag")
 

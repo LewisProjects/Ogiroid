@@ -73,10 +73,10 @@ class LevelsController:
         if isinstance(guild, Guild):
             guild = guild.id
 
-        record = await self.db.execute(
-            "SELECT COUNT(*) FROM levels WHERE guild_id = ?", (int(guild),)
+        record = await self.db.fetchrow(
+            "SELECT COUNT(*) FROM levels WHERE guild_id = $1", int(guild.id)
         )
-        return (await record.fetchone())[0]
+        return record[0]
 
     async def get_leaderboard(
         self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None
@@ -87,17 +87,20 @@ class LevelsController:
         if offset is not None:
             if offset < 0:
                 raise LevelingSystemError("the offset must be greater than 0")
-            records = await self.db.execute(
-                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC, xp DESC LIMIT ? OFFSET ?",
-                (guild.id, limit, offset),
+            records = await self.db.fetch(
+                "SELECT * FROM levels WHERE guild_id = $1 ORDER BY level DESC, xp DESC LIMIT $2 OFFSET $3",
+                guild.id,
+                limit,
+                offset,
             )
         else:
-            records = await self.db.execute(
-                "SELECT * FROM levels WHERE guild_id = ? ORDER BY level DESC, xp DESC LIMIT ?",
-                (guild.id, limit),
+            records = await self.db.fetch(
+                "SELECT * FROM levels WHERE guild_id = $1 ORDER BY level DESC, xp DESC LIMIT $2",
+                guild.id,
+                limit,
             )
         users = sorted(
-            [User(*record) for record in await records.fetchall()],
+            [User(*record) for record in records],
             key=lambda x: x.total_exp,
             reverse=True,
         )
@@ -106,10 +109,12 @@ class LevelsController:
     async def add_user(self, user: Member, guild: Guild):
         self.remove_cached(user)
         await self.db.execute(
-            "INSERT INTO levels (user_id, guild_id, level, xp) VALUES (?, ?, ?, ?)",
-            (user.id, guild.id, 0, 0),
+            "INSERT INTO levels (user_id, guild_id, level, xp) VALUES ($1, $2, $3, $4)",
+            user.id,
+            guild.id,
+            0,
+            0,
         )
-        await self.db.commit()
 
     @staticmethod  # todo: remove
     def get_total_xp_for_level(level: int) -> int:
@@ -158,11 +163,12 @@ class LevelsController:
     async def is_in_database(
         self, member: Union[Member, int], guild: Union[FakeGuild, int] = None
     ) -> bool:
-        record = await self.db.execute(
-            "SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = ? AND guild_id = ? )",
-            (member.id, guild.id if guild else member.guild.id),
+        record = await self.db.fetchrow(
+            "SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = $1 AND guild_id = $2 )",
+            member.id,
+            guild.id if guild else member.guild.id,
         )
-        return bool((await record.fetchone())[0])
+        return bool(record[0])
 
     async def set_level(self, member: Member, level: int) -> None:
         if 0 <= level <= MAX_LEVEL:
@@ -190,25 +196,20 @@ class LevelsController:
 
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
             await self.db.execute(
-                "UPDATE levels SET level = ?, xp = ? WHERE user_id = ? AND guild_id = ?",
-                (
-                    level,
-                    xp,
-                    member.id if isinstance(member, (Member, ClientUser)) else member,
-                    guild_id,
-                ),
+                "UPDATE levels SET level = $1, xp = $2 WHERE user_id = $3 AND guild_id = $4",
+                level,
+                xp,
+                member.id if isinstance(member, (Member, ClientUser)) else member,
+                guild_id,
             )
         else:
             await self.db.execute(
-                "INSERT INTO levels (user_id, guild_id, level, xp) VALUES (?, ?, ?, ?)",
-                (
-                    member.id if isinstance(member, Member) else member,
-                    guild_id,
-                    level,
-                    xp,
-                ),
+                "INSERT INTO levels (user_id, guild_id, level, xp) VALUES ($1, $2, $3, $4)",
+                member.id if isinstance(member, Member) else member,
+                guild_id,
+                level,
+                xp,
             )
-        await self.db.commit()
 
     @staticmethod
     async def random_xp():
@@ -290,18 +291,15 @@ class LevelsController:
         if f"levels_{user.id}_{user.guild.id}" in self.cache and not bypass:
             return self.cache[f"levels_{user.id}_{user.guild.id}"]
 
-        record = await self.db.execute(
-            "SELECT * FROM levels WHERE user_id = ? AND guild_id = ?",
-            (
-                user.id,
-                user.guild.id,
-            ),
+        record = await self.db.fetchrow(
+            "SELECT * FROM levels WHERE user_id = $1 AND guild_id = $2",
+            user.id,
+            user.guild.id,
         )
-        raw = await record.fetchone()
-        if raw is None:
+        if record is None:
             raise UserNotFound
-        self.cache[f"levels_{user.id}_{user.guild.id}"] = User(*raw)
-        return User(*raw)
+        self.cache[f"levels_{user.id}_{user.guild.id}"] = User(*record)
+        return User(*record)
 
     async def generate_image_card(
         self, user: Member | User, rank: str, xp: int, lvl: int
@@ -406,17 +404,14 @@ class LevelsController:
         #3. get the index of the user
         #4. add 1 to the index
         """
-        db_records = await self.db.execute(
-            "SELECT * FROM levels WHERE guild_id = ? AND level >= ?",
-            (
-                guild_id,
-                user_record.lvl,
-            ),
+        db_records = await self.db.fetch(
+            "SELECT * FROM levels WHERE guild_id = $1 AND level >= $2",
+            guild_id,
+            user_record.lvl,
         )
-        raw_records = await db_records.fetchall()
-        if raw_records is None:
+        if db_records is None:
             raise UserNotFound
-        records = [User(*record) for record in raw_records]
+        records = [User(*record) for record in db_records]
         sorted_once = sorted(records, key=lambda x: x.lvl, reverse=True)
         sorted_twice = sorted(sorted_once, key=lambda x: x.xp, reverse=True)
 
@@ -464,23 +459,23 @@ class Level(commands.Cog):
                 await msg.author.add_roles(role, reason=f"Level up to level {level}")
 
     async def is_role_reward(self, guild: Guild, level: int) -> bool:
-        query = await self.bot.db.execute(
-            "SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = ? AND required_lvl = ?)",
-            (guild.id, level),
+        record = await self.bot.db.fetchrow(
+            "SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = $1 AND required_lvl = $2)",
+            guild.id,
+            level,
         )
-        return bool((await query.fetchone())[0])
+        return bool(record[0])
 
     async def get_role_reward(self, guild: Guild, level: int) -> Role:
-        query = await self.bot.db.execute(
-            "SELECT role_id FROM role_rewards WHERE guild_id = ? AND required_lvl = ?",
-            (guild.id, level),
+        record = await self.bot.db.fetchrow(
+            "SELECT role_id FROM role_rewards WHERE guild_id = $1 AND required_lvl = $2",
+            guild.id,
+            level,
         )
-        try:
-            role_id = (await query.fetchone())[0]
-        except TypeError:
+        if record is None:
             return None
 
-        return guild.get_role(role_id)
+        return guild.get_role(record[0])
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -509,10 +504,10 @@ class Level(commands.Cog):
     async def active(self, inter: ApplicationCommandInteraction, active: bool):
         """Enable or disable xp boost"""
         await self.bot.db.execute(
-            "UPDATE config SET xp_boost_enabled = ? WHERE guild_id = ?",
-            (active, inter.guild.id),
+            "UPDATE config SET xp_boost_enabled = $1 WHERE guild_id = $2",
+            active,
+            inter.guild.id,
         )
-        await self.bot.db.commit()
         await inter.response.send_message(
             f"XP Boost is now {'enabled' if active else 'disabled'}"
         )
@@ -524,10 +519,9 @@ class Level(commands.Cog):
         """
         gets the current xp boost for the bot
         """
-        async with self.bot.db.execute(
-            "SELECT * FROM config WHERE guild_id = ?", (inter.guild.id,)
-        ) as cur:
-            config = await cur.fetchone()
+        config = await self.bot.db.fetchrow(
+            "SELECT * FROM config WHERE guild_id = $1", inter.guild.id
+        )
         if config is None:
             return await inter.response.send_message(
                 "There is no config setup for this server"
@@ -565,10 +559,11 @@ class Level(commands.Cog):
                 'Invalid date format: Invalid time provided, try e.g. "tomorrow" or "3 days".'
             )
         await self.bot.db.execute(
-            "UPDATE config SET xp_boost = ?, xp_boost_expiry = ? WHERE guild_id = ?",
-            (amount, expires, inter.guild.id),
+            "UPDATE config SET xp_boost = $1, xp_boost_expiry = $2 WHERE guild_id = $3",
+            amount,
+            expires,
+            inter.guild.id,
         )
-        await self.bot.db.commit()
         await inter.response.send_message(
             f"Successfully set the xp boost to {amount}x it will expire {get_expiry(expires)} "
         )
@@ -716,13 +711,18 @@ class Level(commands.Cog):
                 inter, text=f"Level must be within 1-{MAX_LEVEL} found"
             )
 
-        if await self.bot.db.execute(
-            "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
-            (inter.guild.id, role.id),
-        ):
-            sql = "INSERT OR IGNORE INTO role_rewards (guild_id, role_id, required_lvl) VALUES (?, ?, ?)"
-            await self.bot.db.execute(sql, (inter.guild.id, role.id, level_needed))
-            await self.bot.db.commit()
+        record = await self.bot.db.fetchrow(
+            "SELECT 1 FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
+            inter.guild.id,
+            role.id,
+        )
+        if record is None:
+            await self.bot.db.execute(
+                "INSERT INTO role_rewards (guild_id, role_id, required_lvl) VALUES ($1, $2, $3)",
+                inter.guild.id,
+                role.id,
+                level_needed,
+            )
             return await sucEmb(
                 inter,
                 f"Added {role.mention} to the role reward list for level {level_needed}",
@@ -739,14 +739,17 @@ class Level(commands.Cog):
         role: Role = Param(name="role", description="What role to remove"),
     ):
         """Remove a role reward"""
-        if await self.bot.db.execute(
-            "SELECT 1 FROM role_rewards WHERE guild_id = ? AND role_id = ?",
-            (inter.guild.id, role.id),
-        ):
-            sql = "DELETE FROM role_rewards WHERE guild_id = ? AND role_id = ?"
-            await self.bot.db.execute(sql, (inter.guild.id, role.id))
-            await self.bot.db.commit()
-
+        record = await self.bot.db.fetchrow(
+            "SELECT 1 FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
+            inter.guild.id,
+            role.id,
+        )
+        if record is not None:
+            await self.bot.db.execute(
+                "DELETE FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
+                inter.guild.id,
+                role.id,
+            )
             return await sucEmb(
                 inter, f"Removed {role.mention} from the role reward list"
             )
@@ -757,9 +760,9 @@ class Level(commands.Cog):
     @role_reward.sub_command()
     async def list(self, inter: ApplicationCommandInteraction):
         """List all role rewards"""
-        sql = "SELECT * FROM role_rewards WHERE guild_id = ?"
-        records = await self.bot.db.execute(sql, (inter.guild.id,))
-        records = await records.fetchall()
+        records = await self.bot.db.fetch(
+            "SELECT * FROM role_rewards WHERE guild_id = $1", inter.guild.id
+        )
         if not records:
             return await errorEmb(inter, text="No role rewards found")
         embed = Embed(title="Role Rewards", color=0x00FF00)
