@@ -104,11 +104,6 @@ class FlagQuizHandler:
             leaderboard.append(FlagQuizUser(*record))
         if len(leaderboard) == 0:
             raise UsersNotFound
-        leaderboard = sorted(
-            leaderboard,
-            key=lambda x: x.correct + (x.completed * 199),
-            reverse=True,
-        )
         return leaderboard
 
     async def add_data(
