@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS blacklist
     expires BIGINT
 );
 
-CREATE TABLE IF NOT EXISTS flag_quizz
+CREATE TABLE IF NOT EXISTS flag_quiz
 (
     user_id BIGINT,
     tries INTEGER,

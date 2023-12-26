@@ -74,7 +74,7 @@ class FlagQuizHandler:
             return user
         elif await self.exists(user_id, guild_id):
             record = await self.db.fetchrow(
-                "SELECT * FROM flag_quizz WHERE user_id = $1 AND guild_id = $2",
+                "SELECT * FROM flag_quiz WHERE user_id = $1 AND guild_id = $2",
                 user_id,
                 guild_id,
             )
@@ -86,7 +86,7 @@ class FlagQuizHandler:
 
     async def exists(self, user_id: int, guild_id: int) -> bool:
         record = await self.db.fetchrow(
-            "SELECT EXISTS(SELECT 1 FROM flag_quizz WHERE user_id=$1 AND guild_id = $2)",
+            "SELECT EXISTS(SELECT 1 FROM flag_quiz WHERE user_id=$1 AND guild_id = $2)",
             user_id,
             guild_id,
         )
@@ -97,7 +97,7 @@ class FlagQuizHandler:
     ) -> List[FlagQuizUser]:
         leaderboard = []
         records = await self.db.fetch(
-            f"SELECT user_id, tries, correct, completed, guild_id FROM flag_quizz WHERE guild_id = $1 ORDER BY {order_by} DESC LIMIT 10",
+            f"SELECT user_id, tries, correct, completed, guild_id FROM flag_quiz WHERE guild_id = $1 ORDER BY {order_by} DESC LIMIT 10",
             guild_id,
         )
         for record in records:
@@ -129,7 +129,7 @@ class FlagQuizHandler:
         correct += user.correct
 
         await self.db.execute(
-            "UPDATE flag_quizz SET tries = $1, correct = $2, completed = $3 WHERE user_id = $4 AND guild_id = $5",
+            "UPDATE flag_quiz SET tries = $1, correct = $2, completed = $3 WHERE user_id = $4 AND guild_id = $5",
             tries,
             correct,
             completed,
@@ -147,7 +147,7 @@ class FlagQuizHandler:
             completed = 0
 
         await self.db.execute(
-            "INSERT INTO flag_quizz (user_id, tries, correct, completed, guild_id) VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO flag_quiz (user_id, tries, correct, completed, guild_id) VALUES ($1, $2, $3, $4, $5)",
             user_id,
             tries,
             correct,
