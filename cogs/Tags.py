@@ -68,6 +68,7 @@ class Tags(commands.Cog, name="Tags"):
         name: str,
         embedded: Optional[bool] = False,
     ):
+        await inter.response.defer()
         if not embedded:
             embedded = False
 
@@ -111,6 +112,7 @@ class Tags(commands.Cog, name="Tags"):
         *,
         content: str = commands.Param(le=1900),
     ):
+        await inter.response.defer()
         name = name.casefold()
 
         if not self.bot.config.roles.lvl_5 in [role.id for role in inter.author.roles]:
@@ -163,6 +165,7 @@ class Tags(commands.Cog, name="Tags"):
         *,
         content: str = commands.Param(le=1900),
     ):
+        await inter.response.defer()
         name = await self.tags.get_name(name.casefold())
 
         try:
@@ -191,6 +194,7 @@ class Tags(commands.Cog, name="Tags"):
         name,
         new_owner: disnake.Member,
     ):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -217,6 +221,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def claim(self, inter: ApplicationCommandInteraction, name):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -254,6 +259,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 180, commands.BucketType.user)
     async def deltag(self, inter: ApplicationCommandInteraction, name):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -274,6 +280,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def info(self, inter: ApplicationCommandInteraction, name):
+        await inter.response.defer()
         name = name.casefold()
         try:
             await self.tags.exists(name, TagNotFound, should=True)
@@ -298,6 +305,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def leaderboard(self, inter: ApplicationCommandInteraction):
+        await inter.response.defer()
         try:
             tags = await self.tags.all(orderby="views", limit=10)
         except AttributeError:
@@ -327,6 +335,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.cooldown(1, 15, commands.BucketType.channel)
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def list_tags(self, inter: ApplicationCommandInteraction):
+        await inter.response.defer()
         try:
             tag_count = await self.tags.count()
         except AttributeError:
@@ -380,6 +389,7 @@ class Tags(commands.Cog, name="Tags"):
     @tag.sub_command(name="rename", description="Renames a tag")
     @commands.guild_only()
     async def rename(self, inter, name, new_name):
+        await inter.response.defer()
         try:
             name = name.casefold()
             new_name = new_name.casefold()
@@ -440,6 +450,7 @@ class Tags(commands.Cog, name="Tags"):
     @alias.sub_command(name="add", description="Adds an alias to a tag")
     @commands.guild_only()
     async def add_alias(self, inter, name, alias):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -477,6 +488,7 @@ class Tags(commands.Cog, name="Tags"):
     @alias.sub_command(name="remove", description="Removes an alias from a tag")
     @commands.guild_only()
     async def remove_alias(self, inter, name, alias):
+        await inter.response.defer()
         try:
             name = name.casefold()
             alias = alias.casefold()

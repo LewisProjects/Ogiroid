@@ -245,6 +245,7 @@ class Staff(commands.Cog):
         reason: str = None,
     ):
         """Warns a user from the server."""
+        await inter.response.defer()
         await self.warning.create_warning(
             member.id,
             reason,
@@ -263,6 +264,7 @@ class Staff(commands.Cog):
         self, inter: ApplicationCommandInteraction, member: disnake.Member
     ):
         """Removes a warning from a user from the server."""
+        await inter.response.defer()
         warnings = await self.warning.get_warnings(member.id, inter.guild.id)
         if len(warnings) == 0:
             return await errorEmb(inter, "User has no warnings!")
@@ -319,6 +321,7 @@ class Staff(commands.Cog):
         self, inter: ApplicationCommandInteraction, member: disnake.Member
     ):
         """Shows the warnings of a user from the server."""
+        await inter.response.defer()
         warnings = await self.warning.get_warnings(member.id, inter.guild.id)
         if not warnings:
             return await QuickEmb(inter, "User has no warnings!").send()
@@ -470,6 +473,7 @@ class Staff(commands.Cog):
         emoji: str,
         role: disnake.Role,
     ):
+        await inter.response.defer()
         # Checking if the message exists:
         message_id = int(message_id)
         message = await inter.channel.fetch_message(message_id)
@@ -494,6 +498,7 @@ class Staff(commands.Cog):
     async def remove_reaction_role(
         self, inter, message_id, emoji: str, role: disnake.Role
     ):
+        await inter.response.defer()
         # Checking if the message exists:
         message_id = int(message_id)
         message = await inter.channel.fetch_message(message_id)
@@ -563,6 +568,8 @@ class Staff(commands.Cog):
             description="The channel where the message is sent.",
         ),
     ):
+        await inter.response.defer()
+
         def check(m):
             return m.author == inter.author and m.channel == inter.channel
 
@@ -622,6 +629,7 @@ class Staff(commands.Cog):
             description="The channel where the message is sent.",
         ),
     ):
+        await inter.response.defer()
         emoji = PartialEmoji.from_str(new_emoji.strip())
         message_id = int(message_id)
 
@@ -673,6 +681,7 @@ class Staff(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def edit_message(self, inter, message_id, channel: disnake.TextChannel):
+        await inter.response.defer()
         exists = False
         message_id = int(message_id)
         for message in self.reaction_roles.messages:
@@ -722,6 +731,7 @@ class Staff(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def delete_message(self, inter, message_id, channel: disnake.TextChannel):
+        await inter.response.defer()
         exists = False
         message_id = int(message_id)
         for message in self.reaction_roles.messages:
@@ -763,6 +773,7 @@ class Staff(commands.Cog):
         channel: disnake.TextChannel,
         role: disnake.Role,
     ):
+        await inter.response.defer()
         message_id = int(message_id.strip())
         emoji = PartialEmoji.from_str(emoji.strip())
 
@@ -792,6 +803,7 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener("on_button_click")
     async def button_click(self, inter):
+        await inter.response.defer()
         message = inter.message
         emoji = inter.component.emoji
         guild = inter.guild

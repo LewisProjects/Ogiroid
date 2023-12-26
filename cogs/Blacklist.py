@@ -43,11 +43,7 @@ class Blacklist(Cog):
             return  # already being removed
         elif user.is_expired():
             await self.blacklist.remove(user.id)
-        elif (
-            int(time.time())
-            <= user.expires
-            <= (int(time.time()) + timings.HOUR)
-        ):
+        elif int(time.time()) <= user.expires <= (int(time.time()) + timings.HOUR):
             self.del_que.append(user.id)
             await self.run_at(user.expires, self.blacklist.remove, user.id)
 
@@ -63,14 +59,11 @@ class Blacklist(Cog):
         pass
 
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @blacklist.sub_command(
-        name="info", description="Get info about a blacklisted user"
-    )
+    @blacklist.sub_command(name="info", description="Get info about a blacklisted user")
     async def blacklist_info(self, inter, user: Member):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
-            return await errorEmb(
-                inter, f"{user.mention} is not in the blacklist"
-            )
+            return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         bl_user = await self.blacklist.get_user(user.id)
         embed = Embed(
             title=f"Blacklisted user: {user.name}",
@@ -94,13 +87,10 @@ class Blacklist(Cog):
         name="flags",
         description="Edit the user's blacklist flags in the blacklist",
     )
-    async def flags(
-        self, inter, user: Member, bot: bool, tickets: bool, tags: bool
-    ):
+    async def flags(self, inter, user: Member, bot: bool, tickets: bool, tags: bool):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
-            return await errorEmb(
-                inter, f"{user.mention} is not in the blacklist"
-            )
+            return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.edit_flags(user.id, bot, tickets, tags)
         await sucEmb(
             inter,
@@ -113,10 +103,9 @@ class Blacklist(Cog):
         description="Edit the user's blacklist reason in the blacklist",
     )
     async def reason(self, inter, user: Member, reason: str):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
-            return await errorEmb(
-                inter, f"{user.mention} is not in the blacklist"
-            )
+            return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.edit_reason(user.id, reason)
         await sucEmb(
             inter,
@@ -129,10 +118,9 @@ class Blacklist(Cog):
         description="Edit the user's blacklist expiry in the blacklist",
     )
     async def expiry(self, inter, user: Member, expires: str):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
-            return await errorEmb(
-                inter, f"{user.mention} is not in the blacklist"
-            )
+            return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         expiry = int((await timeconversions.convert(expires)).dt.timestamp())
         await self.blacklist.edit_expiry(user.id, expiry)
         await sucEmb(
@@ -146,10 +134,9 @@ class Blacklist(Cog):
         name="remove", description="Remove a user from the blacklist"
     )
     async def remove(self, inter, user: Member):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
-            return await errorEmb(
-                inter, f"{user.mention} is not in the blacklist"
-            )
+            return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.remove(user.id)
         await sucEmb(
             inter,
@@ -210,6 +197,7 @@ class Blacklist(Cog):
         reason="No Reason Specified",
         expires="never",
     ):
+        await inter.response.defer()
         if not any((bot, tickets, tags)):
             return await errorEmb(
                 inter,
@@ -224,9 +212,7 @@ class Blacklist(Cog):
         elif user.id == "511724576674414600":
             return await errorEmb(inter, "You can't blacklist my creator :D")
         elif await self.blacklist.blacklisted(user.id):
-            return await errorEmb(
-                inter, f"{user.mention} is already in the blacklist"
-            )
+            return await errorEmb(inter, f"{user.mention} is already in the blacklist")
         expires = (await timeconversions.convert(expires)).dt.timestamp()
         await self.blacklist.add(user.id, reason, bot, tickets, tags, expires)
         await sucEmb(
@@ -237,10 +223,9 @@ class Blacklist(Cog):
         await self.check_user_removal(await self.blacklist.get_user(user.id))
 
     @commands.cooldown(1, 30, commands.BucketType.user)
-    @blacklist.sub_command(
-        name="list", description="List all blacklisted users"
-    )
+    @blacklist.sub_command(name="list", description="List all blacklisted users")
     async def blacklist_list(self, inter):
+        await inter.response.defer()
         try:
             blacklist_count = await self.blacklist.count()
         except AttributeError:
@@ -254,9 +239,7 @@ class Blacklist(Cog):
         for user in self.blacklist.blacklist:
             if (len(user.reason) + blacklist_reason_count) <= 1990:
                 blacklist_reason_count += len(user.reason)
-                if isinstance(
-                    nested_blacklisted[nested_count], BlacklistedUser
-                ):
+                if isinstance(nested_blacklisted[nested_count], BlacklistedUser):
                     nested_count += 1
                     nested_blacklisted.append([])
                 nested_blacklisted[nested_count].append(user)
@@ -287,9 +270,7 @@ class Blacklist(Cog):
         blacklist_embs.append(
             Embed(color=self.bot.config.colors.invis, description="The end ;D")
         )
-        start_emb = Embed(
-            title="Blacklist", color=self.bot.config.colors.invis
-        )
+        start_emb = Embed(title="Blacklist", color=self.bot.config.colors.invis)
         start_emb.description = f"There are currently {blacklist_count:,d} blacklisted user{'s' if blacklist_count > 1 else ''}, use the arrows below to navigate through them"
         blacklist_embs.insert(0, start_emb)
         await inter.send(
