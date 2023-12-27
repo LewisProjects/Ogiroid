@@ -1,13 +1,13 @@
 import asyncio
 from datetime import datetime
 from sqlalchemy.ext.asyncio import create_async_engine
-from db_models import Base
 
 import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
 
+from utils.db_models import Base
 from utils.CONSTANTS import __VERSION__
 from utils.DBhandlers import BlacklistHandler
 from utils.cache import async_cache
