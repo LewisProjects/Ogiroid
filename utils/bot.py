@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 import asyncpg
 import disnake
@@ -129,9 +129,8 @@ class OGIROID(commands.InteractionBot):
 
     async def start(self, *args, **kwargs):
 
-        # engine = create_async_engine(self.config.Database.connection_string)
-        self.db = await asyncpg.create_pool(self.config.Database.connection_string)
-        await self.db.execute(SETUP_SQL)
+        engine = create_async_engine(self.config.Database.connection_string)
+        self.db = async_sessionmaker(engine, expire_on_commit=False)
         # run the db migrations in /migrations
         # for file in listdir("migrations"):
         #     if file.endswith(".sql"):

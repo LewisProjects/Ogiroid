@@ -2,11 +2,15 @@ from __future__ import annotations, generator_stop
 import asyncpg
 import random
 import time
-from typing import List, Literal, Optional, TYPE_CHECKING, Dict
+from typing import List, Literal, Optional, TYPE_CHECKING, Dict, Tuple, Sequence
+
+from sqlalchemy import select, Result
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
+from utils.db_models import Warnings
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
@@ -17,6 +21,7 @@ from utils.models import (
     BirthdayModel,
     TimezoneModel,
 )
+from utils.db_models import *
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
@@ -593,60 +598,42 @@ class RolesHandler:
 
 
 class WarningHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.db = db
         self.bot = bot
 
-    async def get_warning(self, warning_id: int) -> Optional[WarningModel]:
-        record = await self.db.fetchrow(
-            "SELECT * FROM warnings WHERE warning_id = $1", warning_id
-        )
-        if record is None:
-            return None
-        return WarningModel(*record)
+    async def get_warning(self, warning_id: int) -> Optional[Warnings]:
+        async with self.db.begin() as session:
+            result = await session.get(Warnings, warning_id)
+            return result
 
-    async def get_warnings(self, user_id: int, guild_id: int) -> List[WarningModel]:
-        warnings = []
-        records = await self.db.fetch(
-            "SELECT * FROM warnings WHERE user_id = $1 AND guild_id = $2",
-            user_id,
-            guild_id,
-        )
-        for record in records:
-            warnings.append(WarningModel(*record))
-        return warnings
+    async def get_warnings(self, user_id: int, guild_id: int) -> Sequence[Warnings]:
+        async with self.db.begin() as session:
+            warnings = await session.execute(
+                select(Warnings).filter_by(user_id=user_id, guild_id=guild_id)
+            )
+            return warnings.scalars().all()
 
     async def create_warning(
         self, user_id: int, reason: str, moderator_id: int, guild_id: int
     ):
-        await self.db.execute(
-            "INSERT INTO warnings (user_id, reason, moderator_id, guild_id) VALUES ($1, $2, $3, $4)",
-            user_id,
-            reason,
-            moderator_id,
-            guild_id,
-        )
-        return True
+        async with self.db.begin() as session:
+            warning = Warnings(
+                user_id=user_id,
+                reason=reason,
+                moderator_id=moderator_id,
+                guild_id=guild_id,
+            )
+            session.add(warning)
 
-    async def remove_all_warnings(self, user_id: int, guild_id: int) -> bool:
-        warnings = await self.get_warnings(user_id, guild_id)
-        if len(warnings) == 0:
-            return False
-        await self.db.execute(
-            "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2",
-            user_id,
-            guild_id,
-        )
+            return warning
 
     async def remove_warning(self, warning_id: int, guild_id: int) -> bool:
         warning = await self.get_warning(warning_id)
         if warning is None:
             return False
-        await self.db.execute(
-            "DELETE FROM warnings WHERE warning_id = $1 AND guild_id = $2",
-            warning_id,
-            guild_id,
-        )
+        async with self.db.begin() as session:
+            await session.delete(warning)
 
         return True
 
