@@ -31,7 +31,12 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 load_dotenv("secrets.env")
-config.set_main_option("sqlalchemy.url", os.environ["POSTGRES_CONNECTION_STRING"])
+config.set_main_option(
+    "sqlalchemy.url",
+    os.environ["POSTGRES_CONNECTION_STRING"].replace(
+        "postgresql://", "postgresql+asyncpg://"
+    ),
+)
 
 
 def run_migrations_offline() -> None:
