@@ -51,7 +51,7 @@ class Trivia(Base):
     longest_streak = Column(Integer)
 
 
-class ReactionRoles(Base):
+class ReactionRole(Base):
     __tablename__ = "reaction_roles"
     id = Column(Integer, primary_key=True)
     message_id = Column(BigInteger)

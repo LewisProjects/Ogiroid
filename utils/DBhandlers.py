@@ -10,14 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
-from utils.db_models import Warnings
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
     BlacklistedUser,
     Tag,
-    ReactionRole,
-    WarningModel,
     BirthdayModel,
     TimezoneModel,
 )
@@ -36,7 +33,7 @@ class BaseModal:
 
 
 class ConfigHandler:
-    def __init__(self, bot: "OGIROID", db):
+    def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.config: Dict[dict] = {}
@@ -68,7 +65,7 @@ class ConfigHandler:
 
 
 class FlagQuizHandler:
-    def __init__(self, bot: "OGIROID", db):
+    def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
@@ -163,7 +160,7 @@ class FlagQuizHandler:
 
 
 class BlacklistHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.blacklist: List[BlacklistedUser] = []
@@ -282,7 +279,7 @@ class BlacklistHandler:
 
 
 class TagManager:
-    def __init__(self, bot: "OGIROID", db):
+    def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.session = self.bot.session
@@ -521,7 +518,7 @@ class RolesHandler:
     """Stores message_id, role_id, emoji(example: <:starr:990647250847940668> or ⭐ depending on type of emoji
     and roles given out"""
 
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.messages = []
@@ -545,55 +542,54 @@ class RolesHandler:
     async def get_messages(self):
         """get all messages from the database"""
         messages = []
-        records = await self.db.fetch(
-            "SELECT message_id, role_id, emoji, roles_given FROM reaction_roles"
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(select(ReactionRole))
+            records = records.scalars().all()
+
         for record in records:
-            messages.append(ReactionRole(*record))
+            messages.append(record)
+
+        print(f"[REACTION ROLES] Loaded {len(messages)} reaction roles")
         return messages
 
     async def create_message(self, message_id: int, role_id: int, emoji: str):
         """creates a message for a reaction role"""
         if await self.exists(message_id, emoji, role_id):
             raise ReactionAlreadyExists
-        await self.db.execute(
-            "INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES ($1, $2, $3)",
-            message_id,
-            role_id,
-            emoji,
-        )
-        self.messages.append(ReactionRole(message_id, role_id, emoji, 0))
+
+        async with self.db.begin() as session:
+            new_reaction = ReactionRole(
+                message_id=message_id, role_id=role_id, emoji=emoji
+            )
+            session.add(new_reaction)
+
+        self.messages.append(new_reaction)
 
     async def increment_roles_given(self, message_id: str, emoji: str):
         """increments the roles given out for a message"""
-        await self.db.execute(
-            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = $1 AND emoji = $2",
-            message_id,
-            emoji,
-        )
+        async with self.db.begin() as session:
+            reaction_role = await session.execute(
+                select(ReactionRole).filter_by(message_id=message_id, emoji=emoji)
+            )
+            reaction_role.scalar().roles_given += 1
+
         for message in self.messages:
             if message.message_id == message_id and message.emoji == emoji:
                 message.roles_given += 1
                 return
 
     async def remove_message(self, message_id: int, emoji: str, role_id: int):
-        """removes a message from the database"""
+        """removes a role from the database"""
         msg = await self.exists(message_id, emoji, role_id)
         if not msg:
             raise ReactionNotFound
-        await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3",
-            message_id,
-            emoji,
-            role_id,
-        )
-        self.messages.remove(msg)
+        async with self.db.begin() as session:
+            await session.delete(msg)
 
     async def remove_messages(self, message_id: int):
         """Removes all messages matching the id"""
-        await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = $1", message_id
-        )
+        async with self.db.begin() as session:
+            await session.delete(select(ReactionRole).filter_by(message_id=message_id))
         self.messages = [msg for msg in self.messages if msg.message_id != message_id]
 
 
@@ -639,7 +635,7 @@ class WarningHandler:
 
 
 class BirthdayHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.db = db
         self.bot = bot
 
@@ -694,7 +690,7 @@ class BirthdayHandler:
 
 
 class TimezoneHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.db = db
         self.bot = bot
 

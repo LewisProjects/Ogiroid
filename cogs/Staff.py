@@ -822,8 +822,6 @@ class Staff(commands.Cog):
         if not await self.reaction_roles.exists(message.id, str(emoji), role_id):
             return await errorEmb(inter, "This doesnt exists in the database")
 
-        await self.reaction_roles.increment_roles_given(message.id, str(emoji))
-
         member = guild.get_member(inter.user.id)
 
         if member.get_role(role_id) is None:
