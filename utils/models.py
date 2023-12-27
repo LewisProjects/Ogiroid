@@ -36,19 +36,15 @@ class User:
     @property
     def total_exp(self):
         return sum(
-            [
-                exp
-                for exp in [
-                    self.get_exp(lvl) for lvl in range(1, self.lvl + 1)
-                ]
-            ][::-1]
+            [exp for exp in [self.get_exp(lvl) for lvl in range(1, self.lvl + 1)]][::-1]
             + [self.xp]
         )
 
 
 @dataclass
 class TriviaUser:
-    id: int  # user id
+    id: int
+    user_id: int
     correct: int = 0
     incorrect: int = 0
     streak: int = 0
@@ -91,6 +87,7 @@ class BlacklistedUser:
 
 @dataclass
 class Tag:
+    tag_id: int
     name: str
     content: str
     owner: int
@@ -100,12 +97,14 @@ class Tag:
 
 @dataclass
 class Alias:
+    id: int
     tag_id: str
     alias: str
 
 
 @dataclass
 class FlagQuizUser:
+    id: int
     user_id: int
     tries: int
     correct: int
@@ -115,6 +114,7 @@ class FlagQuizUser:
 
 @dataclass
 class ReactionRole:
+    id: int
     message_id: int
     role_id: int
     emoji: str
@@ -132,6 +132,7 @@ class WarningModel:
 
 @dataclass
 class BirthdayModel:
+    id: int
     user_id: int
     birthday: str
     birthday_last_changed: int
@@ -139,6 +140,7 @@ class BirthdayModel:
 
 @dataclass
 class TimezoneModel:
+    id: int
     user_id: int
     timezone: str
     timezone_last_changed: int

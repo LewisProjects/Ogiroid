@@ -1,12 +1,12 @@
 import asyncio
 from datetime import datetime
-from os import listdir
+from sqlalchemy.ext.asyncio import create_async_engine
+from db_models import Base
 
 import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
-from disnake.ext.commands.interaction_bot_base import CFT
 
 from utils.CONSTANTS import __VERSION__
 from utils.DBhandlers import BlacklistHandler
@@ -128,6 +128,8 @@ class OGIROID(commands.InteractionBot):
         pass
 
     async def start(self, *args, **kwargs):
+
+        # engine = create_async_engine(self.config.Database.connection_string)
         self.db = await asyncpg.create_pool(self.config.Database.connection_string)
         await self.db.execute(SETUP_SQL)
         # run the db migrations in /migrations

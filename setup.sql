@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS tags
 
 CREATE TABLE IF NOT EXISTS tag_relations
 (
-    tag_id TEXT PRIMARY KEY,
+    tag_id TEXT,
     alias TEXT
 );
 

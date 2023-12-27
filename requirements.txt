@@ -1,4 +1,4 @@
-aiohttp~=3.8.3
+aiohttp~=3.9.1
 asyncpg==0.29.0
 akinator~=1.0.3
 disnake==2.9.1
@@ -14,3 +14,5 @@ python-dateutil~=2.8.2
 pytz==2022.7.1
 discord_together==1.2.6
 better_profanity==0.7.0
+sqlalchemy[asyncio]==2.0.23
+alembic==1.13.1
