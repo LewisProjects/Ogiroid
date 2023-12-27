@@ -86,7 +86,7 @@ class BlacklistedUser:
 
 
 @dataclass
-class Tag:
+class TagModel:
     tag_id: int
     name: str
     content: str

@@ -804,7 +804,6 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener("on_button_click")
     async def button_click(self, inter):
-        await inter.response.defer()
         message = inter.message
         emoji = inter.component.emoji
         guild = inter.guild
@@ -819,6 +818,7 @@ class Staff(commands.Cog):
         except ValueError:
             return
 
+        await inter.response.defer()
         if not await self.reaction_roles.exists(message.id, str(emoji), role_id):
             return await errorEmb(inter, "This doesnt exists in the database")
 

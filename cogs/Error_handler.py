@@ -20,15 +20,11 @@ class ErrorHandler(Cog):
         self.waitTime = 25
 
     def TimeSinceStart(self) -> float:
-        return round(
-            (datetime.now() - self.bot.uptime).total_seconds(), ndigits=1
-        )
+        return round((datetime.now() - self.bot.uptime).total_seconds(), ndigits=1)
 
     # noinspection PyUnboundLocalVariable
     @Cog.listener()
-    async def on_slash_command_error(
-        self, inter: ApplicationCommandInteraction, error
-    ):
+    async def on_slash_command_error(self, inter: ApplicationCommandInteraction, error):
         try:
             if hasattr(inter.application_command, "on_error"):
                 return
@@ -63,9 +59,7 @@ class ErrorHandler(Cog):
                     permissions=f"{', '.join(error.missing_permissions)}",
                 )
             elif isinstance(error, MissingRole):
-                return await permsEmb(
-                    inter, permissions=f"Role: {error.missing_role}"
-                )
+                return await permsEmb(inter, permissions=f"Role: {error.missing_role}")
             elif isinstance(error, MaxConcurrencyReached):
                 return await errorEmb(
                     inter,
@@ -92,7 +86,7 @@ class ErrorHandler(Cog):
             elif self.debug_mode:
                 traceback_nice = "".join(
                     traceback.format_exception(
-                        type(error), error, error.__traceback__, 4
+                        type(error), error, error.__traceback__, 16
                     )
                 )
                 print(traceback_nice)
@@ -104,14 +98,10 @@ class ErrorHandler(Cog):
                 await self.send_traceback(inter, error)
 
         except Exception as e:
-            error_channel = self.bot.get_channel(
-                self.bot.config.channels.errors
-            )
+            error_channel = self.bot.get_channel(self.bot.config.channels.errors)
             embed = await self.create_error_message(inter, e)
             await inter.send(embed=embed, ephemeral=True)
-            e_traceback = traceback.format_exception(
-                type(e), e, e.__traceback__
-            )
+            e_traceback = traceback.format_exception(type(e), e, e.__traceback__)
             if self.debug_mode:
                 print(e_traceback)
             e_embed = disnake.Embed(
@@ -139,9 +129,7 @@ class ErrorHandler(Cog):
 
     async def send_traceback(self, inter, error):
         error_channel = self.bot.get_channel(self.bot.config.channels.errors)
-        bot_errors = traceback.format_exception(
-            type(error), error, error.__traceback__
-        )
+        bot_errors = traceback.format_exception(type(error), error, error.__traceback__)
 
         error_embed = disnake.Embed(
             title="Error Traceback",
@@ -150,9 +138,7 @@ class ErrorHandler(Cog):
         )
         await error_channel.send(embed=error_embed)
         traceback_nice = "".join(
-            traceback.format_exception(
-                type(error), error, error.__traceback__, 4
-            )
+            traceback.format_exception(type(error), error, error.__traceback__, 4)
         ).replace("```", "```")
 
         options = " ".join(

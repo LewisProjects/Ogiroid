@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS tags
 (
-    tag_id TEXT PRIMARY KEY,
+    name TEXT PRIMARY KEY,
     content TEXT,
     owner BIGINT,
     created_at BIGINT,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS tags
 
 CREATE TABLE IF NOT EXISTS tag_relations
 (
-    tag_id TEXT,
+    name TEXT,
     alias TEXT
 );
 

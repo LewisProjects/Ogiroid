@@ -2,7 +2,18 @@ from __future__ import annotations, generator_stop
 import asyncpg
 import random
 import time
-from typing import List, Literal, Optional, TYPE_CHECKING, Dict, Tuple, Sequence
+from typing import (
+    List,
+    Literal,
+    Optional,
+    TYPE_CHECKING,
+    Dict,
+    Tuple,
+    Sequence,
+    Union,
+    Any,
+    Type,
+)
 
 from sqlalchemy import select, Result
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -10,13 +21,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
+from utils.db_models import Tag
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
     BlacklistedUser,
-    Tag,
     BirthdayModel,
     TimezoneModel,
+    TagModel,
 )
 from utils.db_models import *
 
@@ -324,17 +336,19 @@ class TagManager:
                 raise exception
 
     async def create(self, name, content, owner):
-        await self.db.execute(
-            "INSERT INTO tags (tag_id, content, owner, created_at, views) VALUES ($1, $2, $3, $4, 0)",
-            name,
-            content,
-            owner,
-            int(time.time()),
-        )
+        async with self.db.begin() as session:
+            new_tag = Tag(
+                name=name,
+                content=content,
+                owner=owner,
+                created_at=int(time.time()),
+                views=0,
+            )
+            session.add(new_tag)
         self.names["tags"].append(name)
-        await self.cache.add(name, Tag(name, content, owner, int(time.time()), 0))
+        await self.cache.add(name, new_tag)
 
-    async def get(self, name, /, force: bool = False) -> Tag:
+    async def get(self, name, /, force: bool = False) -> Type[Tag] | None:
         """
         Returns the tag object of the tag with the given name or alias
         args:
@@ -349,31 +363,31 @@ class TagManager:
             else:
                 await self.cache.add(name, await self.get(name, force=True))
 
-        record = await self.db.fetchrow("SELECT * FROM tags WHERE tag_id = $1", name)
+        async with self.db.begin() as session:
+            record = await session.get(Tag, name)
         if record is None:
             return
-        return Tag(*record)
+        return record
 
     async def all(
         self, orderby: Literal["views", "created_at"] = "views", limit=10
-    ) -> List[Tag]:
-        tags = []
+    ) -> Sequence[Tag]:
         if orderby not in ["views", "created_at"]:
             raise ValueError("Invalid orderby value")
 
-        records = await self.db.fetch(
-            f"SELECT * FROM tags ORDER BY {orderby} DESC"
-            + (f" LIMIT {limit}" if limit > 1 else "")
-        )
-        for record in records:
-            tags.append(Tag(*record))
-        if len(tags) == 0:
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Tag).order_by(getattr(Tag, orderby).desc()).limit(limit)
+            )
+            records = records.scalars().all()
+
+        if len(records) == 0:
             raise TagsNotFound
-        return tags
+        return records
 
     async def delete(self, name):
-        name = await self.get_name(name)
-        await self.db.execute("DELETE FROM tags WHERE tag_id = $1", name)
+        async with self.db.begin() as session:
+            await session.delete(await self.get_name(name))
         self.names["tags"].remove(name)
         for tag in await self.get_aliases(name):
             self.names["aliases"].remove(tag)
@@ -381,10 +395,10 @@ class TagManager:
         await self.remove_aliases(name)
 
     async def update(self, name, param, new_value):
-        await self.db.execute(
-            f"UPDATE tags SET {param} = $1 WHERE tag_id = $2", new_value, name
-        )
-        if param == "tag_id":
+        async with self.db.begin() as session:
+            tag = await session.get(Tag, name)
+            setattr(tag, param, new_value)
+        if param == "name":
             await self.cache.add(new_value, await self.get(name))
             await self.cache.remove(name)
         else:
@@ -394,10 +408,13 @@ class TagManager:
 
     async def rename(self, name, new_name):
         name = await self.get_name(name)
-        await self.update(name, "tag_id", new_name)
-        await self.db.execute(
-            f"UPDATE tag_relations SET tag_id = $1 WHERE tag_id = $2", new_name, name
-        )
+        await self.update(name, "name", new_name)
+        async with self.db.begin() as session:
+            tag_relation = await session.execute(
+                select(TagRelations).filter_by(name=name)
+            )
+            tag_relation.name = new_name
+
         self.names["tags"].append(new_name)
         self.names["tags"].remove(name)
 
@@ -412,17 +429,19 @@ class TagManager:
         if tag:
             tag.views += 1
             await self.cache.set(name, tag)
-        await self.db.execute(
-            f"UPDATE tags SET views = {tag.views} WHERE tag_id = $1", name
-        )
+        async with self.db.begin() as session:
+            tag = await session.get(Tag, name)
+            tag.views += 1
 
     async def get_top(self, limit=10):
         tags = []
-        records = await self.db.fetch(
-            f"SELECT tag_id, views FROM tags ORDER BY views DESC LIMIT {limit}"
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Tag).order_by(Tag.views.desc()).limit(limit)
+            )
+            records = records.scalars().all()
         for record in records:
-            tags.append(Tag(*record))
+            tags.append(record)
         if len(tags) == 0:
             raise TagsNotFound
         return tags
@@ -434,34 +453,44 @@ class TagManager:
         orderby: Literal["views", "created_at"] = "views",
     ):
         tags = []
-        records = await self.db.fetch(
-            f"SELECT tag_id, views FROM tags WHERE owner = $1 ORDER BY {orderby} DESC LIMIT {limit}",
-            owner,
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Tag)
+                .filter_by(owner=owner)
+                .order_by(getattr(Tag, orderby).desc())
+                .limit(limit)
+            )
+            records = records.scalars().all()
         for record in records:
-            tags.append(Tag(*record))
+            tags.append(record)
         if len(tags) == 0:
             raise TagsNotFound
         return tags
 
     async def count(self) -> int:
-        record = await self.db.fetchrow("SELECT COUNT(*) FROM tags")
-        return int(record[0])
+        async with self.db.begin() as session:
+            records = await session.execute(select(Tag))
+            return len(records.scalars().all())
 
     async def get_name(self, name_or_alias: str | tuple):
         """gets the true name of a tag (not the alias)"""
         if isinstance(name_or_alias, tuple):
             return await self.get_name(name_or_alias[0])
 
-        name_or_alias = name_or_alias.casefold()  # todo fix.
+        if type(name_or_alias) == str:
+            name_or_alias = name_or_alias.casefold()  ## todo fix.
+        elif type(name_or_alias) == TagRelations:
+            name_or_alias = name_or_alias.alias.casefold()
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
-        record = await self.db.fetchrow(
-            "SELECT tag_id FROM tag_relations WHERE alias = $1", name_or_alias
-        )
+        async with self.db.begin() as session:
+            record = await session.execute(
+                select(TagRelations).filter_by(alias=name_or_alias)
+            )
+            record = record.scalar()
         if record is None:
             raise TagNotFound(name_or_alias)
-        return record[0]
+        return record.name
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
@@ -472,9 +501,9 @@ class TagManager:
             raise AliasLimitReached
         elif alias in self.names["tags"] or alias in self.names["aliases"]:
             raise TagAlreadyExists
-        await self.db.execute(
-            "INSERT INTO tag_relations (tag_id, alias) VALUES ($1, $2)", name, alias
-        )
+        async with self.db.begin() as session:
+            new_relation = TagRelations(name=name, alias=alias)
+            session.add(new_relation)
         self.names["aliases"].append(alias)
         await self.cache.add(alias, await self.get(name))
 
@@ -482,9 +511,11 @@ class TagManager:
         name = await self.get_name(name)
         if alias not in (await self.get_aliases(name)):
             raise AliasNotFound
-        await self.db.execute(
-            "DELETE FROM tag_relations WHERE tag_id = $1 AND alias = $2", name, alias
-        )
+        async with self.db.begin() as session:
+            tag_relation = await session.execute(
+                select(TagRelations).filter_by(name=name, alias=alias)
+            )
+            await session.delete(tag_relation.scalar())
         self.names["aliases"].remove(alias)
         await self.cache.delete(alias)
 
@@ -497,21 +528,24 @@ class TagManager:
         for alias in aliases:
             self.names["aliases"].remove(alias)
             await self.cache.delete(alias)
-        await self.db.execute("DELETE FROM tag_relations WHERE tag_id = $1", name)
+        async with self.db.begin() as session:
+            await session.delete(select(TagRelations).filter_by(name=name))
 
     async def get_aliases(self, name: Optional = None) -> List[str] | TagNotFound:
         if not name:
-            records = await self.db.fetch("SELECT * FROM tag_relations")
+            async with self.db.begin() as session:
+                records = await session.execute(select(TagRelations))
+                records = records.scalars()
             if records is None:
                 return []
-            return [row[1] for row in records]
+            return [row.alias for row in records]
         name = await self.get_name(name)
-        records = await self.db.fetch(
-            "SELECT * FROM tag_relations WHERE tag_id = $1", name
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(select(TagRelations).filter_by(name=name))
+            records = records.scalars().all()
         if records is None:
             return []
-        return [alias for tag_id, alias in list(set(records))]
+        return [record.alias for record in records]
 
 
 class RolesHandler:
