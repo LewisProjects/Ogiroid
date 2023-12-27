@@ -12,6 +12,7 @@ from utils.CONSTANTS import tag_help
 from utils.DBhandlers import TagManager
 from utils.assorted import getPosition
 from utils.bot import OGIROID
+from utils.db_models import Tag
 from utils.exceptions import *
 from utils.models import *
 from utils.pagination import CreatePaginator
@@ -343,7 +344,7 @@ class Tags(commands.Cog, name="Tags"):
         if tag_count == 0:
             return await errorEmb(inter, "There are no tags")
 
-        tags = await self.tags.all(limit=0)
+        tags = await self.tags.all()
         tag_embs = []
         nested_tags = [[]]
         nested_count = 0

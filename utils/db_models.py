@@ -4,9 +4,9 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
-class Tags(Base):
+class Tag(Base):
     __tablename__ = "tags"
-    tag_id = Column(Text, primary_key=True)
+    name = Column(Text, primary_key=True)
     content = Column(Text)
     owner = Column(BigInteger)
     created_at = Column(BigInteger)
@@ -16,7 +16,7 @@ class Tags(Base):
 class TagRelations(Base):
     __tablename__ = "tag_relations"
     id = Column(Integer, primary_key=True)
-    tag_id = Column(Text)
+    name = Column(Text)
     alias = Column(Text)
 
 
@@ -51,7 +51,7 @@ class Trivia(Base):
     longest_streak = Column(Integer)
 
 
-class ReactionRoles(Base):
+class ReactionRole(Base):
     __tablename__ = "reaction_roles"
     id = Column(Integer, primary_key=True)
     message_id = Column(BigInteger)

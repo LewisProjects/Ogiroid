@@ -2,21 +2,35 @@ from __future__ import annotations, generator_stop
 import asyncpg
 import random
 import time
-from typing import List, Literal, Optional, TYPE_CHECKING, Dict
+from typing import (
+    List,
+    Literal,
+    Optional,
+    TYPE_CHECKING,
+    Dict,
+    Tuple,
+    Sequence,
+    Union,
+    Any,
+    Type,
+)
+
+from sqlalchemy import select, Result
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
+from utils.db_models import Tag
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
     BlacklistedUser,
-    Tag,
-    ReactionRole,
-    WarningModel,
     BirthdayModel,
     TimezoneModel,
+    TagModel,
 )
+from utils.db_models import *
 
 if TYPE_CHECKING:
     from utils.bot import OGIROID
@@ -31,7 +45,7 @@ class BaseModal:
 
 
 class ConfigHandler:
-    def __init__(self, bot: "OGIROID", db):
+    def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.config: Dict[dict] = {}
@@ -63,7 +77,7 @@ class ConfigHandler:
 
 
 class FlagQuizHandler:
-    def __init__(self, bot: "OGIROID", db):
+    def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.cache = AsyncTTL(timings.MINUTE * 4)
@@ -158,7 +172,7 @@ class FlagQuizHandler:
 
 
 class BlacklistHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.blacklist: List[BlacklistedUser] = []
@@ -277,7 +291,7 @@ class BlacklistHandler:
 
 
 class TagManager:
-    def __init__(self, bot: "OGIROID", db):
+    def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.session = self.bot.session
@@ -322,17 +336,19 @@ class TagManager:
                 raise exception
 
     async def create(self, name, content, owner):
-        await self.db.execute(
-            "INSERT INTO tags (tag_id, content, owner, created_at, views) VALUES ($1, $2, $3, $4, 0)",
-            name,
-            content,
-            owner,
-            int(time.time()),
-        )
+        async with self.db.begin() as session:
+            new_tag = Tag(
+                name=name,
+                content=content,
+                owner=owner,
+                created_at=int(time.time()),
+                views=0,
+            )
+            session.add(new_tag)
         self.names["tags"].append(name)
-        await self.cache.add(name, Tag(name, content, owner, int(time.time()), 0))
+        await self.cache.add(name, new_tag)
 
-    async def get(self, name, /, force: bool = False) -> Tag:
+    async def get(self, name, /, force: bool = False) -> Type[Tag] | None:
         """
         Returns the tag object of the tag with the given name or alias
         args:
@@ -347,31 +363,31 @@ class TagManager:
             else:
                 await self.cache.add(name, await self.get(name, force=True))
 
-        record = await self.db.fetchrow("SELECT * FROM tags WHERE tag_id = $1", name)
+        async with self.db.begin() as session:
+            record = await session.get(Tag, name)
         if record is None:
             return
-        return Tag(*record)
+        return record
 
     async def all(
         self, orderby: Literal["views", "created_at"] = "views", limit=10
-    ) -> List[Tag]:
-        tags = []
+    ) -> Sequence[Tag]:
         if orderby not in ["views", "created_at"]:
             raise ValueError("Invalid orderby value")
 
-        records = await self.db.fetch(
-            f"SELECT * FROM tags ORDER BY {orderby} DESC"
-            + (f" LIMIT {limit}" if limit > 1 else "")
-        )
-        for record in records:
-            tags.append(Tag(*record))
-        if len(tags) == 0:
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Tag).order_by(getattr(Tag, orderby).desc()).limit(limit)
+            )
+            records = records.scalars().all()
+
+        if len(records) == 0:
             raise TagsNotFound
-        return tags
+        return records
 
     async def delete(self, name):
-        name = await self.get_name(name)
-        await self.db.execute("DELETE FROM tags WHERE tag_id = $1", name)
+        async with self.db.begin() as session:
+            await session.delete(await self.get_name(name))
         self.names["tags"].remove(name)
         for tag in await self.get_aliases(name):
             self.names["aliases"].remove(tag)
@@ -379,10 +395,10 @@ class TagManager:
         await self.remove_aliases(name)
 
     async def update(self, name, param, new_value):
-        await self.db.execute(
-            f"UPDATE tags SET {param} = $1 WHERE tag_id = $2", new_value, name
-        )
-        if param == "tag_id":
+        async with self.db.begin() as session:
+            tag = await session.get(Tag, name)
+            setattr(tag, param, new_value)
+        if param == "name":
             await self.cache.add(new_value, await self.get(name))
             await self.cache.remove(name)
         else:
@@ -392,10 +408,13 @@ class TagManager:
 
     async def rename(self, name, new_name):
         name = await self.get_name(name)
-        await self.update(name, "tag_id", new_name)
-        await self.db.execute(
-            f"UPDATE tag_relations SET tag_id = $1 WHERE tag_id = $2", new_name, name
-        )
+        await self.update(name, "name", new_name)
+        async with self.db.begin() as session:
+            tag_relation = await session.execute(
+                select(TagRelations).filter_by(name=name)
+            )
+            tag_relation.name = new_name
+
         self.names["tags"].append(new_name)
         self.names["tags"].remove(name)
 
@@ -410,17 +429,19 @@ class TagManager:
         if tag:
             tag.views += 1
             await self.cache.set(name, tag)
-        await self.db.execute(
-            f"UPDATE tags SET views = {tag.views} WHERE tag_id = $1", name
-        )
+        async with self.db.begin() as session:
+            tag = await session.get(Tag, name)
+            tag.views += 1
 
     async def get_top(self, limit=10):
         tags = []
-        records = await self.db.fetch(
-            f"SELECT tag_id, views FROM tags ORDER BY views DESC LIMIT {limit}"
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Tag).order_by(Tag.views.desc()).limit(limit)
+            )
+            records = records.scalars().all()
         for record in records:
-            tags.append(Tag(*record))
+            tags.append(record)
         if len(tags) == 0:
             raise TagsNotFound
         return tags
@@ -432,34 +453,44 @@ class TagManager:
         orderby: Literal["views", "created_at"] = "views",
     ):
         tags = []
-        records = await self.db.fetch(
-            f"SELECT tag_id, views FROM tags WHERE owner = $1 ORDER BY {orderby} DESC LIMIT {limit}",
-            owner,
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Tag)
+                .filter_by(owner=owner)
+                .order_by(getattr(Tag, orderby).desc())
+                .limit(limit)
+            )
+            records = records.scalars().all()
         for record in records:
-            tags.append(Tag(*record))
+            tags.append(record)
         if len(tags) == 0:
             raise TagsNotFound
         return tags
 
     async def count(self) -> int:
-        record = await self.db.fetchrow("SELECT COUNT(*) FROM tags")
-        return int(record[0])
+        async with self.db.begin() as session:
+            records = await session.execute(select(Tag))
+            return len(records.scalars().all())
 
     async def get_name(self, name_or_alias: str | tuple):
         """gets the true name of a tag (not the alias)"""
         if isinstance(name_or_alias, tuple):
             return await self.get_name(name_or_alias[0])
 
-        name_or_alias = name_or_alias.casefold()  # todo fix.
+        if type(name_or_alias) == str:
+            name_or_alias = name_or_alias.casefold()  ## todo fix.
+        elif type(name_or_alias) == TagRelations:
+            name_or_alias = name_or_alias.alias.casefold()
         if name_or_alias in self.names["tags"]:
             return name_or_alias  # it's  a tag
-        record = await self.db.fetchrow(
-            "SELECT tag_id FROM tag_relations WHERE alias = $1", name_or_alias
-        )
+        async with self.db.begin() as session:
+            record = await session.execute(
+                select(TagRelations).filter_by(alias=name_or_alias)
+            )
+            record = record.scalar()
         if record is None:
             raise TagNotFound(name_or_alias)
-        return record[0]
+        return record.name
 
     async def add_alias(self, name, alias):
         name = await self.get_name(name)
@@ -470,9 +501,9 @@ class TagManager:
             raise AliasLimitReached
         elif alias in self.names["tags"] or alias in self.names["aliases"]:
             raise TagAlreadyExists
-        await self.db.execute(
-            "INSERT INTO tag_relations (tag_id, alias) VALUES ($1, $2)", name, alias
-        )
+        async with self.db.begin() as session:
+            new_relation = TagRelations(name=name, alias=alias)
+            session.add(new_relation)
         self.names["aliases"].append(alias)
         await self.cache.add(alias, await self.get(name))
 
@@ -480,9 +511,11 @@ class TagManager:
         name = await self.get_name(name)
         if alias not in (await self.get_aliases(name)):
             raise AliasNotFound
-        await self.db.execute(
-            "DELETE FROM tag_relations WHERE tag_id = $1 AND alias = $2", name, alias
-        )
+        async with self.db.begin() as session:
+            tag_relation = await session.execute(
+                select(TagRelations).filter_by(name=name, alias=alias)
+            )
+            await session.delete(tag_relation.scalar())
         self.names["aliases"].remove(alias)
         await self.cache.delete(alias)
 
@@ -495,28 +528,31 @@ class TagManager:
         for alias in aliases:
             self.names["aliases"].remove(alias)
             await self.cache.delete(alias)
-        await self.db.execute("DELETE FROM tag_relations WHERE tag_id = $1", name)
+        async with self.db.begin() as session:
+            await session.delete(select(TagRelations).filter_by(name=name))
 
     async def get_aliases(self, name: Optional = None) -> List[str] | TagNotFound:
         if not name:
-            records = await self.db.fetch("SELECT * FROM tag_relations")
+            async with self.db.begin() as session:
+                records = await session.execute(select(TagRelations))
+                records = records.scalars()
             if records is None:
                 return []
-            return [row[1] for row in records]
+            return [row.alias for row in records]
         name = await self.get_name(name)
-        records = await self.db.fetch(
-            "SELECT * FROM tag_relations WHERE tag_id = $1", name
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(select(TagRelations).filter_by(name=name))
+            records = records.scalars().all()
         if records is None:
             return []
-        return [alias for tag_id, alias in list(set(records))]
+        return [record.alias for record in records]
 
 
 class RolesHandler:
     """Stores message_id, role_id, emoji(example: <:starr:990647250847940668> or ⭐ depending on type of emoji
     and roles given out"""
 
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
         self.messages = []
@@ -540,119 +576,100 @@ class RolesHandler:
     async def get_messages(self):
         """get all messages from the database"""
         messages = []
-        records = await self.db.fetch(
-            "SELECT message_id, role_id, emoji, roles_given FROM reaction_roles"
-        )
+        async with self.db.begin() as session:
+            records = await session.execute(select(ReactionRole))
+            records = records.scalars().all()
+
         for record in records:
-            messages.append(ReactionRole(*record))
+            messages.append(record)
+
+        print(f"[REACTION ROLES] Loaded {len(messages)} reaction roles")
         return messages
 
     async def create_message(self, message_id: int, role_id: int, emoji: str):
         """creates a message for a reaction role"""
         if await self.exists(message_id, emoji, role_id):
             raise ReactionAlreadyExists
-        await self.db.execute(
-            "INSERT INTO reaction_roles (message_id, role_id, emoji) VALUES ($1, $2, $3)",
-            message_id,
-            role_id,
-            emoji,
-        )
-        self.messages.append(ReactionRole(message_id, role_id, emoji, 0))
+
+        async with self.db.begin() as session:
+            new_reaction = ReactionRole(
+                message_id=message_id, role_id=role_id, emoji=emoji
+            )
+            session.add(new_reaction)
+
+        self.messages.append(new_reaction)
 
     async def increment_roles_given(self, message_id: str, emoji: str):
         """increments the roles given out for a message"""
-        await self.db.execute(
-            "UPDATE reaction_roles SET roles_given = roles_given + 1 WHERE message_id = $1 AND emoji = $2",
-            message_id,
-            emoji,
-        )
+        async with self.db.begin() as session:
+            reaction_role = await session.execute(
+                select(ReactionRole).filter_by(message_id=message_id, emoji=emoji)
+            )
+            reaction_role.scalar().roles_given += 1
+
         for message in self.messages:
             if message.message_id == message_id and message.emoji == emoji:
                 message.roles_given += 1
                 return
 
     async def remove_message(self, message_id: int, emoji: str, role_id: int):
-        """removes a message from the database"""
+        """removes a role from the database"""
         msg = await self.exists(message_id, emoji, role_id)
         if not msg:
             raise ReactionNotFound
-        await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3",
-            message_id,
-            emoji,
-            role_id,
-        )
-        self.messages.remove(msg)
+        async with self.db.begin() as session:
+            await session.delete(msg)
 
     async def remove_messages(self, message_id: int):
         """Removes all messages matching the id"""
-        await self.db.execute(
-            "DELETE FROM reaction_roles WHERE message_id = $1", message_id
-        )
+        async with self.db.begin() as session:
+            await session.delete(select(ReactionRole).filter_by(message_id=message_id))
         self.messages = [msg for msg in self.messages if msg.message_id != message_id]
 
 
 class WarningHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.db = db
         self.bot = bot
 
-    async def get_warning(self, warning_id: int) -> Optional[WarningModel]:
-        record = await self.db.fetchrow(
-            "SELECT * FROM warnings WHERE warning_id = $1", warning_id
-        )
-        if record is None:
-            return None
-        return WarningModel(*record)
+    async def get_warning(self, warning_id: int) -> Optional[Warnings]:
+        async with self.db.begin() as session:
+            result = await session.get(Warnings, warning_id)
+            return result
 
-    async def get_warnings(self, user_id: int, guild_id: int) -> List[WarningModel]:
-        warnings = []
-        records = await self.db.fetch(
-            "SELECT * FROM warnings WHERE user_id = $1 AND guild_id = $2",
-            user_id,
-            guild_id,
-        )
-        for record in records:
-            warnings.append(WarningModel(*record))
-        return warnings
+    async def get_warnings(self, user_id: int, guild_id: int) -> Sequence[Warnings]:
+        async with self.db.begin() as session:
+            warnings = await session.execute(
+                select(Warnings).filter_by(user_id=user_id, guild_id=guild_id)
+            )
+            return warnings.scalars().all()
 
     async def create_warning(
         self, user_id: int, reason: str, moderator_id: int, guild_id: int
     ):
-        await self.db.execute(
-            "INSERT INTO warnings (user_id, reason, moderator_id, guild_id) VALUES ($1, $2, $3, $4)",
-            user_id,
-            reason,
-            moderator_id,
-            guild_id,
-        )
-        return True
+        async with self.db.begin() as session:
+            warning = Warnings(
+                user_id=user_id,
+                reason=reason,
+                moderator_id=moderator_id,
+                guild_id=guild_id,
+            )
+            session.add(warning)
 
-    async def remove_all_warnings(self, user_id: int, guild_id: int) -> bool:
-        warnings = await self.get_warnings(user_id, guild_id)
-        if len(warnings) == 0:
-            return False
-        await self.db.execute(
-            "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2",
-            user_id,
-            guild_id,
-        )
+            return warning
 
     async def remove_warning(self, warning_id: int, guild_id: int) -> bool:
         warning = await self.get_warning(warning_id)
         if warning is None:
             return False
-        await self.db.execute(
-            "DELETE FROM warnings WHERE warning_id = $1 AND guild_id = $2",
-            warning_id,
-            guild_id,
-        )
+        async with self.db.begin() as session:
+            await session.delete(warning)
 
         return True
 
 
 class BirthdayHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.db = db
         self.bot = bot
 
@@ -707,7 +724,7 @@ class BirthdayHandler:
 
 
 class TimezoneHandler:
-    def __init__(self, bot, db):
+    def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.db = db
         self.bot = bot
 
