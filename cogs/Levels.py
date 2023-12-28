@@ -32,14 +32,15 @@ from disnake.ext.commands import (
     Param,
     BadArgument,
 )
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from utils import timeconversions
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL, Colors
 from utils.DBhandlers import ConfigHandler
 from utils.bot import OGIROID
-from utils.config import GConfig
+from utils.db_models import Levels, Config, RoleReward
 from utils.exceptions import LevelingSystemError, UserNotFound
-from utils.models import User, RoleReward
 from utils.pagination import LeaderboardView
 from utils.shortcuts import errorEmb, sucEmb, get_expiry
 
@@ -47,7 +48,7 @@ FakeGuild = namedtuple("FakeGuild", "id")
 
 
 class LevelsController:
-    def __init__(self, bot: OGIROID, db):
+    def __init__(self, bot: OGIROID, db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
 
@@ -57,7 +58,7 @@ class LevelsController:
             self.__rate, self.__per, BucketType.member
         )
         self.cache = TTLCache(maxsize=100_000, ttl=3600)
-        self.config_hander = ConfigHandler(self.bot, self.db)
+        self.config_handler = ConfigHandler(self.bot, self.db)
 
     def remove_cached(self, user: Member) -> None:
         self.cache.pop(f"levels_{user.id}_{user.guild.id}", None)
@@ -69,38 +70,34 @@ class LevelsController:
         else:
             raise error
 
-    async def get_count(self, guild: Guild | int) -> int:
-        if isinstance(guild, Guild):
-            guild = guild.id
-
-        record = await self.db.fetchrow(
-            "SELECT COUNT(*) FROM levels WHERE guild_id = $1", int(guild.id)
-        )
-        return record[0]
-
     async def get_leaderboard(
         self, guild: Guild, limit: int = 10, offset: Optional[int, int] = None
-    ) -> list[User]:
+    ) -> list[Levels]:
         """get a list of users
         optionally you can specify a range of users to get from the leaderboard e.g. 200, 230
         """
         if offset is not None:
             if offset < 0:
                 raise LevelingSystemError("the offset must be greater than 0")
-            records = await self.db.fetch(
-                "SELECT * FROM levels WHERE guild_id = $1 ORDER BY level DESC, xp DESC LIMIT $2 OFFSET $3",
-                guild.id,
-                limit,
-                offset,
-            )
+            async with self.db.begin() as session:
+                records = await session.execute(
+                    select(Levels)
+                    .filter_by(guild_id=guild.id)
+                    .order_by(Levels.level.desc(), Levels.xp.desc())
+                    .limit(limit)
+                    .offset(offset)
+                )
         else:
-            records = await self.db.fetch(
-                "SELECT * FROM levels WHERE guild_id = $1 ORDER BY level DESC, xp DESC LIMIT $2",
-                guild.id,
-                limit,
-            )
+            async with self.db.begin() as session:
+                records = await session.execute(
+                    select(Levels)
+                    .filter_by(guild_id=guild.id)
+                    .order_by(Levels.level.desc(), Levels.xp.desc())
+                    .limit(limit)
+                )
+                records = records.scalars().all()
         users = sorted(
-            [User(*record) for record in records],
+            [record for record in records],
             key=lambda x: x.total_exp,
             reverse=True,
         )
@@ -108,13 +105,8 @@ class LevelsController:
 
     async def add_user(self, user: Member, guild: Guild):
         self.remove_cached(user)
-        await self.db.execute(
-            "INSERT INTO levels (user_id, guild_id, level, xp) VALUES ($1, $2, $3, $4)",
-            user.id,
-            guild.id,
-            0,
-            0,
-        )
+        async with self.db.begin() as session:
+            session.add(Levels(user_id=user.id, guild_id=guild.id, level=0, xp=0))
 
     @staticmethod  # todo: remove
     def get_total_xp_for_level(level: int) -> int:
@@ -163,12 +155,18 @@ class LevelsController:
     async def is_in_database(
         self, member: Union[Member, int], guild: Union[FakeGuild, int] = None
     ) -> bool:
-        record = await self.db.fetchrow(
-            "SELECT EXISTS( SELECT 1 FROM levels WHERE user_id = $1 AND guild_id = $2 )",
-            member.id,
-            guild.id if guild else member.guild.id,
-        )
-        return bool(record[0])
+        async with self.db.begin() as session:
+            if isinstance(member, (Member, ClientUser)):
+                record = await session.execute(
+                    select(Levels)
+                    .filter_by(user_id=member.id, guild_id=guild.id)
+                    .limit(1)
+                )
+            else:
+                record = await session.execute(
+                    select(Levels).filter_by(user_id=member, guild_id=guild.id).limit(1)
+                )
+            return bool(record.scalars().all())
 
     async def set_level(self, member: Member, level: int) -> None:
         if 0 <= level <= MAX_LEVEL:
@@ -178,7 +176,7 @@ class LevelsController:
                 xp=0,
                 guild_id=member.guild.id,
             )  # type: ignore
-            self.cache[f"levels_{member.id}_{member.guild.id}"] = User(
+            self.cache[f"levels_{member.id}_{member.guild.id}"] = Levels(
                 xp=0,
                 guild_id=member.guild.id,
                 user_id=member.id,
@@ -195,21 +193,29 @@ class LevelsController:
         )
 
         if await self.is_in_database(member, guild=FakeGuild(id=guild_id)):
-            await self.db.execute(
-                "UPDATE levels SET level = $1, xp = $2 WHERE user_id = $3 AND guild_id = $4",
-                level,
-                xp,
-                member.id if isinstance(member, (Member, ClientUser)) else member,
-                guild_id,
-            )
+            async with self.db.begin() as session:
+                record = await session.execute(
+                    select(Levels)
+                    .filter_by(
+                        user_id=member.id if isinstance(member, Member) else member,
+                        guild_id=guild_id,
+                    )
+                    .limit(1)
+                )
+                record = record.scalars().first()
+                record.level = level
+                record.xp = xp
+                session.add(record)
         else:
-            await self.db.execute(
-                "INSERT INTO levels (user_id, guild_id, level, xp) VALUES ($1, $2, $3, $4)",
-                member.id if isinstance(member, Member) else member,
-                guild_id,
-                level,
-                xp,
-            )
+            async with self.db.begin() as session:
+                session.add(
+                    Levels(
+                        user_id=member.id if isinstance(member, Member) else member,
+                        guild_id=guild_id,
+                        level=level,
+                        xp=xp,
+                    )
+                )
 
     @staticmethod
     async def random_xp():
@@ -220,27 +226,27 @@ class LevelsController:
         if user is None:
             await self.set_level(message.author, 0)
         user = await self.get_user(message.author)
-        old_lvl = user.lvl
+        old_lvl = user.level
         user.xp += xp
         while user.xp >= user.xp_needed:
             # get the extra xp that the user has after leveling up
             user.xp -= user.xp_needed
-            user.lvl += 1
+            user.level += 1
 
         await self._update_record(
             member=message.author,
-            level=user.lvl,
+            level=user.level,
             xp=user.xp,
             guild_id=message.guild.id,
         )  # type: ignore
 
-        if user.lvl > old_lvl:
-            self.bot.dispatch("level_up", message, user.lvl)
+        if user.level > old_lvl:
+            self.bot.dispatch("level_up", message, user.level)
 
     async def get_boost(self, message: Message) -> int:
         """get the boost that the server/user will have then"""
         boost = 1
-        config: GConfig = await self.config_hander.get_config(message.guild.id)
+        config: Config = await self.config_handler.get_config(message.guild.id)
         if message.author.roles.__contains__(
             message.guild.get_role(self.bot.config.roles.nitro)
         ):
@@ -281,7 +287,7 @@ class LevelsController:
 
         await self.grant_xp(message)
 
-    async def get_user(self, user: Member, bypass: bool = False) -> User:
+    async def get_user(self, user: Member, bypass: bool = False) -> Levels:
         """
         get the user from the database
         :param user: the user to get
@@ -291,18 +297,18 @@ class LevelsController:
         if f"levels_{user.id}_{user.guild.id}" in self.cache and not bypass:
             return self.cache[f"levels_{user.id}_{user.guild.id}"]
 
-        record = await self.db.fetchrow(
-            "SELECT * FROM levels WHERE user_id = $1 AND guild_id = $2",
-            user.id,
-            user.guild.id,
-        )
-        if record is None:
-            raise UserNotFound
-        self.cache[f"levels_{user.id}_{user.guild.id}"] = User(*record)
-        return User(*record)
+        async with self.db.begin() as session:
+            record = await session.execute(
+                select(Levels).filter_by(user_id=user.id, guild_id=user.guild.id)
+            )
+            record = record.scalar()
+            if record is None:
+                raise UserNotFound
+            self.cache[f"levels_{user.id}_{user.guild.id}"] = record
+            return record
 
     async def generate_image_card(
-        self, user: Member | User, rank: str, xp: int, lvl: int
+        self, user: Member | Levels, rank: str, xp: int, lvl: int
     ) -> Image:
         """generates an image card for the user"""
         avatar: disnake.Asset = user.display_avatar.with_size(512)
@@ -397,26 +403,29 @@ class LevelsController:
 
     async def get_rank(
         self, guild_id, user_record, return_updated: bool = False
-    ) -> (User, int) | int:
+    ) -> (Levels, int) | int:
         """
         #1. eliminate all the users that have a lower level than the user
         #2. sort the users by xp
         #3. get the index of the user
         #4. add 1 to the index
         """
-        db_records = await self.db.fetch(
-            "SELECT * FROM levels WHERE guild_id = $1 AND level >= $2",
-            guild_id,
-            user_record.lvl,
-        )
-        if db_records is None:
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(Levels)
+                .filter_by(guild_id=guild_id)
+                .filter(Levels.level >= user_record.level)
+            )
+            records = records.scalars().all()
+
+        if records is None:
             raise UserNotFound
-        records = [User(*record) for record in db_records]
-        sorted_once = sorted(records, key=lambda x: x.lvl, reverse=True)
+        sorted_once = sorted(records, key=lambda x: x.level, reverse=True)
         sorted_twice = sorted(sorted_once, key=lambda x: x.xp, reverse=True)
+        ids = [record.user_id for record in sorted_twice]
 
         try:
-            rank = sorted_twice.index(user_record) + 1
+            rank = ids.index(user_record.user_id) + 1
         except ValueError:
             user = self.bot.get_guild(guild_id).get_member(user_record.user_id)
             log_channel = self.bot.get_channel(self.bot.config.channels.logs)
@@ -459,23 +468,25 @@ class Level(commands.Cog):
                 await msg.author.add_roles(role, reason=f"Level up to level {level}")
 
     async def is_role_reward(self, guild: Guild, level: int) -> bool:
-        record = await self.bot.db.fetchrow(
-            "SELECT EXISTS (SELECT 1 FROM role_rewards WHERE guild_id = $1 AND required_lvl = $2)",
-            guild.id,
-            level,
-        )
-        return bool(record[0])
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(RoleReward)
+                .filter_by(guild_id=guild.id)
+                .filter_by(required_lvl=level)
+            )
+            return bool(record.scalars().all())
 
-    async def get_role_reward(self, guild: Guild, level: int) -> Role:
-        record = await self.bot.db.fetchrow(
-            "SELECT role_id FROM role_rewards WHERE guild_id = $1 AND required_lvl = $2",
-            guild.id,
-            level,
-        )
-        if record is None:
-            return None
-
-        return guild.get_role(record[0])
+    async def get_role_reward(self, guild: Guild, level: int) -> Role | None:
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(RoleReward)
+                .filter_by(guild_id=guild.id)
+                .filter_by(required_lvl=level)
+            )
+            record = record.scalar()
+            if record is None:
+                return None
+            return guild.get_role(record.role_id)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -504,11 +515,14 @@ class Level(commands.Cog):
     async def active(self, inter: ApplicationCommandInteraction, active: bool):
         """Enable or disable xp boost"""
         await inter.response.defer()
-        await self.bot.db.execute(
-            "UPDATE config SET xp_boost_enabled = $1 WHERE guild_id = $2",
-            active,
-            inter.guild.id,
-        )
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(Config).filter_by(guild_id=inter.guild.id)
+            )
+            record = record.scalar()
+            record.xp_boost_enabled = active
+            session.add(record)
+
         await inter.response.send_message(
             f"XP Boost is now {'enabled' if active else 'disabled'}"
         )
@@ -521,9 +535,11 @@ class Level(commands.Cog):
         gets the current xp boost for the bot
         """
         await inter.response.defer()
-        config = await self.bot.db.fetchrow(
-            "SELECT * FROM config WHERE guild_id = $1", inter.guild.id
-        )
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(Config).filter_by(guild_id=inter.guild.id)
+            )
+            config = record.scalar()
         if config is None:
             return await inter.response.send_message(
                 "There is no config setup for this server"
@@ -561,12 +577,14 @@ class Level(commands.Cog):
             return await inter.response.send_message(
                 'Invalid date format: Invalid time provided, try e.g. "tomorrow" or "3 days".'
             )
-        await self.bot.db.execute(
-            "UPDATE config SET xp_boost = $1, xp_boost_expiry = $2 WHERE guild_id = $3",
-            amount,
-            expires,
-            inter.guild.id,
-        )
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(Config).filter_by(guild_id=inter.guild.id)
+            )
+            record = record.scalar()
+            record.xp_boost = amount
+            record.xp_boost_expiry = expires
+            session.add(record)
         await inter.response.send_message(
             f"Successfully set the xp boost to {amount}x it will expire {get_expiry(expires)} "
         )
@@ -596,7 +614,7 @@ class Level(commands.Cog):
                 inter.guild.id, user_record, return_updated=True
             )
             image = await self.controller.generate_image_card(
-                user, rank, user_record.xp, user_record.lvl
+                user, rank, user_record.xp, user_record.level
             )
             await inter.send(file=image)
         except UserNotFound:
@@ -631,21 +649,21 @@ class Level(commands.Cog):
             if record.user_id == inter.author.id:
                 embed.add_field(
                     name=f"{i + 1}. {user.name} ~ You ",
-                    value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
+                    value=f"Level: {record.level}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
                 set_user = True
             else:
                 embed.add_field(
                     name=f"{i + 1}. {user.name}",
-                    value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
+                    value=f"Level: {record.level}\nTotal XP: {record.total_exp:,}",
                     inline=False,
                 )
         if not set_user:
             rank = await self.controller.get_rank(inter.guild.id, cmd_user)
             embed.add_field(
                 name=f"{rank}. You",
-                value=f"Level: {cmd_user.lvl}\nTotal XP: {cmd_user.xp:,}",
+                value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.xp:,}",
                 inline=False,
             )
 
@@ -714,19 +732,22 @@ class Level(commands.Cog):
             return await errorEmb(
                 inter, text=f"Level must be within 1-{MAX_LEVEL} found"
             )
-
-        record = await self.bot.db.fetchrow(
-            "SELECT 1 FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
-            inter.guild.id,
-            role.id,
-        )
-        if record is None:
-            await self.bot.db.execute(
-                "INSERT INTO role_rewards (guild_id, role_id, required_lvl) VALUES ($1, $2, $3)",
-                inter.guild.id,
-                role.id,
-                level_needed,
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(RoleReward)
+                .filter_by(guild_id=inter.guild.id)
+                .filter_by(role_id=role.id)
             )
+            record = record.scalar()
+        if record is None:
+            async with self.bot.db.begin() as session:
+                session.add(
+                    RoleReward(
+                        guild_id=inter.guild.id,
+                        role_id=role.id,
+                        required_lvl=level_needed,
+                    )
+                )
             return await sucEmb(
                 inter,
                 f"Added {role.mention} to the role reward list for level {level_needed}",
@@ -744,17 +765,16 @@ class Level(commands.Cog):
     ):
         """Remove a role reward"""
         await inter.response.defer()
-        record = await self.bot.db.fetchrow(
-            "SELECT 1 FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
-            inter.guild.id,
-            role.id,
-        )
-        if record is not None:
-            await self.bot.db.execute(
-                "DELETE FROM role_rewards WHERE guild_id = $1 AND role_id = $2",
-                inter.guild.id,
-                role.id,
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(RoleReward)
+                .filter_by(guild_id=inter.guild.id)
+                .filter_by(role_id=role.id)
             )
+            record = record.scalar()
+        if record is not None:
+            async with self.bot.db.begin() as session:
+                await session.delete(record)
             return await sucEmb(
                 inter, f"Removed {role.mention} from the role reward list"
             )
@@ -766,14 +786,15 @@ class Level(commands.Cog):
     async def list(self, inter: ApplicationCommandInteraction):
         """List all role rewards"""
         await inter.response.defer()
-        records = await self.bot.db.fetch(
-            "SELECT * FROM role_rewards WHERE guild_id = $1", inter.guild.id
-        )
+        async with self.bot.db.begin() as session:
+            records = await session.execute(
+                select(RoleReward).filter_by(guild_id=inter.guild.id)
+            )
+            records = records.scalars().all()
         if not records:
             return await errorEmb(inter, text="No role rewards found")
         embed = Embed(title="Role Rewards", color=0x00FF00)
         for record in records:
-            record = RoleReward(*record)
             embed.add_field(
                 name=f"Level {record.required_lvl}",
                 value=f"{inter.guild.get_role(record.role_id).mention}",

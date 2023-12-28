@@ -1,7 +1,11 @@
 import disnake
 from disnake.ext import commands, tasks
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from utils.bot import OGIROID
+from utils.db_models import Commands, TotalCommands
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 
 class Stats(commands.Cog):
@@ -15,24 +19,33 @@ class Stats(commands.Cog):
     @tasks.loop(hours=1)
     async def update_stats(self):
         # add command usage to db
-        commands_ran = self.bot.commands_ran
-        total_commands_ran = self.bot.total_commands_ran
+        commands_ran = self.bot.commands_ran.copy()
+        total_commands_ran = self.bot.total_commands_ran.copy()
 
         for guild_id, guild_commands_ran in commands_ran.items():
             for command, count in guild_commands_ran.items():
-                await self.bot.db.execute(
-                    "INSERT INTO commands (guild_id, command, command_used) VALUES ($1, $2, $3) ON CONFLICT (guild_id, command) DO UPDATE SET command_used = commands.command_used + $3;",
-                    guild_id,
-                    command,
-                    count,
-                )
+                async with self.bot.db.begin() as session:
+                    stmt = pg_insert(Commands).values(
+                        guild_id=guild_id, command=command, command_used=count
+                    )
+                    stmt = stmt.on_conflict_do_update(
+                        index_elements=["guild_id", "command"],
+                        set_={"command_used": Commands.command_used + count},
+                    )
+                    await session.execute(stmt)
 
         for guild_id, count in total_commands_ran.items():
-            await self.bot.db.execute(
-                "INSERT INTO total_commands (guild_id, total_commands_used) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET total_commands_used = total_commands.total_commands_used + $2;",
-                guild_id,
-                count,
-            )
+            async with self.bot.db.begin() as session:
+                stmt = pg_insert(TotalCommands).values(
+                    guild_id=guild_id, total_commands_used=count
+                )
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["guild_id"],
+                    set_={
+                        "total_commands_used": TotalCommands.total_commands_used + count
+                    },
+                )
+                await session.execute(stmt)
 
         # reset command usage
         self.bot.commands_ran = {}
@@ -42,16 +55,22 @@ class Stats(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdstats(self, inter):
         await inter.response.defer()
-        cmdsran = await self.bot.db.fetch(
-            "SELECT command, command_used FROM commands WHERE guild_id = $1 ORDER BY command_used DESC LIMIT 10;",
-            inter.guild.id,
-        )
-        cmdsran = dict(cmdsran)
 
-        total_commands_ran = await self.bot.db.fetchval(
-            "SELECT total_commands_used FROM total_commands WHERE guild_id = $1;",
-            inter.guild.id,
-        )
+        async with self.bot.db.begin() as session:
+            session: AsyncSession = session
+            cmdsran = await session.execute(
+                select(Commands.command, Commands.command_used).filter_by(
+                    guild_id=inter.guild.id
+                )
+            )
+            cmdsran = dict(cmdsran.all())
+
+            stmt = select(TotalCommands.total_commands_used).filter_by(
+                guild_id=inter.guild.id
+            )
+            total_commands_ran = await session.execute(stmt)
+            total_commands_ran = total_commands_ran.scalar()
+
         sortdict = dict(sorted(cmdsran.items(), key=lambda x: x[1], reverse=True))
         value_iterator = iter(sortdict.values())
         key_iterator = iter(sortdict.keys())

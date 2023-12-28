@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
-from utils.db_models import Tag
+from utils.db_models import Tag, Timezone, FlagQuiz
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
@@ -48,28 +48,26 @@ class ConfigHandler:
     def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
-        self.config: Dict[dict] = {}
+        self.config: dict = {}
 
     async def load_config(self, guild_id: int):
-        record = await self.db.fetchrow(
-            "SELECT * FROM config WHERE guild_id = $1", guild_id
-        )
+        async with self.db.begin() as session:
+            record = await session.execute(select(Config).filter_by(guild_id=guild_id))
+            record = record.scalar()
         if record is None:
             await self.create_config(guild_id)
             return await self.load_config(guild_id)
         self.config[guild_id] = record
 
-    async def get_config(self, guild_id: int) -> GConfig:
+    async def get_config(self, guild_id: int) -> Config:
         if guild_id not in self.config:
             await self.load_config(guild_id)
         cnfg = self.config[guild_id]
-        return GConfig(*cnfg)
+        return cnfg
 
     async def create_config(self, guild_id):
-        await self.db.execute(
-            "INSERT INTO config (guild_id) VALUES ($1)",
-            guild_id,
-        )
+        async with self.db.begin() as session:
+            session.add(Config(guild_id=guild_id))
 
     async def get_boost(self, guild_id: int) -> int:
         config = await self.get_config(guild_id)
@@ -80,42 +78,37 @@ class FlagQuizHandler:
     def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
-        self.cache = AsyncTTL(timings.MINUTE * 4)
 
-    async def get_user(self, user_id: int, guild_id: int) -> FlagQuizUser:
-        user = await self.cache.get(str(user_id) + str(guild_id))
-        if user is not None:
-            return user
-        elif await self.exists(user_id, guild_id):
-            record = await self.db.fetchrow(
-                "SELECT * FROM flag_quiz WHERE user_id = $1 AND guild_id = $2",
-                user_id,
-                guild_id,
-            )
-            user = FlagQuizUser(*record)
-            await self.cache.set(str(user_id) + str(guild_id), user)
+    async def get_user(self, user_id: int, guild_id: int) -> FlagQuiz:
+        if await self.exists(user_id, guild_id):
+            async with self.db.begin() as session:
+                record = await session.execute(
+                    select(FlagQuiz).filter_by(user_id=user_id, guild_id=guild_id)
+                )
+                user = record.scalar()
             return user
         else:
             raise UserNotFound
 
     async def exists(self, user_id: int, guild_id: int) -> bool:
-        record = await self.db.fetchrow(
-            "SELECT EXISTS(SELECT 1 FROM flag_quiz WHERE user_id=$1 AND guild_id = $2)",
-            user_id,
-            guild_id,
-        )
-        return bool(record[0])
+        async with self.db.begin() as session:
+            record = await session.execute(
+                select(FlagQuiz).filter_by(user_id=user_id, guild_id=guild_id)
+            )
+            record = record.scalar()
+        return record is not None
 
     async def get_leaderboard(
         self, order_by="correct", guild_id: int = None
-    ) -> List[FlagQuizUser]:
-        leaderboard = []
-        records = await self.db.fetch(
-            f"SELECT user_id, tries, correct, completed, guild_id FROM flag_quiz WHERE guild_id = $1 ORDER BY {order_by} DESC LIMIT 10",
-            guild_id,
-        )
-        for record in records:
-            leaderboard.append(FlagQuizUser(*record))
+    ) -> Sequence[FlagQuiz]:
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(FlagQuiz)
+                .filter_by(guild_id=guild_id)
+                .order_by(getattr(FlagQuiz, order_by).desc())
+                .limit(10)
+            )
+            leaderboard = records.scalars().all()
         if len(leaderboard) == 0:
             raise UsersNotFound
         return leaderboard
@@ -125,32 +118,23 @@ class FlagQuizHandler:
         user_id: int,
         tries: int,
         correct: int,
-        user: Optional[FlagQuizUser] = None,
+        user: FlagQuiz | None = None,
         guild_id: int = None,
-    ) -> FlagQuizUser or None:
+    ) -> FlagQuiz or None:
         if user is not None:
             try:
                 user = await self.get_user(user_id, guild_id)
             except UserNotFound:
-                await self.add_user(user_id, tries, correct, guild_id=guild_id)
+                await self.add_user(user_id, guild_id, tries, correct)
                 return
 
-        if correct == 199:
-            completed = user.completed + 1
-        else:
-            completed = user.completed
-        tries += user.tries
-        correct += user.correct
-
-        await self.db.execute(
-            "UPDATE flag_quiz SET tries = $1, correct = $2, completed = $3 WHERE user_id = $4 AND guild_id = $5",
-            tries,
-            correct,
-            completed,
-            user_id,
-            guild_id,
-        )
-        return FlagQuizUser(user_id, tries, correct, completed, guild_id)
+        async with self.db.begin() as session:
+            user.tries += tries
+            user.correct += correct
+            if correct == 199:
+                user.completed += 1
+            session.add(user)
+        return user
 
     async def add_user(
         self, user_id: int, guild_id: int, tries: int = 0, correct: int = 0
@@ -160,15 +144,17 @@ class FlagQuizHandler:
         else:
             completed = 0
 
-        await self.db.execute(
-            "INSERT INTO flag_quiz (user_id, tries, correct, completed, guild_id) VALUES ($1, $2, $3, $4, $5)",
-            user_id,
-            tries,
-            correct,
-            completed,
-            guild_id,
-        )
-        return FlagQuizUser(user_id, tries, correct, completed, guild_id)
+        async with self.db.begin() as session:
+            user = FlagQuiz(
+                user_id=user_id,
+                tries=tries,
+                correct=correct,
+                completed=completed,
+                guild_id=guild_id,
+            )
+            session.add(user)
+
+        return user
 
 
 class BlacklistHandler:
@@ -203,16 +189,18 @@ class BlacklistHandler:
 
     async def load_blacklist(self):
         blacklist = []
-        records = await self.db.fetch("SELECT * FROM blacklist")
+        async with self.db.begin() as session:
+            records = await session.execute(select(Blacklist))
+            records = records.scalars().all()
         for record in records:
-            blacklist.append(BlacklistedUser(*record).fix_db_types())
+            blacklist.append(record)
         if len(blacklist) == 0:
             raise BlacklistNotFound
         print(f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded")
         self.blacklist = blacklist
 
     async def get(self, user_id: int) -> BlacklistedUser:
-        return self.get_user(user_id)
+        return await self.get_user(user_id)
 
     async def add(
         self,
@@ -223,21 +211,25 @@ class BlacklistHandler:
         tags: bool,
         expires: int,
     ):
-        await self.db.execute(
-            "INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES ($1, $2, $3, $4, $5, $6)",
-            user_id,
-            reason,
-            bot,
-            tickets,
-            tags,
-            expires,
+        user = Blacklist(
+            user_id=user_id,
+            reason=reason,
+            bot=bot,
+            tickets=tickets,
+            tags=tags,
+            expires=expires,
         )
-        user = BlacklistedUser(user_id, reason, bot, tickets, tags, expires)
+        async with self.db.begin() as session:
+            session.add(user)
         self.blacklist.append(user)
         await self.cache.set(user_id, user)
 
     async def remove(self, user_id: int):
-        await self.db.execute("DELETE FROM blacklist WHERE user_id = $1", [user_id])
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            await session.delete(user)
+
         self.blacklist.remove(await self.get_user(user_id))
         await self.cache.remove(user_id)
 
@@ -251,38 +243,35 @@ class BlacklistHandler:
             return False
 
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
-        await self.db.execute(
-            "UPDATE blacklist SET bot = $1, tickets = $2, tags = $3 WHERE user_id = $4",
-            bot,
-            tickets,
-            tags,
-            user_id,
-        )
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            user.bot = bot
+            user.tickets = tickets
+            user.tags = tags
+            session.add(user)
         indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
-        user.bot = bot
-        user.tickets = tickets
-        user.tags = tags
         user = self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
     async def edit_reason(self, user_id: int, reason: str):
-        await self.db.execute(
-            "UPDATE blacklist SET reason = $1 WHERE user_id = $2", reason, user_id
-        )
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            user.reason = reason
+            session.add(user)
         indx = await self.get_user_index(user_id)
-        user = self.blacklist[indx]
-        user.reason = reason
         self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
     async def edit_expiry(self, user_id: int, expires: int):
-        await self.db.execute(
-            "UPDATE blacklist SET expires = $1 WHERE user_id = $2", expires, user_id
-        )
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            user.expires = expires
+            session.add(user)
         indx = await self.get_user_index(user_id)
-        user = self.blacklist[indx]
-        user.expires = expires
         self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
@@ -674,25 +663,26 @@ class BirthdayHandler:
         self.bot = bot
 
     async def get_user(self, user_id: int) -> Optional[BirthdayModel]:
-        record = await self.db.fetchrow(
-            "SELECT * FROM birthday WHERE user_id = $1", user_id
-        )
-        if record is None:
-            return None
-        return BirthdayModel(*record)
+        async with self.db.begin() as session:
+            result = await session.execute(select(Birthday).filter_by(user_id=user_id))
+            result = result.scalar()
+            return result
 
     async def get_users(self) -> List[BirthdayModel]:
         users = []
-        records = await self.db.fetch("SELECT * FROM birthday")
+        async with self.db.begin() as session:
+            records = await session.execute(select(Birthday))
+            records = records.scalars().all()
         for record in records:
-            users.append(BirthdayModel(*record))
+            users.append(record)
         return users
 
     async def delete_user(self, user_id: int) -> bool:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute("DELETE FROM birthday WHERE user_id = $1", user_id)
+        async with self.db.begin() as session:
+            await session.delete(user)
 
         return True
 
@@ -700,12 +690,13 @@ class BirthdayHandler:
         user = await self.get_user(user_id)
         if user is not None:
             raise UserAlreadyExists
-        await self.db.execute(
-            "INSERT INTO birthday (user_id, birthday, birthday_last_changed) VALUES ($1, $2, $3)",
-            user_id,
-            birthday,
-            int(time.time()),
-        )
+        async with self.db.begin() as session:
+            birthday = Birthday(
+                user_id=user_id,
+                birthday=birthday,
+                birthday_last_changed=int(time.time()),
+            )
+            session.add(birthday)
 
         return True
 
@@ -713,12 +704,10 @@ class BirthdayHandler:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute(
-            "UPDATE birthday SET birthday = $1, birthday_last_changed = $2 WHERE user_id = $3",
-            birthday,
-            int(time.time()),
-            user_id,
-        )
+        async with self.db.begin() as session:
+            user.birthday = birthday
+            user.birthday_last_changed = int(time.time())
+            session.add(user)
 
         return True
 
@@ -728,26 +717,24 @@ class TimezoneHandler:
         self.db = db
         self.bot = bot
 
-    async def get_user(self, user_id: int) -> Optional[TimezoneModel]:
-        record = await self.db.fetchrow(
-            "SELECT * FROM timezone WHERE user_id = $1", user_id
-        )
-        if record is None:
-            return None
-        return TimezoneModel(*record)
+    async def get_user(self, user_id: int) -> Optional[Timezone]:
+        async with self.db.begin() as session:
+            record = await session.execute(select(Timezone).filter_by(user_id=user_id))
+            record = record.scalar()
+            return record
 
-    async def get_users(self) -> List[TimezoneModel]:
-        users = []
-        records = await self.db.fetch("SELECT * FROM timezone")
-        for record in records:
-            users.append(TimezoneModel(*record))
-        return users
+    async def get_users(self) -> Sequence[Timezone]:
+        async with self.db.begin() as session:
+            records = await session.execute(select(Timezone))
+            records = records.scalars().all()
+            return records
 
     async def delete_user(self, user_id: int) -> bool:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute("DELETE FROM timezone WHERE user_id = $1", user_id)
+        async with self.db.begin() as session:
+            await session.delete(user)
 
         return True
 
@@ -755,24 +742,23 @@ class TimezoneHandler:
         user = await self.get_user(user_id)
         if user is not None:
             raise UserAlreadyExists
-        await self.db.execute(
-            "INSERT INTO timezone (user_id, timezone, timezone_last_changed) VALUES ($1, $2, $3)",
-            user_id,
-            timezone,
-            int(time.time()),
-        )
+        async with self.db.begin() as session:
+            timezone = Timezone(
+                user_id=user_id,
+                timezone=timezone,
+                timezone_last_changed=int(time.time()),
+            )
+            session.add(timezone)
 
         return True
 
     async def update_user(self, user_id: int, timezone: str) -> bool:
-        user = await self.get_user(user_id)
+        user: Timezone = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute(
-            "UPDATE timezone SET timezone = $1, timezone_last_changed = $2 WHERE user_id = $3",
-            timezone,
-            int(time.time()),
-            user_id,
-        )
+        async with self.db.begin() as session:
+            user.timezone = timezone
+            user.timezone_last_changed = int(time.time())
+            session.add(user)
 
         return True

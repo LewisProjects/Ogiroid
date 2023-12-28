@@ -17,7 +17,7 @@ class RoleReward:
 
 
 @dataclass
-class User:
+class Levels:
     guild_id: int
     user_id: int
     lvl: int = 0
