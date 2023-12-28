@@ -16,9 +16,6 @@ from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
 
-with open("setup.sql", "r") as sql_file:
-    SETUP_SQL = sql_file.read()
-
 
 class OGIROID(commands.InteractionBot):
     def __init__(self, *args, **kwargs):
