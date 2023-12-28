@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
-from utils.db_models import Tag
+from utils.db_models import Tag, Timezone
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
@@ -728,26 +728,24 @@ class TimezoneHandler:
         self.db = db
         self.bot = bot
 
-    async def get_user(self, user_id: int) -> Optional[TimezoneModel]:
-        record = await self.db.fetchrow(
-            "SELECT * FROM timezone WHERE user_id = $1", user_id
-        )
-        if record is None:
-            return None
-        return TimezoneModel(*record)
+    async def get_user(self, user_id: int) -> Optional[Timezone]:
+        async with self.db.begin() as session:
+            record = await session.execute(select(Timezone).filter_by(user_id=user_id))
+            record = record.scalar()
+            return record
 
-    async def get_users(self) -> List[TimezoneModel]:
-        users = []
-        records = await self.db.fetch("SELECT * FROM timezone")
-        for record in records:
-            users.append(TimezoneModel(*record))
-        return users
+    async def get_users(self) -> Sequence[Timezone]:
+        async with self.db.begin() as session:
+            records = await session.execute(select(Timezone))
+            records = records.scalars().all()
+            return records
 
     async def delete_user(self, user_id: int) -> bool:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute("DELETE FROM timezone WHERE user_id = $1", user_id)
+        async with self.db.begin() as session:
+            await session.delete(user)
 
         return True
 
@@ -755,24 +753,23 @@ class TimezoneHandler:
         user = await self.get_user(user_id)
         if user is not None:
             raise UserAlreadyExists
-        await self.db.execute(
-            "INSERT INTO timezone (user_id, timezone, timezone_last_changed) VALUES ($1, $2, $3)",
-            user_id,
-            timezone,
-            int(time.time()),
-        )
+        async with self.db.begin() as session:
+            timezone = Timezone(
+                user_id=user_id,
+                timezone=timezone,
+                timezone_last_changed=int(time.time()),
+            )
+            session.add(timezone)
 
         return True
 
     async def update_user(self, user_id: int, timezone: str) -> bool:
-        user = await self.get_user(user_id)
+        user: Timezone = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute(
-            "UPDATE timezone SET timezone = $1, timezone_last_changed = $2 WHERE user_id = $3",
-            timezone,
-            int(time.time()),
-            user_id,
-        )
+        async with self.db.begin() as session:
+            user.timezone = timezone
+            user.timezone_last_changed = int(time.time())
+            session.add(user)
 
         return True
