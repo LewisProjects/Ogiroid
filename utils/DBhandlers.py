@@ -48,28 +48,26 @@ class ConfigHandler:
     def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
-        self.config: Dict[dict] = {}
+        self.config: dict = {}
 
     async def load_config(self, guild_id: int):
-        record = await self.db.fetchrow(
-            "SELECT * FROM config WHERE guild_id = $1", guild_id
-        )
+        async with self.db.begin() as session:
+            record = await session.execute(select(Config).filter_by(guild_id=guild_id))
+            record = record.scalar()
         if record is None:
             await self.create_config(guild_id)
             return await self.load_config(guild_id)
         self.config[guild_id] = record
 
-    async def get_config(self, guild_id: int) -> GConfig:
+    async def get_config(self, guild_id: int) -> Config:
         if guild_id not in self.config:
             await self.load_config(guild_id)
         cnfg = self.config[guild_id]
-        return GConfig(*cnfg)
+        return cnfg
 
     async def create_config(self, guild_id):
-        await self.db.execute(
-            "INSERT INTO config (guild_id) VALUES ($1)",
-            guild_id,
-        )
+        async with self.db.begin() as session:
+            session.add(Config(guild_id=guild_id))
 
     async def get_boost(self, guild_id: int) -> int:
         config = await self.get_config(guild_id)

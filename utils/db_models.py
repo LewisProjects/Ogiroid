@@ -3,6 +3,7 @@ import time
 from sqlalchemy import Column, Integer, BigInteger, Text, Boolean, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 
+from utils.CONSTANTS import LEVELS_AND_XP
 from utils.shortcuts import get_expiry
 
 Base = declarative_base()
@@ -90,8 +91,28 @@ class Levels(Base):
     level = Column(Integer, default=0)
     xp = Column(Integer, default=0)
 
+    @property
+    def xp_needed(self):
+        xp = self.get_exp(self.lvl) - self.xp
+        if xp < 0:
+            return 0
+        return xp
 
-class RoleRewards(Base):
+    def get_exp(self, level: int):
+        return LEVELS_AND_XP[level]
+
+    @property
+    def total_exp(self):
+        return sum(
+            [
+                exp
+                for exp in [self.get_exp(level) for level in range(1, self.level + 1)]
+            ][::-1]
+            + [self.xp]
+        )
+
+
+class RoleReward(Base):
     __tablename__ = "role_rewards"
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger)
@@ -125,11 +146,11 @@ class Config(Base):
 
 class Commands(Base):
     __tablename__ = "commands"
+    __table_args__ = (UniqueConstraint("guild_id", "command"),)
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger)
     command = Column(Text)
     command_used = Column(Integer, default=0)
-    UniqueConstraint("guild_id", "command", name="guild_command")
 
 
 class TotalCommands(Base):
