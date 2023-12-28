@@ -51,6 +51,10 @@ With that being said, you have officially reported a bug! Thank you so much 🤩
 
 ### Contributing Code
 
+<hr>
+
+#### Get the repository
+
 Fork the repository and then clone it using: (make sure to insert your username)
 
 ```git clone https://github.com/YOURGITHUBUSERNAME/Ogiroid.git```
@@ -65,11 +69,16 @@ Invite the bot to a test server you own or create a test server.
 
 Now copy secrets.env.template and rename the copy to secrets.env
 Insert your bots token in the correct field.
+Add a postgres database URL we use a database from neon.tech for testing you can use a local database.
 Set development to true. The rest can be ignored for now.
+
+#### Install the requirements
 
 To install the requirements:
 
 ```pip install -r requirements.txt```
+
+#### Run the Bot
 
 And finally to run the bot:
 
@@ -78,6 +87,14 @@ And finally to run the bot:
 utils/CONSTANTS.py stores the ids for various channels, for the main server and for the official development server, to wich you will gain access after a significant contribution. 
 
 Use ```black . --safe``` for formatting (need to install black with pip)
+
+#### Database Migrations
+
+```alembic revision --autogenerate```
+
+```alembid upgrade head```
+
+#### Help
 
 If you need any help contact us on discord or open an issue.
 
