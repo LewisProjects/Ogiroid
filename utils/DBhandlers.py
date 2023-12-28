@@ -1,5 +1,4 @@
 from __future__ import annotations, generator_stop
-import asyncpg
 import random
 import time
 from typing import (
@@ -20,16 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
-from utils.config import GConfig
-from utils.db_models import Tag, Timezone, FlagQuiz
 from utils.exceptions import *
-from utils.models import (
-    FlagQuizUser,
-    BlacklistedUser,
-    BirthdayModel,
-    TimezoneModel,
-    TagModel,
-)
 from utils.db_models import *
 
 if TYPE_CHECKING:
@@ -161,17 +151,15 @@ class BlacklistHandler:
     def __init__(self, bot, db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
-        self.blacklist: List[BlacklistedUser] = []
+        self.blacklist: List[Blacklist] = []
         self.cache = AsyncTTL(timings.HOUR * 2)
 
-    async def get_user(self, user_id: int) -> BlacklistedUser:
+    async def get_user(self, user_id: int) -> Blacklist:
         user = await self.cache.get(user_id)
         if user is not None:
             return user
         elif user_id in [user.id for user in self.blacklist]:
-            user: BlacklistedUser = [
-                user for user in self.blacklist if user.id == user_id
-            ][0]
+            user: Blacklist = [user for user in self.blacklist if user.id == user_id][0]
             await self.cache.set(user_id, user)
             return user
         else:
@@ -199,7 +187,7 @@ class BlacklistHandler:
         print(f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded")
         self.blacklist = blacklist
 
-    async def get(self, user_id: int) -> BlacklistedUser:
+    async def get(self, user_id: int) -> Blacklist:
         return await self.get_user(user_id)
 
     async def add(
@@ -662,13 +650,13 @@ class BirthdayHandler:
         self.db = db
         self.bot = bot
 
-    async def get_user(self, user_id: int) -> Optional[BirthdayModel]:
+    async def get_user(self, user_id: int) -> Optional[Birthday]:
         async with self.db.begin() as session:
             result = await session.execute(select(Birthday).filter_by(user_id=user_id))
             result = result.scalar()
             return result
 
-    async def get_users(self) -> List[BirthdayModel]:
+    async def get_users(self) -> List[Birthday]:
         users = []
         async with self.db.begin() as session:
             records = await session.execute(select(Birthday))

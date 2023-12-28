@@ -10,7 +10,7 @@ from disnake.ext.commands import Cog
 from utils import timeconversions
 from utils.CONSTANTS import timings
 from utils.DBhandlers import BlacklistHandler
-from utils.models import BlacklistedUser
+from utils.db_models import Blacklist
 from utils.pagination import CreatePaginator
 from utils.shortcuts import sucEmb, errorEmb, get_expiry, wait_until
 
@@ -38,7 +38,7 @@ class Blacklist(Cog):
         for user in self.bot.blacklist.blacklist:
             await self.check_user_removal(user)
 
-    async def check_user_removal(self, user: BlacklistedUser):
+    async def check_user_removal(self, user: Blacklist):
         if user.id in self.del_que:
             return  # already being removed
         elif user.is_expired():
@@ -239,7 +239,7 @@ class Blacklist(Cog):
         for user in self.blacklist.blacklist:
             if (len(user.reason) + blacklist_reason_count) <= 1990:
                 blacklist_reason_count += len(user.reason)
-                if isinstance(nested_blacklisted[nested_count], BlacklistedUser):
+                if isinstance(nested_blacklisted[nested_count], Blacklist):
                     nested_count += 1
                     nested_blacklisted.append([])
                 nested_blacklisted[nested_count].append(user)
@@ -261,7 +261,7 @@ class Blacklist(Cog):
                     )
 
                 blacklist_embs.append(emb)
-            elif isinstance(blacklist_list, BlacklistedUser):
+            elif isinstance(blacklist_list, Blacklist):
                 emb = Embed(color=self.bot.config.colors.invis, description="")
                 emb.title = f"**{self.get_user(blacklist_list.id).name}**"
                 emb.description = f"Expires: {blacklist_list.get_expiry}\nReason: {blacklist_list.reason}\n"

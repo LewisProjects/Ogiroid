@@ -14,7 +14,6 @@ from utils.assorted import getPosition
 from utils.bot import OGIROID
 from utils.db_models import Tag
 from utils.exceptions import *
-from utils.models import *
 from utils.pagination import CreatePaginator
 from utils.shortcuts import QuickEmb, manage_messages_perms, errorEmb
 
