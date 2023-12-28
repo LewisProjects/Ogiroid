@@ -129,13 +129,10 @@ class OGIROID(commands.InteractionBot):
 
     async def start(self, *args, **kwargs):
 
-        engine = create_async_engine(self.config.Database.connection_string)
+        engine = create_async_engine(
+            self.config.Database.connection_string, pool_pre_ping=True
+        )
         self.db = async_sessionmaker(engine, expire_on_commit=False)
-        # run the db migrations in /migrations
-        # for file in listdir("migrations"):
-        #     if file.endswith(".sql"):
-        #         with open(f"migrations/{file}", "r") as migration_sql:
-        #             await self.db.execute(migration_sql.read())
         await super().start(*args, **kwargs)
 
     @property
