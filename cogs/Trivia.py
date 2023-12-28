@@ -55,13 +55,6 @@ class Trivia(commands.Cog, name="Trivia"):
             tries += 1
             retry = True
             while retry:
-                user = await self.flag_quiz.add_data(
-                    user_id=inter.author.id,
-                    user=user,
-                    correct=correct,
-                    tries=tries,
-                    guild_id=inter.guild.id,
-                )
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
@@ -149,6 +142,7 @@ class Trivia(commands.Cog, name="Trivia"):
                         channel,
                         f"Your Score: {correct}/{tries - 1}. Thanks for playing.",
                     ).send()
+
                     await self.flag_quiz.add_data(
                         guess.author.id,
                         tries - 1,

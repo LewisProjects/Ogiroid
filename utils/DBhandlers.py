@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from utils.CONSTANTS import timings
 from utils.cache import AsyncTTL
 from utils.config import GConfig
-from utils.db_models import Tag, Timezone
+from utils.db_models import Tag, Timezone, FlagQuiz
 from utils.exceptions import *
 from utils.models import (
     FlagQuizUser,
@@ -80,42 +80,37 @@ class FlagQuizHandler:
     def __init__(self, bot: "OGIROID", db: async_sessionmaker[AsyncSession]):
         self.bot = bot
         self.db = db
-        self.cache = AsyncTTL(timings.MINUTE * 4)
 
-    async def get_user(self, user_id: int, guild_id: int) -> FlagQuizUser:
-        user = await self.cache.get(str(user_id) + str(guild_id))
-        if user is not None:
-            return user
-        elif await self.exists(user_id, guild_id):
-            record = await self.db.fetchrow(
-                "SELECT * FROM flag_quiz WHERE user_id = $1 AND guild_id = $2",
-                user_id,
-                guild_id,
-            )
-            user = FlagQuizUser(*record)
-            await self.cache.set(str(user_id) + str(guild_id), user)
+    async def get_user(self, user_id: int, guild_id: int) -> FlagQuiz:
+        if await self.exists(user_id, guild_id):
+            async with self.db.begin() as session:
+                record = await session.execute(
+                    select(FlagQuiz).filter_by(user_id=user_id, guild_id=guild_id)
+                )
+                user = record.scalar()
             return user
         else:
             raise UserNotFound
 
     async def exists(self, user_id: int, guild_id: int) -> bool:
-        record = await self.db.fetchrow(
-            "SELECT EXISTS(SELECT 1 FROM flag_quiz WHERE user_id=$1 AND guild_id = $2)",
-            user_id,
-            guild_id,
-        )
-        return bool(record[0])
+        async with self.db.begin() as session:
+            record = await session.execute(
+                select(FlagQuiz).filter_by(user_id=user_id, guild_id=guild_id)
+            )
+            record = record.scalar()
+        return record is not None
 
     async def get_leaderboard(
         self, order_by="correct", guild_id: int = None
-    ) -> List[FlagQuizUser]:
-        leaderboard = []
-        records = await self.db.fetch(
-            f"SELECT user_id, tries, correct, completed, guild_id FROM flag_quiz WHERE guild_id = $1 ORDER BY {order_by} DESC LIMIT 10",
-            guild_id,
-        )
-        for record in records:
-            leaderboard.append(FlagQuizUser(*record))
+    ) -> Sequence[FlagQuiz]:
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(FlagQuiz)
+                .filter_by(guild_id=guild_id)
+                .order_by(getattr(FlagQuiz, order_by).desc())
+                .limit(10)
+            )
+            leaderboard = records.scalars().all()
         if len(leaderboard) == 0:
             raise UsersNotFound
         return leaderboard
@@ -125,32 +120,23 @@ class FlagQuizHandler:
         user_id: int,
         tries: int,
         correct: int,
-        user: Optional[FlagQuizUser] = None,
+        user: FlagQuiz | None = None,
         guild_id: int = None,
-    ) -> FlagQuizUser or None:
+    ) -> FlagQuiz or None:
         if user is not None:
             try:
                 user = await self.get_user(user_id, guild_id)
             except UserNotFound:
-                await self.add_user(user_id, tries, correct, guild_id=guild_id)
+                await self.add_user(user_id, guild_id, tries, correct)
                 return
 
-        if correct == 199:
-            completed = user.completed + 1
-        else:
-            completed = user.completed
-        tries += user.tries
-        correct += user.correct
-
-        await self.db.execute(
-            "UPDATE flag_quiz SET tries = $1, correct = $2, completed = $3 WHERE user_id = $4 AND guild_id = $5",
-            tries,
-            correct,
-            completed,
-            user_id,
-            guild_id,
-        )
-        return FlagQuizUser(user_id, tries, correct, completed, guild_id)
+        async with self.db.begin() as session:
+            user.tries += tries
+            user.correct += correct
+            if correct == 199:
+                user.completed += 1
+            session.add(user)
+        return user
 
     async def add_user(
         self, user_id: int, guild_id: int, tries: int = 0, correct: int = 0
@@ -160,15 +146,17 @@ class FlagQuizHandler:
         else:
             completed = 0
 
-        await self.db.execute(
-            "INSERT INTO flag_quiz (user_id, tries, correct, completed, guild_id) VALUES ($1, $2, $3, $4, $5)",
-            user_id,
-            tries,
-            correct,
-            completed,
-            guild_id,
-        )
-        return FlagQuizUser(user_id, tries, correct, completed, guild_id)
+        async with self.db.begin() as session:
+            user = FlagQuiz(
+                user_id=user_id,
+                tries=tries,
+                correct=correct,
+                completed=completed,
+                guild_id=guild_id,
+            )
+            session.add(user)
+
+        return user
 
 
 class BlacklistHandler:
