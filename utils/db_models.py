@@ -1,5 +1,9 @@
+import time
+
 from sqlalchemy import Column, Integer, BigInteger, Text, Boolean, UniqueConstraint
 from sqlalchemy.orm import declarative_base
+
+from utils.shortcuts import get_expiry
 
 Base = declarative_base()
 
@@ -29,6 +33,15 @@ class Blacklist(Base):
     tickets = Column(Boolean)
     tags = Column(Boolean)
     expires = Column(BigInteger)
+
+    def is_expired(self):
+        if self.expires == 9999999999:
+            return False
+        return int(time.time()) > self.expires
+
+    @property
+    def get_expiry(self):
+        return get_expiry(self.expires)
 
 
 class FlagQuiz(Base):

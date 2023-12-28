@@ -203,16 +203,18 @@ class BlacklistHandler:
 
     async def load_blacklist(self):
         blacklist = []
-        records = await self.db.fetch("SELECT * FROM blacklist")
+        async with self.db.begin() as session:
+            records = await session.execute(select(Blacklist))
+            records = records.scalars().all()
         for record in records:
-            blacklist.append(BlacklistedUser(*record).fix_db_types())
+            blacklist.append(record)
         if len(blacklist) == 0:
             raise BlacklistNotFound
         print(f"[BLACKLIST] {len(blacklist)} blacklisted users found and loaded")
         self.blacklist = blacklist
 
     async def get(self, user_id: int) -> BlacklistedUser:
-        return self.get_user(user_id)
+        return await self.get_user(user_id)
 
     async def add(
         self,
@@ -223,21 +225,25 @@ class BlacklistHandler:
         tags: bool,
         expires: int,
     ):
-        await self.db.execute(
-            "INSERT INTO blacklist (user_id, reason, bot, tickets, tags, expires) VALUES ($1, $2, $3, $4, $5, $6)",
-            user_id,
-            reason,
-            bot,
-            tickets,
-            tags,
-            expires,
+        user = Blacklist(
+            user_id=user_id,
+            reason=reason,
+            bot=bot,
+            tickets=tickets,
+            tags=tags,
+            expires=expires,
         )
-        user = BlacklistedUser(user_id, reason, bot, tickets, tags, expires)
+        async with self.db.begin() as session:
+            session.add(user)
         self.blacklist.append(user)
         await self.cache.set(user_id, user)
 
     async def remove(self, user_id: int):
-        await self.db.execute("DELETE FROM blacklist WHERE user_id = $1", [user_id])
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            await session.delete(user)
+
         self.blacklist.remove(await self.get_user(user_id))
         await self.cache.remove(user_id)
 
@@ -251,38 +257,35 @@ class BlacklistHandler:
             return False
 
     async def edit_flags(self, user_id: int, bot: bool, tickets: bool, tags: bool):
-        await self.db.execute(
-            "UPDATE blacklist SET bot = $1, tickets = $2, tags = $3 WHERE user_id = $4",
-            bot,
-            tickets,
-            tags,
-            user_id,
-        )
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            user.bot = bot
+            user.tickets = tickets
+            user.tags = tags
+            session.add(user)
         indx = await self.get_user_index(user_id)
         user = self.blacklist[indx]
-        user.bot = bot
-        user.tickets = tickets
-        user.tags = tags
         user = self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
     async def edit_reason(self, user_id: int, reason: str):
-        await self.db.execute(
-            "UPDATE blacklist SET reason = $1 WHERE user_id = $2", reason, user_id
-        )
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            user.reason = reason
+            session.add(user)
         indx = await self.get_user_index(user_id)
-        user = self.blacklist[indx]
-        user.reason = reason
         self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
     async def edit_expiry(self, user_id: int, expires: int):
-        await self.db.execute(
-            "UPDATE blacklist SET expires = $1 WHERE user_id = $2", expires, user_id
-        )
+        async with self.db.begin() as session:
+            user = await session.execute(select(Blacklist).filter_by(user_id=user_id))
+            user = user.scalar()
+            user.expires = expires
+            session.add(user)
         indx = await self.get_user_index(user_id)
-        user = self.blacklist[indx]
-        user.expires = expires
         self.blacklist[indx] = user
         await self.cache.set(user_id, user)
 
