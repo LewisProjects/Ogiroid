@@ -674,25 +674,26 @@ class BirthdayHandler:
         self.bot = bot
 
     async def get_user(self, user_id: int) -> Optional[BirthdayModel]:
-        record = await self.db.fetchrow(
-            "SELECT * FROM birthday WHERE user_id = $1", user_id
-        )
-        if record is None:
-            return None
-        return BirthdayModel(*record)
+        async with self.db.begin() as session:
+            result = await session.execute(select(Birthday).filter_by(user_id=user_id))
+            result = result.scalar()
+            return result
 
     async def get_users(self) -> List[BirthdayModel]:
         users = []
-        records = await self.db.fetch("SELECT * FROM birthday")
+        async with self.db.begin() as session:
+            records = await session.execute(select(Birthday))
+            records = records.scalars().all()
         for record in records:
-            users.append(BirthdayModel(*record))
+            users.append(record)
         return users
 
     async def delete_user(self, user_id: int) -> bool:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute("DELETE FROM birthday WHERE user_id = $1", user_id)
+        async with self.db.begin() as session:
+            await session.delete(user)
 
         return True
 
@@ -700,12 +701,13 @@ class BirthdayHandler:
         user = await self.get_user(user_id)
         if user is not None:
             raise UserAlreadyExists
-        await self.db.execute(
-            "INSERT INTO birthday (user_id, birthday, birthday_last_changed) VALUES ($1, $2, $3)",
-            user_id,
-            birthday,
-            int(time.time()),
-        )
+        async with self.db.begin() as session:
+            birthday = Birthday(
+                user_id=user_id,
+                birthday=birthday,
+                birthday_last_changed=int(time.time()),
+            )
+            session.add(birthday)
 
         return True
 
@@ -713,12 +715,10 @@ class BirthdayHandler:
         user = await self.get_user(user_id)
         if user is None:
             raise UserNotFound
-        await self.db.execute(
-            "UPDATE birthday SET birthday = $1, birthday_last_changed = $2 WHERE user_id = $3",
-            birthday,
-            int(time.time()),
-            user_id,
-        )
+        async with self.db.begin() as session:
+            user.birthday = birthday
+            user.birthday_last_changed = int(time.time())
+            session.add(user)
 
         return True
 
