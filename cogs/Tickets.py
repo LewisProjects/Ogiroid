@@ -55,9 +55,7 @@ class Tickets(commands.Cog):
             return m.author == inter.author and m.channel == inter.channel
 
         try:
-            msg = await self.bot.wait_for(
-                "message", check=check, timeout=300.0
-            )
+            msg = await self.bot.wait_for("message", check=check, timeout=300.0)
         except asyncio.exceptions.TimeoutError:
             return await errorEmb(
                 inter, "Due to no response the operation was canceled"
@@ -92,9 +90,7 @@ class Tickets(commands.Cog):
         # checks if user has a ticket already open
         for channel in guild.channels:
             try:
-                if int(channel.name.strip().replace("ticket-", "")) == int(
-                    user.id
-                ):
+                if int(channel.name.strip().replace("ticket-", "")) == int(user.id):
                     await errorEmb(
                         inter,
                         "You already have a ticket open. Please close it before opening a new one",
@@ -126,6 +122,30 @@ class Tickets(commands.Cog):
     @commands.slash_command(description="Close ticket")
     async def close(self, inter):
         if self.check_if_ticket_channel(inter):
+            # send log of chat in ticket to log channel
+            log_channel = self.bot.get_channel(self.bot.config.channels.logs)
+            log_emb = disnake.Embed(
+                title=f"Ticket closed by {inter.author.name}",
+                description=f"Ticket closed by {inter.author.mention}",
+                color=self.bot.config.colors.white,
+            )
+            # get all users in ticket channel
+            user_text = ""
+            for user in inter.channel.members:
+                user_text += f"{user.mention} "
+
+            log_emb.add_field(name="Users in Channel", value=user_text, inline=False)
+
+            # get all messages in ticket channel
+            async for message in inter.channel.history(limit=100, oldest_first=True):
+                log_emb.add_field(
+                    name=f"{message.author.name}",
+                    value=message.content,
+                    inline=False,
+                )
+            log_emb.set_footer(text=f"{inter.author}")
+            log_emb.timestamp = datetime.now()
+            await log_channel.send(embed=log_emb)
             await inter.channel.delete()
         else:
             await errorEmb(inter, "This is not a ticket channel.")
@@ -152,9 +172,7 @@ class Tickets(commands.Cog):
         else:
             await errorEmb(inter, "This is not a ticket channel.")
 
-    @commands.slash_command(
-        name="removeuser", description="Remove user from channel"
-    )
+    @commands.slash_command(name="removeuser", description="Remove user from channel")
     @commands.has_role("Staff")
     async def remove_user(self, inter, member: disnake.Member):
         if self.check_if_ticket_channel(inter):
