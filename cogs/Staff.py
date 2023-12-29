@@ -873,7 +873,11 @@ class Staff(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def anonymous_dm(self, inter, user: disnake.Member, *, message: str):
         """Send an anonymous dm to a user."""
-        await user.send(message)
+        await user.send(
+            message
+            + f"\n\nThis message was sent from the Staff Team of {inter.guild.name}."
+            f" If you have any questions, please contact the staff team using a ticket."
+        )
         await sucEmb(inter, "Sent!")
 
 
