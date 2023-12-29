@@ -32,6 +32,7 @@ class Starboard(commands.Cog):
                     channel_history = await starboard_channel.history(
                         limit=100
                     ).flatten()
+                    # check if message is already in starboard
                     for msg in channel_history:
                         if msg.embeds:
                             if (
@@ -44,6 +45,8 @@ class Starboard(commands.Cog):
                         color=disnake.Color.gold(),
                         timestamp=datetime.now(),
                     )
+                    if message.attachments:
+                        embed.set_image(url=message.attachments[0].url)
                     embed.set_author(
                         name=message.author,
                         icon_url=message.author.display_avatar.url,
