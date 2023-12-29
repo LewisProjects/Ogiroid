@@ -22,15 +22,13 @@ License: MIT<br>
 Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/CONTRIBUTING.md">contribution guidelines</a>
 <hr>
 
-<h3>Changelog 08-09-2022:</h3>
+<h3>Changelog 29-12-2023:</h3>
 <ol>
-<li>New Level System introduced 🏆🏆🏆.</li>
-<li>Direct Messages a user upon joining the server.</li>
-<li>Soft Ban Command!</li>
-<li>Starboard Minor Fix</li>
-<li>Minor fixes with the flag quiz leaderboard system.</li>
-<li>Eval Command for @developers.</li>
-<li>Fixed a lot of bugs 🐛🐛.</li>
-<li>New welcome message scheme.</li>
+<li>The bot was migrated to PostgreSQL.</li>
+<li>All the SQL queries were updated to use the SQLAlchemy ORM.</li>
+<li>Bitcoin Command</li>
+<li>Starboard Fixes and enhancements</li>
+<li>Lots of bug fixes.</li>
+<li>Start on bot dashboard.</li>
 </ol>
 <hr>
