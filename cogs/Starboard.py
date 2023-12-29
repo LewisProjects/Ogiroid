@@ -22,18 +22,23 @@ class Starboard(commands.Cog):
         ):
             return
         message = await channel.fetch_message(payload.message_id)
-        starboard_channel = message.guild.get_channel(
-            self.starboard_channel_id
-        )
-        if (
-            payload.emoji.name == self.star_emoji
-            and not channel == starboard_channel
-        ):
+        starboard_channel = message.guild.get_channel(self.starboard_channel_id)
+        if payload.emoji.name == self.star_emoji and not channel == starboard_channel:
             for reaction in message.reactions:
                 if (
                     reaction.emoji == self.star_emoji
                     and reaction.count == self.num_of_stars
                 ):
+                    channel_history = await starboard_channel.history(
+                        limit=100
+                    ).flatten()
+                    for msg in channel_history:
+                        if msg.embeds:
+                            if (
+                                msg.embeds[0].description.split("\n\n")[0]
+                                == message.content
+                            ):
+                                return
                     embed = disnake.Embed(
                         description=f"{message.content}\n\n**[Jump to message]({message.jump_url})**",
                         color=disnake.Color.gold(),
