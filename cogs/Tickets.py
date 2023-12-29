@@ -137,12 +137,20 @@ class Tickets(commands.Cog):
             log_emb.add_field(name="Users in Channel", value=user_text, inline=False)
 
             # get all messages in ticket channel
+            fields = 2
             async for message in inter.channel.history(limit=100, oldest_first=True):
+                if fields == 25:
+                    await log_channel.send(embed=log_emb)
+                    log_emb = disnake.Embed(
+                        color=self.bot.config.colors.white,
+                    )
+                    fields = 0
                 log_emb.add_field(
                     name=f"{message.author.name}",
                     value=message.content,
                     inline=False,
                 )
+                fields += 1
             log_emb.set_footer(text=f"{inter.author}")
             log_emb.timestamp = datetime.now()
             await log_channel.send(embed=log_emb)
