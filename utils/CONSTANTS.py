@@ -29,6 +29,7 @@ class Channels:
     uploads: int = 1033712950252408884
     birthdays: int = 1044886735588429864
     ogiroid_logs: int = 1040797919214845962
+    ticket_logs: int = 1190303721888940162
 
     @classmethod
     def dev(cls):
@@ -43,13 +44,14 @@ class Channels:
         cls.welcome = cls.goodbye = 985961186107461673
         cls.starboard: int = 985936949581865030
         cls.reddit_bot: int = 1012349179810553917
-        cls.introduction: int = 1013853473172893837
+        cls.introduction: int = 1013853473172893837  # dummy channel
         cls.general: int = 985729550732394536
-        cls.roles: int = 1013853473172893837
-        cls.rules: int = 1013853473172893837
-        cls.uploads: int = 1013853473172893837
+        cls.roles: int = 1013853473172893837  # dummy channel
+        cls.rules: int = 1013853473172893837  # dummy channel
+        cls.uploads: int = 1013853473172893837  # dummy channel
         cls.birthdays: int = 1013853473172893837  # dummy channel
         cls.ogiroid_logs: int = 1053627879348514869
+        cls.ticket_logs: int = 1013853473172893837  # dummy channel
         return cls
 
 
