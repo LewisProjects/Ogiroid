@@ -108,7 +108,7 @@ class Tickets(commands.Cog):
         await ticket.set_permissions(staff, **TICKET_PERMS)
         message_content = "Thank you for contacting support! A staff member will be here shortly!\nTo close the the ticket use ``/close``"
         em = disnake.Embed(
-            title=f"Ticket made by {user.name}#{user.discriminator}",
+            title=f"Ticket made by {user.name}",
             description=f"{message_content}",
             color=0x26FF00,
         )
@@ -121,6 +121,7 @@ class Tickets(commands.Cog):
 
     @commands.slash_command(description="Close ticket")
     async def close(self, inter):
+        await inter.response.defer()
         if self.check_if_ticket_channel(inter):
             # send log of chat in ticket to log channel
             log_channel = self.bot.get_channel(self.bot.config.channels.logs)
