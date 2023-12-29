@@ -76,7 +76,7 @@ class Stats(commands.Cog):
         key_iterator = iter(sortdict.keys())
         emby = disnake.Embed(
             title=f"{self.bot.user.display_name} command Stats",
-            description=f"{total_commands_ran} Commands ran in total.\n",
+            description=f"{total_commands_ran} Commands ran in total.\nUpdated hourly.",
             color=self.bot.config.colors.white,
         )
         if len(cmdsran) < 2:
