@@ -124,7 +124,9 @@ class Tickets(commands.Cog):
         await inter.response.defer()
         if self.check_if_ticket_channel(inter):
             # send log of chat in ticket to log channel
-            log_channel = self.bot.get_channel(self.bot.config.channels.logs)
+            ticket_log_channel = self.bot.get_channel(
+                self.bot.config.channels.ticket_logs
+            )
             log_emb = disnake.Embed(
                 title=f"Ticket closed by {inter.author.name}",
                 description=f"Ticket closed by {inter.author.mention}",
@@ -141,20 +143,26 @@ class Tickets(commands.Cog):
             fields = 2
             async for message in inter.channel.history(limit=100, oldest_first=True):
                 if fields == 25:
-                    await log_channel.send(embed=log_emb)
+                    await ticket_log_channel.send(embed=log_emb)
                     log_emb = disnake.Embed(
                         color=self.bot.config.colors.white,
                     )
-                    fields = 0
+                    fields = 1
                 log_emb.add_field(
                     name=f"{message.author.name}",
-                    value=message.content,
+                    value=message.content[:1024],
                     inline=False,
                 )
+                if len(message.content) > 1024:
+                    log_emb.add_field(
+                        name=f"{message.author.name} (cont.)",
+                        value=message.content[1024:2048],
+                        inline=False,
+                    )
                 fields += 1
             log_emb.set_footer(text=f"{inter.author}")
             log_emb.timestamp = datetime.now()
-            await log_channel.send(embed=log_emb)
+            await ticket_log_channel.send(embed=log_emb)
             await inter.channel.delete()
         else:
             await errorEmb(inter, "This is not a ticket channel.")
