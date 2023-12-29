@@ -148,9 +148,15 @@ class Tickets(commands.Cog):
                     fields = 0
                 log_emb.add_field(
                     name=f"{message.author.name}",
-                    value=message.content,
+                    value=message.content[:1024],
                     inline=False,
                 )
+                if len(message.content) > 1024:
+                    log_emb.add_field(
+                        name=f"{message.author.name} (cont.)",
+                        value=message.content[1024:2048],
+                        inline=False,
+                    )
                 fields += 1
             log_emb.set_footer(text=f"{inter.author}")
             log_emb.timestamp = datetime.now()
