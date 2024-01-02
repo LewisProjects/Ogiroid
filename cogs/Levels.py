@@ -429,9 +429,8 @@ class LevelsController:
 
         if records is None:
             raise UserNotFound
-        sorted_once = sorted(records, key=lambda x: x.level, reverse=True)
-        sorted_twice = sorted(sorted_once, key=lambda x: x.xp, reverse=True)
-        ids = [record.user_id for record in sorted_twice]
+        sorted_once = sorted(records, key=lambda x: x.total_exp, reverse=True)
+        ids = [record.user_id for record in sorted_once]
 
         try:
             rank = ids.index(user_record.user_id) + 1
