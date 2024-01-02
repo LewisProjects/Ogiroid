@@ -87,6 +87,7 @@ class LevelsController:
                     .limit(limit)
                     .offset(offset)
                 )
+            records = records.scalars().all()
         else:
             async with self.db.begin() as session:
                 records = await session.execute(
@@ -102,6 +103,14 @@ class LevelsController:
             reverse=True,
         )
         return users
+
+    async def get_count(self, guild: Guild | int) -> int:
+        if isinstance(guild, Guild):
+            guild = guild.id
+
+        async with self.db.begin() as session:
+            records = await session.execute(select(Levels).filter_by(guild_id=guild))
+            return len(records.scalars().all())
 
     async def add_user(self, user: Member, guild: Guild):
         self.remove_cached(user)
