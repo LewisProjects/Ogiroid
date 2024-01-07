@@ -106,7 +106,7 @@ class ErrorHandler(Cog):
                 print(e_traceback)
             e_embed = disnake.Embed(
                 title="Error Traceback",
-                description=f"See below!\n\n{e_traceback}",
+                description=f"See below!\n\n{e_traceback[:1024]}",
                 timestamp=datetime.now(),
             )
 
@@ -133,7 +133,7 @@ class ErrorHandler(Cog):
 
         error_embed = disnake.Embed(
             title="Error Traceback",
-            description=f"See below!\n\n{bot_errors}",
+            description=f"See below!\n\n{bot_errors[:1024]}",
             timestamp=datetime.now(),
         )
         await error_channel.send(embed=error_embed)
