@@ -260,7 +260,7 @@ class LevelsController:
             message.guild.get_role(self.bot.config.roles.nitro)
         ):
             boost = 2
-        if config.xp_boost_active:
+        if config.xp_boost_enabled:
             boost *= config.xp_boost
         return int(boost)
 
@@ -501,6 +501,7 @@ class Level(commands.Cog):
         try:
             await self.controller.handle_message(message)
         except AttributeError:  # bot has not fully started up yet
+            print("[Levels] Message received but not ready yet. Retried")
             await self.bot.wait_until_ready()
             await asyncio.sleep(5)
             await self.on_message(message)
