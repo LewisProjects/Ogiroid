@@ -189,7 +189,7 @@ class LevelsController:
                 xp=0,
                 guild_id=member.guild.id,
                 user_id=member.id,
-                lvl=level,
+                level=level,
             )
         else:
             raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
