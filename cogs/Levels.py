@@ -325,7 +325,12 @@ class LevelsController:
         next_xp = LEVELS_AND_XP[int(lvl) + 1]
 
         card = "utils/data/images/rankcard.png"
-        if datetime.datetime.now().month == 12 or datetime.datetime.now().month == 1:
+        if (
+            datetime.datetime.now().month == 12
+            and datetime.datetime.now().day >= 10
+            or datetime.datetime.now().month == 1
+            and datetime.datetime.now().day <= 10
+        ):
             # winter version
             card = "utils/data/images/winterrankcard.png"
 
