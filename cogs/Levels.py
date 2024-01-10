@@ -260,7 +260,7 @@ class LevelsController:
             message.guild.get_role(self.bot.config.roles.nitro)
         ):
             boost = 2
-        if config.xp_boost_enabled:
+        if config.xp_boost_active:
             boost *= config.xp_boost
         return int(boost)
 

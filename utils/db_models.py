@@ -93,7 +93,7 @@ class Levels(Base):
 
     @property
     def xp_needed(self):
-        xp = self.get_exp(self.lvl) - self.xp
+        xp = self.get_exp(self.level) - self.xp
         if xp < 0:
             return 0
         return xp
@@ -142,6 +142,30 @@ class Config(Base):
     xp_boost = Column(Integer, default=1)
     xp_boost_expiry = Column(BigInteger, default=0)
     xp_boost_enabled = Column(Boolean, default=True)
+
+    @property
+    def boost_expired(self):
+        from time import time
+
+        now = int(time())
+        if self.xp_boost_expiry >= now:
+            return False
+        return True
+
+    @property
+    def boost_time_left(self):
+        from time import time
+
+        now = int(time())
+        return self.xp_boost_expiry - now
+
+    @property
+    def get_boost(self):
+        return self.xp_boost
+
+    @property
+    def xp_boost_active(self) -> bool:
+        return bool(self.xp_boost_enabled) and not self.boost_expired
 
 
 class Commands(Base):
