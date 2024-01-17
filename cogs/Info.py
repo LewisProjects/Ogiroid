@@ -102,10 +102,7 @@ class Info(commands.Cog):
     ):
         await inter.response.defer()
         try:
-            if not amount:
-                amount = 1
-            else:
-                amount = float(amount)
+            amount = float(amount)
         except ValueError:
             return await errorEmb(inter, "Amount must be a number")
 
