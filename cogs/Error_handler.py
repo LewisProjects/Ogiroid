@@ -169,7 +169,7 @@ class ErrorHandler(Cog):
         )
         embed.set_footer(
             text=f"Executed by {inter.author}",
-            icon_url=inter.author.display_avatar.url,
+            icon_url="https://cdn.discordapp.com/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png",
         )
         return embed
 
