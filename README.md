@@ -6,8 +6,11 @@
 Ogiroid is a multipurpose Discord Bot (who is very handsome 😋😋) developed for the YouTuber, <a href="https://www.youtube.com/c/CodingwithLewis">Lewis Menelaws'</a> Discord Server.
 <hr>
 <h3>Bot Development Information:</h3>
+Based off of: <a href="https://github.com/jasonlovesdoggo/edoc">edoC</a>
+
 <p>Written in: <b>Python</b><br>Made using <a href="https://disnake.dev/">Disnake</a>, a Discord.py fork!</p>
 <p>NOTE: you need to use python 3.8+ for this bot</p>
+
 Main Contributors/Developers:
 <ul>
 <li><a href="https://github.com/ImmaHarry">HarryDaDev</a></li>
