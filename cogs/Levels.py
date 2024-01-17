@@ -537,9 +537,7 @@ class Level(commands.Cog):
             record.xp_boost_enabled = active
             session.add(record)
 
-        await inter.response.send_message(
-            f"XP Boost is now {'enabled' if active else 'disabled'}"
-        )
+        await inter.send(f"XP Boost is now {'enabled' if active else 'disabled'}")
 
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
@@ -555,17 +553,15 @@ class Level(commands.Cog):
             )
             config = record.scalar()
         if config is None:
-            return await inter.response.send_message(
-                "There is no config setup for this server"
-            )
+            return await inter.send("There is no config setup for this server")
         emb = Embed(
             title="XP Boost",
-            description=f"XP Boost is currently {'enabled' if config[3] else 'disabled'}",
+            description=f"XP Boost is currently {'enabled' if config.xp_boost_enabled else 'disabled'}",
             color=0x2F3136,
         )
-        emb.add_field(name="Multiplier", value=str(config[1]) + "x")
-        emb.add_field(name="Expires", value=get_expiry(config[2]))
-        await inter.response.send_message(embed=emb)
+        emb.add_field(name="Multiplier", value=str(config.xp_boost) + "x")
+        emb.add_field(name="Expires", value=get_expiry(config.xp_boost_expiry))
+        await inter.send(embed=emb)
 
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
@@ -588,7 +584,7 @@ class Level(commands.Cog):
         try:
             expires = (await timeconversions.convert(expires)).dt.timestamp()
         except BadArgument:
-            return await inter.response.send_message(
+            return await inter.send(
                 'Invalid date format: Invalid time provided, try e.g. "tomorrow" or "3 days".'
             )
         async with self.bot.db.begin() as session:
@@ -599,7 +595,7 @@ class Level(commands.Cog):
             record.xp_boost = amount
             record.xp_boost_expiry = expires
             session.add(record)
-        await inter.response.send_message(
+        await inter.send(
             f"Successfully set the xp boost to {amount}x it will expire {get_expiry(expires)} "
         )
 

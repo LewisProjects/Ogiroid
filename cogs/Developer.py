@@ -36,7 +36,7 @@ class Dev(Cog):
     @checks.is_dev()
     async def restart(self, inter):
         """Restarts the bot"""
-        await inter.response.send_message("Restarting...")
+        await inter.send("Restarting...")
         await self.eval(
             inter,
             body="exec(type((lambda: 0).__code__)(0, 0, 0, 0, 0, 0, b'\x053', (), (), (), '', '', 0, b''))",
@@ -102,9 +102,7 @@ class Dev(Cog):
         ]
 
     @staticmethod
-    def autocomplete_util(
-        inter: ApplicationCommandInteraction, option_name: str
-    ):
+    def autocomplete_util(inter: ApplicationCommandInteraction, option_name: str):
         """Autocomplete for the reload command"""
         options = os.listdir("utils")
         options = [option[:-3] for option in options if option.endswith(".py")]
@@ -141,13 +139,9 @@ class Dev(Cog):
         print(min(abs(times), 10))
         if abs(times) > 1:
             for _ in range(min(abs(times), 10)):
-                await t_channel.send(
-                    what_to_say, allowed_mentions=allowed_mentions
-                )
+                await t_channel.send(what_to_say, allowed_mentions=allowed_mentions)
         else:
-            await t_channel.send(
-                f"{what_to_say}", allowed_mentions=allowed_mentions
-            )
+            await t_channel.send(f"{what_to_say}", allowed_mentions=allowed_mentions)
 
     @commands.slash_command()
     @checks.is_dev()
@@ -205,9 +199,7 @@ class Dev(Cog):
                 try:
                     self.bot.reload_extension(f"cogs.{name}")
                 except Exception as e:
-                    error_collection.append(
-                        [file, traceback_maker(e, advance=False)]
-                    )
+                    error_collection.append([file, traceback_maker(e, advance=False)])
 
         if error_collection:
             output = "\n".join(
@@ -233,9 +225,7 @@ class Dev(Cog):
             module_name = importlib.import_module(f"utils.{name}")
             importlib.reload(module_name)
         except ModuleNotFoundError:
-            return await inter.send(
-                f"Couldn't find module named **{name_maker}**"
-            )
+            return await inter.send(f"Couldn't find module named **{name_maker}**")
         except Exception as e:
             error = traceback_maker(e)
             return await inter.send(
@@ -249,9 +239,7 @@ class Dev(Cog):
         embeds = []
 
         for n in range(0, len(self.bot.global_slash_commands), 10):
-            embed = disnake.Embed(
-                title="Commands", color=self.bot.config.colors.white
-            )
+            embed = disnake.Embed(title="Commands", color=self.bot.config.colors.white)
             cmds = self.bot.global_slash_commands[n : n + 10]
 
             value = ""

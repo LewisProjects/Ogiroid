@@ -43,18 +43,14 @@ class Fun(commands.Cog):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
-    async def spotifyinfo(
-        self, inter: ApplicationCommandInteraction, user: Member
-    ):
+    async def spotifyinfo(self, inter: ApplicationCommandInteraction, user: Member):
         user = user or inter.author
 
         spotify: disnake.Spotify = disnake.utils.find(
             lambda s: isinstance(s, disnake.Spotify), user.activities
         )
         if not spotify:
-            return await errorEmb(
-                inter, f"{user} is not listening to Spotify!"
-            )
+            return await errorEmb(inter, f"{user} is not listening to Spotify!")
 
         e = (
             Embed(
@@ -62,9 +58,7 @@ class Fun(commands.Cog):
                 colour=spotify.colour,
                 url=f"https://open.spotify.com/track/{spotify.track_id}",
             )
-            .set_author(
-                name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png"
-            )
+            .set_author(name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png")
             .set_thumbnail(url=spotify.album_cover_url)
         )
 
@@ -132,18 +126,14 @@ class Fun(commands.Cog):
             choices_str += f"{emoji}  {choices[i]}\n\n"
             i += 1
 
-        embed = disnake.Embed(
-            title=question, description=choices_str, colour=0xFFFFFF
-        )
+        embed = disnake.Embed(title=question, description=choices_str, colour=0xFFFFFF)
 
         if inter.author:
             embed.set_footer(text=f"Poll by {inter.author}")
         embed.timestamp = datetime.now()
 
-        await inter.response.send_message(embed=embed)
-        poll = (
-            await inter.original_message()
-        )  # Gets the message which got sent
+        await inter.send(embed=embed)
+        poll = await inter.original_message()  # Gets the message which got sent
         for emoji in emojis:
             await poll.add_reaction(emoji)
 
@@ -177,13 +167,9 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 2, commands.BucketType.user)
     async def joke(self, inter: ApplicationCommandInteraction):
         """Get a random joke!"""
-        response = await self.bot.session.get(
-            "https://some-random-api.com/joke"
-        )
+        response = await self.bot.session.get("https://some-random-api.com/joke")
         data = await response.json()
-        embed = disnake.Embed(
-            title="Joke!", description=data["joke"], color=0xFFFFFF
-        )
+        embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
@@ -209,21 +195,13 @@ class Fun(commands.Cog):
             return await inter.send(
                 f"I would love to give beer to the bot **{inter.author.name}**, but I don't think it will respond to you :/"
             )
-        beer_offer = (
-            f"**{user.name}**, you got a 🍺 offer from **{inter.author.name}**"
-        )
-        beer_offer = (
-            f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
-        )
+        beer_offer = f"**{user.name}**, you got a 🍺 offer from **{inter.author.name}**"
+        beer_offer = f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
         await inter.send(beer_offer)
         msg = await inter.original_message()
 
         def reaction_check(m):
-            if (
-                m.message_id == msg.id
-                and m.user_id == user.id
-                and str(m.emoji) == "🍻"
-            ):
+            if m.message_id == msg.id and m.user_id == user.id and str(m.emoji) == "🍻":
                 return True
             return False
 
@@ -242,13 +220,9 @@ class Fun(commands.Cog):
             )
         except disnake.Forbidden:
             # Yeah so, bot doesn't have reaction permission, drop the "offer" word
+            beer_offer = f"**{user.name}**, you got a 🍺 from **{inter.author.name}**"
             beer_offer = (
-                f"**{user.name}**, you got a 🍺 from **{inter.author.name}**"
-            )
-            beer_offer = (
-                f"{beer_offer}\n\n**Reason:** {reason}"
-                if reason
-                else beer_offer
+                f"{beer_offer}\n\n**Reason:** {reason}" if reason else beer_offer
             )
             await msg.edit(content=beer_offer)
 
@@ -274,9 +248,7 @@ class Fun(commands.Cog):
         description="Ask the magic 8ball a question",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def eightball(
-        self, inter: ApplicationCommandInteraction, *, question
-    ):
+    async def eightball(self, inter: ApplicationCommandInteraction, *, question):
         """Ask the magic 8ball a question"""
         responses = [
             "It is certain.",
@@ -334,9 +306,7 @@ class Fun(commands.Cog):
             await inter.send(embed=intro)
 
             def check(msg):
-                return (
-                    msg.author == inter.author and msg.channel == inter.channel
-                )
+                return msg.author == inter.author and msg.channel == inter.channel
 
             components = [
                 disnake.ui.Button(
@@ -369,9 +339,7 @@ class Fun(commands.Cog):
                     question.set_thumbnail(
                         url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                     )
-                    await button_click.send(
-                        embed=question, components=components
-                    )
+                    await button_click.send(embed=question, components=components)
                     try:
                         button_click = await self.bot.wait_for(
                             "button_click", check=check, timeout=30
@@ -408,9 +376,7 @@ class Fun(commands.Cog):
                         "button_click", check=check, timeout=30
                     )
                 except asyncio.TimeoutError:
-                    await errorEmb(
-                        correct, "Sorry you took too long to respond."
-                    )
+                    await errorEmb(correct, "Sorry you took too long to respond.")
                     await inter.send(embed=bye)
                     return
                 if correct.component.custom_id == "y":
@@ -449,9 +415,7 @@ class Fun(commands.Cog):
     async def morse(self, inter):
         pass
 
-    @morse.sub_command(
-        name="encode", description="Encodes text into morse code."
-    )
+    @morse.sub_command(name="encode", description="Encodes text into morse code.")
     async def encode(self, inter: ApplicationCommandInteraction, text: str):
         encoded_list = []
 
@@ -463,9 +427,7 @@ class Fun(commands.Cog):
         encoded_string = " ".join(encoded_list)
         await inter.send(f"``{encoded_string}``")
 
-    @morse.sub_command(
-        name="decode", description="Decodes Morse Code into Text."
-    )
+    @morse.sub_command(name="decode", description="Decodes Morse Code into Text.")
     async def decode(self, inter: ApplicationCommandInteraction, morse_code):
         decoded_list = []
         morse_list = morse_code.split()
@@ -483,9 +445,7 @@ class Fun(commands.Cog):
     async def pokemon(self, inter):
         pass
 
-    @pokemon.sub_command(
-        name="info", description="Get information about a Pokémon."
-    )
+    @pokemon.sub_command(name="info", description="Get information about a Pokémon.")
     async def info(
         self,
         inter: ApplicationCommandInteraction,
@@ -501,18 +461,14 @@ class Fun(commands.Cog):
         try:
             embed = disnake.Embed(title=poke_data["name"], color=0xFFFFFF)
             embed.set_thumbnail(url=poke_data["sprites"]["front_default"])
-            embed.add_field(
-                name="Type", value=poke_data["types"][0]["type"]["name"]
-            )
+            embed.add_field(name="Type", value=poke_data["types"][0]["type"]["name"])
             embed.add_field(name="Height", value=f"{poke_data['height']}m")
             embed.add_field(name="Weight", value=f"{poke_data['weight']}kg")
             embed.add_field(
                 name="Abilities",
                 value=poke_data["abilities"][0]["ability"]["name"],
             )
-            embed.add_field(
-                name="Base Experience", value=poke_data["base_experience"]
-            )
+            embed.add_field(name="Base Experience", value=poke_data["base_experience"])
             embed.add_field(name="Species", value=poke_data["species"]["name"])
             embed.set_footer(
                 text=f"ID: {poke_data['id']} | Generation: {poke_data['game_indices'][0]['version']['name']} • Requested by: {inter.author.name}"
@@ -522,9 +478,7 @@ class Fun(commands.Cog):
         return await inter.send(embed=embed)
 
     @commands.slash_command(name="urlshortner", description="Shortens a URL.")
-    async def urlshortner(
-        self, inter: ApplicationCommandInteraction, url: str
-    ):
+    async def urlshortner(self, inter: ApplicationCommandInteraction, url: str):
         # checking if url starts with http:// or https://, if it does not, adding https:// towards the start
         if not (url.startswith("http://") or url.startswith("https://")):
             url = f"https://{url}"
