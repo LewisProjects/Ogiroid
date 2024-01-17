@@ -56,7 +56,7 @@ class Memes(commands.Cog):
             text=f"{upvotes} Upvotes ",
             icon_url="https://cdn.discordapp.com/attachments/925750381840064525/925755794669047899/PngItem_715538.png",
         )
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
 
     @commands.slash_command(name="freemoney", description="Get free money!")
     async def free_money(self, inter):

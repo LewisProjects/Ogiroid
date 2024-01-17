@@ -39,15 +39,13 @@ class Commands(commands.Cog):
         member_count = len(inter.guild.members)
         true_member_count = len([m for m in inter.guild.members if not m.bot])
         bot_member_count = len([m for m in inter.guild.members if m.bot])
-        embed = disnake.Embed(
-            title="Member count", description=" ", color=0xFFFFFF
-        )
+        embed = disnake.Embed(title="Member count", description=" ", color=0xFFFFFF)
         embed.add_field(
             name="Members of Coding With Lewis",
             value=f" \🌐  All members: **{member_count}**\n \👩‍👩‍👦‍👦 All Humans: **{true_member_count}**\n \🤖  All Bots: **{bot_member_count}**",
             inline=False,
         )
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
 
     @commands.slash_command(
         name="ping", description="Shows how fast the bot is replying to you!"
@@ -56,9 +54,7 @@ class Commands(commands.Cog):
         """Shows how fast the bot is replying to you!"""
         uptime = str(
             datetime.timedelta(
-                seconds=int(
-                    round(time.time() - int(self.bot.uptime.timestamp()))
-                )
+                seconds=int(round(time.time() - int(self.bot.uptime.timestamp())))
             )
         )
         embed = disnake.Embed(
@@ -89,19 +85,15 @@ class Commands(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
 
-    @commands.slash_command(
-        name="botinfo", description="Shows info about the bot!"
-    )
+    @commands.slash_command(name="botinfo", description="Shows info about the bot!")
     async def botinfo(self, inter):
         """Shows the info of the bot"""
         embed = disnake.Embed(
             title="Ogiroid Information: ", description=" ", color=0xFFFFFF
         )
-        embed.add_field(
-            name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False
-        )
+        embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
         embed.add_field(
             name="**Bot Version: **",
             value=f"```>> {__VERSION__}```",
@@ -160,9 +152,7 @@ class Commands(commands.Cog):
         totals = Counter()
         for channel in guild.channels:
             allow, deny = channel.overwrites_for(everyone).pair()
-            perms = disnake.Permissions(
-                (everyone_perms & ~deny.value) | allow.value
-            )
+            perms = disnake.Permissions((everyone_perms & ~deny.value) | allow.value)
             channel_type = type(channel)
             if channel_type == disnake.channel.CategoryChannel:
                 continue
@@ -179,17 +169,13 @@ class Commands(commands.Cog):
         if guild.icon:
             e.set_thumbnail(url=guild.icon.url)
         if inter.guild.banner:
-            e.set_image(
-                url=inter.guild.banner.with_format("png").with_size(1024)
-            )
+            e.set_image(url=inter.guild.banner.with_format("png").with_size(1024))
         channel_info = []
         for key, total in totals.items():
             secrets = secret[key]
 
             if secrets:
-                channel_info.append(
-                    f"Text Channels: {total} ({secrets} locked)"
-                )
+                channel_info.append(f"Text Channels: {total} ({secrets} locked)")
             else:
                 channel_info.append(f"Voice Channels: {total}")
 
@@ -222,7 +208,9 @@ class Commands(commands.Cog):
         e.add_field(name="Channels", value="\n".join(channel_info))
 
         if guild.premium_tier != 0:
-            boosts = f"Level {guild.premium_tier}\n{guild.premium_subscription_count} boosts"
+            boosts = (
+                f"Level {guild.premium_tier}\n{guild.premium_subscription_count} boosts"
+            )
             last_boost = max(
                 guild.members,
                 key=lambda m: m.premium_since or guild.created_at,
@@ -237,9 +225,7 @@ class Commands(commands.Cog):
         e.add_field(name="Members", value=fmt, inline=False)
         e.add_field(
             name="Roles",
-            value=", ".join(roles)
-            if len(roles) < 10
-            else f"{len(roles)} roles",
+            value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles",
         )
 
         emoji_stats = Counter()
@@ -274,8 +260,7 @@ class Commands(commands.Cog):
         bottag = "<:bot_tag:880193490556944435>"
         e.set_author(name=f'{user}{bottag if user.bot else ""}')
         join_position = (
-            sorted(inter.guild.members, key=lambda m: m.joined_at).index(user)
-            + 1
+            sorted(inter.guild.members, key=lambda m: m.joined_at).index(user) + 1
         )
 
         e.add_field(name="Join Position", value=join_position)
@@ -305,9 +290,7 @@ class Commands(commands.Cog):
         if roles:
             e.add_field(
                 name="Roles",
-                value=", ".join(roles)
-                if len(roles) < 10
-                else f"{len(roles)} roles",
+                value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles",
                 inline=False,
             )
 
@@ -330,9 +313,7 @@ class Commands(commands.Cog):
 
         await inter.send(embed=e)
 
-    @commands.slash_command(
-        name="avatar", description="Shows the avatar of a user."
-    )
+    @commands.slash_command(name="avatar", description="Shows the avatar of a user.")
     async def avatar(
         self,
         inter: disnake.ApplicationCommandInteraction,
