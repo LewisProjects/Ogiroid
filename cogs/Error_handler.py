@@ -169,7 +169,7 @@ class ErrorHandler(Cog):
         )
         embed.set_footer(
             text=f"Executed by {inter.author}",
-            icon_url="https://www.collinsdictionary.com/images/full/lo_163792823.jpg",
+            icon_url="https://cdn.discordapp.com/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png",
         )
         return embed
 
