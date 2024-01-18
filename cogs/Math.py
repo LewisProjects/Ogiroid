@@ -3,9 +3,11 @@ from io import BytesIO
 import disnake
 import expr
 from PIL import Image
+from disnake import TextInputStyle
 from disnake.ext import commands
 import urllib.parse
 
+from utils.http import session
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb, errorEmb
 
@@ -62,14 +64,39 @@ class Math(commands.Cog):
         ).send()
 
     @commands.slash_command(description="Latex to Image")
-    async def latex(self, inter, latex: str):
+    async def latex(self, inter):
         """Latex to Image"""
-        async with self.bot.session.post(
-            r"https://latex.codecogs.com/png.latex?\dpi{180}\bg_white\large"
-            + urllib.parse.quote(latex)
-        ) as resp:
-            # Check if the request was successful (status code 200)
-            if resp.status == 200:
+        await inter.response.send_modal(modal=LatexModal())
+
+
+class LatexModal(disnake.ui.Modal):
+    def __init__(self):
+        # The details of the modal, and its components
+        components = [
+            disnake.ui.TextInput(
+                label="Latex",
+                placeholder="Latex format here",
+                custom_id="latex",
+                style=TextInputStyle.paragraph,
+                max_length=4000,
+            ),
+        ]
+        super().__init__(
+            title="Convert",
+            custom_id="convert",
+            components=components,
+        )
+
+    # The callback received when the user input is completed.
+    async def callback(self, inter: disnake.ModalInteraction):
+        try:
+            print(1)
+            await inter.response.defer()
+            latex = inter.text_values["latex"].strip()
+            async with session.post(
+                r"https://latex.codecogs.com/png.latex?\dpi{180}\bg_white\large"
+                + urllib.parse.quote(" " + latex)
+            ) as resp:
                 # Read the content from the response
                 image_data = await resp.read()
 
@@ -94,6 +121,10 @@ class Math(commands.Cog):
 
                 # Send the image
                 await inter.send(file=disnake.File(image_buffer, filename="latex.png"))
+
+        except Exception as e:
+            print(e)
+            await errorEmb(inter, f"Error: {e}")
 
 
 def setup(bot: OGIROID):
