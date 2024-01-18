@@ -90,7 +90,6 @@ class LatexModal(disnake.ui.Modal):
     # The callback received when the user input is completed.
     async def callback(self, inter: disnake.ModalInteraction):
         try:
-            print(1)
             await inter.response.defer()
             latex = inter.text_values["latex"].strip()
             async with session.post(
