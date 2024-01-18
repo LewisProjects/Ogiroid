@@ -16,4 +16,3 @@ discord_together==1.2.6
 better_profanity==0.7.0
 sqlalchemy[asyncio]==2.0.23
 alembic==1.13.1
-freecurrencyapi==0.1.0
