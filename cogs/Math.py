@@ -1,5 +1,10 @@
+from io import BytesIO
+
+import disnake
 import expr
+from PIL import Image
 from disnake.ext import commands
+import urllib.parse
 
 from utils.bot import OGIROID
 from utils.shortcuts import QuickEmb, errorEmb
@@ -55,6 +60,40 @@ class Math(commands.Cog):
             "Aswell as these:\n"
             " `sqrt` | `cbrt` | `log` | `log10` | `ln` | `rad` | `sin` | `cos` | `tan` | `asin` | `acos` | `atan`",
         ).send()
+
+    @commands.slash_command(description="Latex to Image")
+    async def latex(self, inter, latex: str):
+        """Latex to Image"""
+        async with self.bot.session.post(
+            r"https://latex.codecogs.com/png.latex?\dpi{180}\bg_white\large"
+            + urllib.parse.quote(latex)
+        ) as resp:
+            # Check if the request was successful (status code 200)
+            if resp.status == 200:
+                # Read the content from the response
+                image_data = await resp.read()
+
+                # Open the image using PIL
+                with Image.open(BytesIO(image_data)) as image:
+                    # Add 5 pixels of padding on all sides
+                    padding_size = 5
+                    padded_image = Image.new(
+                        "RGB",
+                        (
+                            image.width + 2 * padding_size,
+                            image.height + 2 * padding_size,
+                        ),
+                        "white",
+                    )
+                    padded_image.paste(image, (padding_size, padding_size))
+
+                    # Save the image to a BytesIO buffer
+                    image_buffer = BytesIO()
+                    padded_image.save(image_buffer, "png")
+                    image_buffer.seek(0)
+
+                # Send the image
+                await inter.send(file=disnake.File(image_buffer, filename="latex.png"))
 
 
 def setup(bot: OGIROID):
