@@ -537,18 +537,19 @@ class Fun(commands.Cog):
             img.paste(frames[i], mask=frames[i])
             img = ImageOps.fit(img, (resolution, resolution), Image.LANCZOS)
             gif.append(img)
-
-        gif[0].save(
-            "petpet.gif",
-            save_all=True,
-            append_images=gif[1:],
-            optimize=False,
-            duration=20,
-            loop=0,
-            disposal=2,
-        )
-        await inter.send(file=disnake.File("petpet.gif"))
-        os.remove("petpet.gif")
+        with BytesIO() as image_binary:
+            gif[0].save(
+                image_binary,
+                format="GIF",
+                save_all=True,
+                append_images=gif[1:],
+                optimize=False,
+                duration=20,
+                loop=0,
+                disposal=2,
+            )
+            image_binary.seek(0)
+            await inter.send(file=disnake.File(image_binary, "pat.gif"))
 
 
 async def get_frames():
