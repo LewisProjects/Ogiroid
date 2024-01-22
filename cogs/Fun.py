@@ -3,10 +3,12 @@ import os
 import random
 import time
 from datetime import datetime, timezone
+from io import BytesIO
 
 import akinator as ak
 import disnake
 import requests
+from PIL import Image, ImageOps, ImageDraw
 from discord_together import DiscordTogether
 from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
@@ -20,6 +22,7 @@ from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
 
 load_dotenv("../secrets.env")
+FRAMES = 10
 
 
 class Fun(commands.Cog):
@@ -494,6 +497,80 @@ class Fun(commands.Cog):
             return await errorEmb(
                 inter, "An unexpected error occurred! Please try again later."
             )
+
+    @commands.slash_command(
+        name="pat", description="Create a pat gif from a user's avatar"
+    )
+    async def pat(
+        self, inter: disnake.ApplicationCommandInteraction, user: disnake.User = None
+    ):
+        await inter.response.defer()
+        frames = await get_frames()
+        delay: int = 20
+        resolution: int = 120
+
+        img_url = user.avatar.url if user else inter.author.avatar.url
+
+        avatar = await load_image(img_url)
+
+        gif = []
+
+        for i in range(FRAMES):
+            img = Image.new("RGBA", (resolution, resolution), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+
+            j = i if i < FRAMES / 2 else FRAMES - i
+            width = 0.8 + j * 0.02
+            height = 0.8 - j * 0.05
+            offset_x = (1 - width) * 0.5 + 0.1
+            offset_y = 1 - height - 0.08
+
+            draw.rectangle((0, 0, resolution, resolution), fill=(0, 0, 0, 0))
+            img.paste(
+                avatar.resize(
+                    (int(resolution * width), int(resolution * height)),
+                    Image.LANCZOS,
+                ),
+                (int(resolution * offset_x), int(resolution * offset_y)),
+            )
+
+            img.paste(frames[i], mask=frames[i])
+            img = ImageOps.fit(img, (resolution, resolution), Image.LANCZOS)
+            gif.append(img)
+
+        gif[0].save(
+            "petpet.gif",
+            save_all=True,
+            append_images=gif[1:],
+            optimize=False,
+            duration=20,
+            loop=0,
+            disposal=2,
+        )
+        await inter.send(file=disnake.File("petpet.gif"))
+        os.remove("petpet.gif")
+
+
+async def get_frames():
+    frames = []
+
+    for i in range(FRAMES):
+        url = (
+            f"https://raw.githubusercontent.com/VenPlugs/petpet/main/frames/pet{i}.gif"
+        )
+        response = requests.get(url)
+        img = Image.open(BytesIO(response.content))
+        img = img.convert("RGBA")
+        img.seek(0)
+        frames.append(img)
+
+    return frames
+
+
+async def load_image(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img
 
 
 def setup(bot):
