@@ -1,9 +1,6 @@
 import io
 import disnake
 from disnake.ext import commands, tasks
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-from matplotlib.ticker import MaxNLocator
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -132,6 +129,10 @@ class Stats(commands.Cog):
         emby.timestamp = disnake.utils.utcnow()
 
         colors = get_color_gradient((0, 0, 0), (225, 225, 225), 10)
+
+        from matplotlib.axes import Axes
+        from matplotlib.figure import Figure
+        from matplotlib.ticker import MaxNLocator
 
         fig = Figure(figsize=(5, 5), dpi=180)
         ax: Axes = fig.subplots()
