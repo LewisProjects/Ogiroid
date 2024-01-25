@@ -3,6 +3,7 @@ from io import BytesIO
 import disnake
 import expr
 from PIL import Image
+from better_profanity import profanity
 from disnake import TextInputStyle
 from disnake.ext import commands
 import urllib.parse
@@ -92,6 +93,8 @@ class LatexModal(disnake.ui.Modal):
         try:
             await inter.response.defer()
             latex = inter.text_values["latex"].strip()
+            if profanity.contains_profanity(latex):
+                return await errorEmb(inter, "No profanity allowed.")
             async with session.post(
                 r"https://latex.codecogs.com/png.latex?\dpi{180}\bg_white\large"
                 + urllib.parse.quote(" " + latex)

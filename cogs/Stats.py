@@ -1,11 +1,32 @@
+import io
 import disnake
+import numpy as np
 from disnake.ext import commands, tasks
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from matplotlib.ticker import MaxNLocator
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from utils.bot import OGIROID
 from utils.db_models import Commands, TotalCommands
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+
+def get_color_gradient(c1, c2, n):
+    """
+    Given two rgb colors, returns a color gradient
+    with n colors.
+    """
+    assert n > 1
+    c1_rgb = np.array(c1) / 255
+    c2_rgb = np.array(c2) / 255
+    mix_pcts = [x / (n - 1) for x in range(n)]
+    rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
+    return [
+        "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
+        for item in rgb_colors
+    ]
 
 
 class Stats(commands.Cog):
@@ -102,8 +123,43 @@ class Stats(commands.Cog):
                 break
 
         emby.add_field(name="Top 10 commands ran", value=text)
+        # add bots avatar
+        emby.set_footer(
+            text=self.bot.user.display_name, icon_url=self.bot.user.avatar.url
+        )
+        emby.timestamp = disnake.utils.utcnow()
 
-        await inter.send(embed=emby)
+        colors = get_color_gradient((0, 0, 0), (225, 225, 225), 10)
+
+        fig = Figure(figsize=(5, 5), dpi=180)
+        ax: Axes = fig.subplots()
+        ax.bar(
+            sortdict.keys(),
+            sortdict.values(),
+            color=colors,
+        )
+        ax.set_xlabel("Command")
+        ax.set_ylabel("Times used")
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.tick_params(axis="x", labelrotation=45)
+        ax.set_axisbelow(True)
+        ax.grid(axis="y", linestyle="-")
+        ax.set_axisbelow(True)
+        fig.tight_layout()
+
+        with io.BytesIO() as buf:
+            fig.savefig(buf, format="png")
+            buf.seek(0)
+            emby.set_image(url="attachment://plot.png")
+
+            await inter.send(
+                embed=emby,
+                file=disnake.File(
+                    buf,
+                    filename="plot.png",
+                ),
+            )
 
 
 def setup(bot):
