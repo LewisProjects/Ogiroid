@@ -21,7 +21,10 @@ def get_color_gradient(c1, c2, n):
     c1_rgb = [val / 255 for val in c1]
     c2_rgb = [val / 255 for val in c2]
     mix_pcts = [x / (n - 1) for x in range(n)]
-    rgb_colors = [[(1 - mix) * c1_val + (mix * c2_val) for c1_val, c2_val in zip(c1_rgb, c2_rgb)] for mix in mix_pcts]
+    rgb_colors = [
+        [(1 - mix) * c1_val + (mix * c2_val) for c1_val, c2_val in zip(c1_rgb, c2_rgb)]
+        for mix in mix_pcts
+    ]
     return [
         "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
         for item in rgb_colors
@@ -133,8 +136,8 @@ class Stats(commands.Cog):
         fig = Figure(figsize=(5, 5), dpi=180)
         ax: Axes = fig.subplots()
         ax.bar(
-            sortdict.keys(),
-            sortdict.values(),
+            sortdict.keys()[:10],
+            sortdict.values()[:10],
             color=colors,
         )
         ax.set_xlabel("Command")
