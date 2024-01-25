@@ -149,6 +149,9 @@ class Stats(commands.Cog):
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
         ax.tick_params(axis="x", labelrotation=45)
+        ax.tick_params(axis="x", labelrotation=45)
+        for label in ax.get_xticklabels():
+            label.set_horizontalalignment("right")
         ax.set_axisbelow(True)
         ax.grid(axis="y", linestyle="-")
         ax.set_axisbelow(True)
