@@ -139,19 +139,14 @@ class Stats(commands.Cog):
         ax: Axes = fig.subplots()
         x = list(sortdict.keys())[:10]
         y = list(sortdict.values())[:10]
-        ax.bar(
-            x,
-            y,
-            color=colors,
-        )
+        ax.bar(x, y, color=colors)
         ax.set_xlabel("Command")
         ax.set_ylabel("Times used")
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.tick_params(axis="x", labelrotation=45)
-        ax.tick_params(axis="x", labelrotation=45)
-        for label in ax.get_xticklabels():
-            label.set_horizontalalignment("right")
+        ax.set_xticks(range(len(x)))  # Set the x-ticks to the number of bars
+        ax.set_xticklabels(
+            x, rotation=45, ha="right"
+        )  # Set the x-tick labels and rotate them
         ax.set_axisbelow(True)
         ax.grid(axis="y", linestyle="-")
         ax.set_axisbelow(True)
