@@ -1,6 +1,5 @@
 import io
 import disnake
-import numpy as np
 from disnake.ext import commands, tasks
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -19,10 +18,10 @@ def get_color_gradient(c1, c2, n):
     with n colors.
     """
     assert n > 1
-    c1_rgb = np.array(c1) / 255
-    c2_rgb = np.array(c2) / 255
+    c1_rgb = [val / 255 for val in c1]
+    c2_rgb = [val / 255 for val in c2]
     mix_pcts = [x / (n - 1) for x in range(n)]
-    rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
+    rgb_colors = [[(1 - mix) * c1_val + (mix * c2_val) for c1_val, c2_val in zip(c1_rgb, c2_rgb)] for mix in mix_pcts]
     return [
         "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
         for item in rgb_colors
