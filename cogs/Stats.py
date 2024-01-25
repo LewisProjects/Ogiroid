@@ -130,15 +130,18 @@ class Stats(commands.Cog):
 
         colors = get_color_gradient((0, 0, 0), (225, 225, 225), 10)
 
+        # they are imported here to save memory
         from matplotlib.axes import Axes
         from matplotlib.figure import Figure
         from matplotlib.ticker import MaxNLocator
 
         fig = Figure(figsize=(5, 5), dpi=180)
         ax: Axes = fig.subplots()
+        x = list(sortdict.keys())[:10]
+        y = list(sortdict.values())[:10]
         ax.bar(
-            sortdict.keys()[:10],
-            sortdict.values()[:10],
+            x,
+            y,
             color=colors,
         )
         ax.set_xlabel("Command")
