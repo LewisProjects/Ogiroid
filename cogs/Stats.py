@@ -127,46 +127,43 @@ class Stats(commands.Cog):
             text=self.bot.user.display_name, icon_url=self.bot.user.avatar.url
         )
         emby.timestamp = disnake.utils.utcnow()
-        await inter.send(embed=emby)
 
-        # commented because it takes a lot of RAM and we can't afford it atm
+        colors = get_color_gradient((0, 0, 0), (225, 225, 225), 10)
 
-        # colors = get_color_gradient((0, 0, 0), (225, 225, 225), 10)
-        #
-        # # they are imported here to save memory
-        # from matplotlib.axes import Axes
-        # from matplotlib.figure import Figure
-        # from matplotlib.ticker import MaxNLocator
-        #
-        # fig = Figure(figsize=(5, 5), dpi=180)
-        # ax: Axes = fig.subplots()
-        # x = list(sortdict.keys())[:10]
-        # y = list(sortdict.values())[:10]
-        # ax.bar(x, y, color=colors)
-        # ax.set_xlabel("Command")
-        # ax.set_ylabel("Times used")
-        # ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        # ax.set_xticks(range(len(x)))  # Set the x-ticks to the number of bars
-        # ax.set_xticklabels(
-        #     x, rotation=45, ha="right"
-        # )  # Set the x-tick labels and rotate them
-        # ax.set_axisbelow(True)
-        # ax.grid(axis="y", linestyle="-")
-        # ax.set_axisbelow(True)
-        # fig.tight_layout()
-        #
-        # with io.BytesIO() as buf:
-        #     fig.savefig(buf, format="png")
-        #     buf.seek(0)
-        #     emby.set_image(url="attachment://plot.png")
-        #
-        #     await inter.send(
-        #         embed=emby,
-        #         file=disnake.File(
-        #             buf,
-        #             filename="plot.png",
-        #         ),
-        #     )
+        # they are imported here to save memory
+        from matplotlib.axes import Axes
+        from matplotlib.figure import Figure
+        from matplotlib.ticker import MaxNLocator
+
+        fig = Figure(figsize=(5, 5), dpi=180)
+        ax: Axes = fig.subplots()
+        x = list(sortdict.keys())[:10]
+        y = list(sortdict.values())[:10]
+        ax.bar(x, y, color=colors)
+        ax.set_xlabel("Command")
+        ax.set_ylabel("Times used")
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.set_xticks(range(len(x)))  # Set the x-ticks to the number of bars
+        ax.set_xticklabels(
+            x, rotation=45, ha="right"
+        )  # Set the x-tick labels and rotate them
+        ax.set_axisbelow(True)
+        ax.grid(axis="y", linestyle="-")
+        ax.set_axisbelow(True)
+        fig.tight_layout()
+
+        with io.BytesIO() as buf:
+            fig.savefig(buf, format="png")
+            buf.seek(0)
+            emby.set_image(url="attachment://plot.png")
+
+            await inter.send(
+                embed=emby,
+                file=disnake.File(
+                    buf,
+                    filename="plot.png",
+                ),
+            )
 
 
 def setup(bot):
