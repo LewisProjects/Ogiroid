@@ -5,6 +5,6 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 COPY requirements.txt /app/
 WORKDIR /app
-RUN pip install -r -no-cache-dir requirements.txt 
+RUN pip install -r requirements.txt  --no-cache-dir
 COPY . .
 CMD ["python3", "main.py"]
