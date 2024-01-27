@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  postgres:
+    restart: unless-stopped
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ogiroid
+      POSTGRES_PASSWORD: REDACTED
+hey please fix line above :)
+      POSTGRES_USER: ogiroid
+    networks:
+      - postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ogiroid"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+  bot:
+    links:
+      - postgres
+    restart: unless-stopped
+    build:
+      context: Bot
+      dockerfile: Dockerfile
+    volumes:
+      - ./Bot:/bot:ro
+    tty: true
+    networks:
+      - postgres
+    depends_on:
+      - postgres
+
+
+volumes:
+  postgres-data: # allow data to persist in docker managed dir
+
+networks:
+  postgres: # postgres <-> bot
+  web: # bot <-> web
