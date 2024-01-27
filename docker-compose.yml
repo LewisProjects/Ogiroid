@@ -1,3 +1,4 @@
+# Place in dir one level above repo
 version: "3.8"
 services:
   postgres:
