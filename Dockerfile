@@ -1,4 +1,4 @@
-FROM python:3.10-bullseye@sha256:4ce711926e79e68e0b42d0330c8c246ef81d31a744016626
+FROM python:3.10-bullseye@sha256:52a58113e1cf1e0987de24226a60aff16cb235068cdbaf4a1a8f9585ae42463b
 LABEL org.opencontainers.image.authors="Jason Cameron <jason@jasoncameron.dev>"
 LABEL org.opencontainers.image.source="https://github.com/LewisProjects/Ogiroid"
 ENV PYTHONDONTWRITEBYTECODE 1 
