@@ -1,4 +1,4 @@
-# Place in dir one level above repo
+# Place in dir one level above repo and remove .template part and insert db password
 version: "3.8"
 services:
   postgres:
