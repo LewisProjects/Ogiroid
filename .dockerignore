@@ -16,6 +16,4 @@ docs/crowdin.py
 build/*
 *.db
 .idea
-.env
-*.env
 __pycache__/
