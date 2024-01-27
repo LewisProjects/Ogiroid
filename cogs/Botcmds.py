@@ -63,9 +63,7 @@ class Commands(commands.Cog):
             colour=0xFFFFFF,
         )
         ping = round(inter.bot.latency * 1000)
-        if ping < 50:
-            emoji = "<:404:985939028597682216>"
-        elif ping <= 100:
+        if ping <= 100:
             emoji = "<:good:985939098567077888>"
         elif ping <= 200:
             emoji = "<:okay:985939033811193857>"
