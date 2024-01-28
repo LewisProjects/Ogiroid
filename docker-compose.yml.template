@@ -1,19 +1,20 @@
-# Place in dir one level above repo and remove .template part and insert db password
 version: "3.8"
 services:
   postgres:
-    restart: unless-stopped
+    restart: always
     image: postgres:15-alpine
+    container_name: "postgres"
     environment:
-      POSTGRES_DB: ogiroid
-      POSTGRES_PASSWORD: REDACTED
-hey please fix line above :)
+      POSTGRES_MULTIPLE_DATABASES: ogiroid,dashboard
+      POSTGRES_PASSWORD: password
+      replace with password
       POSTGRES_USER: ogiroid
     networks:
       - postgres
     ports:
       - 5432:5432
     volumes:
+      - ./pg-init-scripts/create-multi-pg.sh:/docker-entrypoint-initdb.d/create-multi-pg.sh
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ogiroid"]
@@ -26,7 +27,6 @@ hey please fix line above :)
     restart: unless-stopped
     build:
       context: Bot
-      dockerfile: Dockerfile
     volumes:
       - ./Bot:/bot:ro
     tty: true
@@ -35,10 +35,30 @@ hey please fix line above :)
     depends_on:
       - postgres
 
+  dashboard:
+    restart: unless-stopped
+    build:
+      context: Dashboard
+    ports:
+      - 4000:4000
+    links:
+      - caddy
+      - postgres
+      - bot
 
+  caddy:
+    image: caddy:2.7.6-alpine
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
 volumes:
   postgres-data: # allow data to persist in docker managed dir
-
 networks:
   postgres: # postgres <-> bot
   web: # bot <-> web
