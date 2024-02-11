@@ -27,7 +27,7 @@ class Channels:
     roles: int = 933102052173828136
     rules: int = 905182869410955355
     uploads: int = 1033712950252408884
-    birthdays: int = 1044886735588429864
+    birthdays: int = 897666935708352587  # general channel
     ogiroid_logs: int = 1040797919214845962
     ticket_logs: int = 1190303721888940162
 
