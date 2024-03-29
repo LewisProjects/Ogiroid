@@ -12,6 +12,7 @@ class AI(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.slash_command(description="Generates ai art")
     async def ai_art(self, inter: disnake.ApplicationCommandInteraction, text: str):
         if profanity.contains_profanity(text):
