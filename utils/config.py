@@ -12,6 +12,7 @@ class Tokens:
     weathermap: str = os.getenv("OPEN_WEATHER_MAP_API_KEY")
     yt_api_key: str = os.getenv("YT_API_KEY")
     currency: str = os.getenv("CURRENCY_API_KEY")
+    huggingface: str = os.getenv("HUGGINGFACE_API_KEY")
 
 
 @dataclass
