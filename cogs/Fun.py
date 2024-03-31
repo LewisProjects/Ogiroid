@@ -285,6 +285,7 @@ class Fun(commands.Cog):
     )
     # Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
     async def askogiroid(self, inter):
+        await inter.response.defer()
         async with inter.author.typing():
             intro = disnake.Embed(
                 title="Ogiroid",
@@ -347,6 +348,7 @@ class Fun(commands.Cog):
                         button_click = await self.bot.wait_for(
                             "button_click", check=check, timeout=30
                         )
+                        await button_click.response.defer()
                     except asyncio.TimeoutError:
                         await inter.send(
                             "Sorry you took too long to respond!(waited for 30sec)"
