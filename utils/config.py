@@ -13,6 +13,7 @@ class Tokens:
     yt_api_key: str = os.getenv("YT_API_KEY")
     currency: str = os.getenv("CURRENCY_API_KEY")
     huggingface: str = os.getenv("HUGGINGFACE_API_KEY")
+    api_ninjas_key: str = os.getenv("API-NINJAS-KEY")
 
 
 @dataclass
