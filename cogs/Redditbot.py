@@ -75,7 +75,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         if message.author.bot:
             return
 
-        if message.channel.id != self.bot.config.channels.reddit_bot and (message.channel, disnake.Thread) and message.channel.parent_id != self.bot.config.channels.reddit_bot_forum:
+        if not (isinstance(message.channel, disnake.TextChannel) and message.channel.id == self.bot.config.channels.reddit_bot) and not (isinstance(message.channel, disnake.Thread) and message.channel.parent_id == self.bot.config.channels.reddit_bot_forum):
             return
 
         content = message.content
@@ -85,19 +85,27 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
                 if attachment.content_type.startswith("image"):
                     await message.add_reaction("👀")
                     image_data = await attachment.read()
+
                     api_url = 'https://api.api-ninjas.com/v1/imagetotext'
-                    response = requests.post(api_url, files={'image': image_data}, headers={'X-Api-Key': self.api_ninjas_key})
+                    async with await self.bot.session.post(
+                        api_url,
+                        json={"file": image_data},
+                        headers={'X-Api-Key': self.api_ninjas_key}
+                    ) as resp:
+                        image_data = await resp.read()
+                        print(image_data)
 
-                    if response.status_code == 200:
-                        responses = response.json()
-                        if responses:
-                            text = ""
-                            for res in responses:
-                                text += res['text'] + " "
-
-                            content += " " + text
-                    else:
-                        await message.channel.send(f"Error occurred while processing the image. {response.status_code} {response.text}")
+                    # print(response.status)
+                    # print(await response.text())
+                    # if response.status == 200:
+                    #     print(response)
+                    #     data = await response.json()
+                    #     print(data)
+                    #     text = data.get("text")
+                    #     print(text)
+                    #     if text:
+                    #         print(text)
+                    #         await message.reply(f"Here is the text extracted from the image: {text}")
 
         content = content.lower()
 
@@ -195,7 +203,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         if find_and_check(content, out_of_quota_error_words):
             # write this message to people:
             await message.reply(
-                """Hey there! It seems like you're encountering an error related to `request exceeds quota characters remaining elevenlabs`.\n\nThis error occurs when you've exceeded the maximum number of requests allowed by the API. To resolve this issue, you can either wait for the quota to reset or consider upgrading your plan to increase the number of requests you can make.\n\nA free alternative would be to replace your tts_provider in your config.toml file, change it from `"elevenlabs"` to `"streamlabspolly"`."""
+                """Hey there! It seems like you're encountering an error related to `request exceeds quota characters remaining elevenlabs`.\n\nThis error occurs when you've exceeded the maximum number of requests allowed by the API. To resolve this issue, you can either wait for the quota to reset or consider upgrading your plan to increase the number of requests you can make.\n\nA free alternative would be to replace your voice_choice in your config.toml file, change it from `"elevenlabs"` to `"streamlabspolly"`."""
             )
             return
 
@@ -208,7 +216,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
 
         if find_and_check(content, tiktok_tts_error_words):
             await message.reply(
-                """Hey there! It seems like you're encountering an error related to `Reason: probably the aid value isn't correct, message: the Couldn't load speech. Try again.`.\n\nThis error occurs because the TikTok tts is currently broken. To resolve this issue, you can set the tts_provider in your `config.toml` file to `"streamlabspolly"`"""
+                """Hey there! It seems like you're encountering an error related to `Reason: probably the aid value isn't correct, message: the Couldn't load speech. Try again.`.\n\nThis error occurs because the TikTok tts is currently broken. To resolve this issue, you can set the voice_choice in your `config.toml` file to `"streamlabspolly"`"""
             )
             return
 
