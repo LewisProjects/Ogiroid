@@ -4,6 +4,7 @@ from disnake.ext import commands
 import requests
 
 from utils.bot import OGIROID
+from utils.http import session
 
 
 class RedditBot(commands.Cog, name="Reddit Bot"):
@@ -75,7 +76,13 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         if message.author.bot:
             return
 
-        if not (isinstance(message.channel, disnake.TextChannel) and message.channel.id == self.bot.config.channels.reddit_bot) and not (isinstance(message.channel, disnake.Thread) and message.channel.parent_id == self.bot.config.channels.reddit_bot_forum):
+        if not (
+            isinstance(message.channel, disnake.TextChannel)
+            and message.channel.id == self.bot.config.channels.reddit_bot
+        ) and not (
+            isinstance(message.channel, disnake.Thread)
+            and message.channel.parent_id == self.bot.config.channels.reddit_bot_forum
+        ):
             return
 
         content = message.content
@@ -86,26 +93,23 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
                     await message.add_reaction("👀")
                     image_data = await attachment.read()
 
-                    api_url = 'https://api.api-ninjas.com/v1/imagetotext'
-                    async with await self.bot.session.post(
+                    api_url = "https://api.api-ninjas.com/v1/imagetotext"
+                    async with await session.post(
                         api_url,
-                        json={"file": image_data},
-                        headers={'X-Api-Key': self.api_ninjas_key}
-                    ) as resp:
-                        image_data = await resp.read()
-                        print(image_data)
+                        data={"image": image_data},
+                        headers={"X-Api-Key": self.api_ninjas_key},
+                    ) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            text = ""
+                            for t in data:
+                                text += t["text"] + " "
 
-                    # print(response.status)
-                    # print(await response.text())
-                    # if response.status == 200:
-                    #     print(response)
-                    #     data = await response.json()
-                    #     print(data)
-                    #     text = data.get("text")
-                    #     print(text)
-                    #     if text:
-                    #         print(text)
-                    #         await message.reply(f"Here is the text extracted from the image: {text}")
+                            content += " " + text
+                        else:
+                            await message.channel.send(
+                                f"Error occurred while processing the image. Try pasting the text instead. {response.status_code} {response.text}"
+                            )
 
         content = content.lower()
 
@@ -116,13 +120,13 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         username_error_words = [
             ["waiting", "locator", "name", "username"],
             ["waiting", "locator", "name", "usernane"],
-            ["waiting", "locator", "timeout", "exceeded"]
+            ["waiting", "locator", "timeout", "exceeded"],
         ]
 
         def find_and_check(string, words_list):
             for words in words_list:
                 # Create a regular expression pattern to match any of the words
-                pattern = re.compile('|'.join(words))
+                pattern = re.compile("|".join(words))
 
                 # Search for matches in the string
                 matches = pattern.findall(string)
@@ -169,13 +173,13 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         if needs_transparent_option(content):
             # write this message to people:
             await message.channel.send(
-                "Hey there! If you're looking to remove the box around your text, simply follow these steps:\n\n" +
-                "1. Navigate to the main folder of the project.\n" +
-                "2. Locate the `config.toml` file.\n" +
-                "3. Open the `config.toml` file with a text editor.\n" +
-                "4. Find the setting named `theme`.\n" +
-                "5. Change the value of `theme` to `transparent`.\n" +
-                "6. Save the changes and restart the bot."
+                "Hey there! If you're looking to remove the box around your text, simply follow these steps:\n\n"
+                + "1. Navigate to the main folder of the project.\n"
+                + "2. Locate the `config.toml` file.\n"
+                + "3. Open the `config.toml` file with a text editor.\n"
+                + "4. Find the setting named `theme`.\n"
+                + "5. Change the value of `theme` to `transparent`.\n"
+                + "6. Save the changes and restart the bot."
             )
             return
 
@@ -211,7 +215,17 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
         # Tiktok tts error
         ###
         tiktok_tts_error_words = [
-            ["reason", "probably", "aid", "value", "correct", "load", "speech", "try", "again"],
+            [
+                "reason",
+                "probably",
+                "aid",
+                "value",
+                "correct",
+                "load",
+                "speech",
+                "try",
+                "again",
+            ],
         ]
 
         if find_and_check(content, tiktok_tts_error_words):
@@ -220,12 +234,22 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
             )
             return
 
-
         ###
         # ffmpeg not installed error
         ###
         ffmpeg_not_installed_error_words = [
-            ["moviepy", "error", "ffmpeg", "encountered", "writing", "file", "unknown", "encoder", "not", "found"],
+            [
+                "moviepy",
+                "error",
+                "ffmpeg",
+                "encountered",
+                "writing",
+                "file",
+                "unknown",
+                "encoder",
+                "not",
+                "found",
+            ],
         ]
 
         if find_and_check(content, ffmpeg_not_installed_error_words):
@@ -234,6 +258,7 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
                 """Hey there! It seems like you're encountering an error related to ffmpeg not being installed in your project. To resolve this issue, please make sure to download the ffmpeg.exe files and place them in the main folder of your project. Once done, try running your project again, and the error should be resolved. If you need further assistance, feel free to ask! 😊"""
             )
             return
+
 
 def setup(bot):
     bot.add_cog(RedditBot(bot))
