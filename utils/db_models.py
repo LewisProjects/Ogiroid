@@ -1,6 +1,14 @@
 import time
 
-from sqlalchemy import Column, Integer, BigInteger, Text, Boolean, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    BigInteger,
+    Text,
+    Boolean,
+    UniqueConstraint,
+    ARRAY,
+)
 from sqlalchemy.orm import declarative_base
 
 from utils.CONSTANTS import LEVELS_AND_XP
@@ -182,3 +190,17 @@ class TotalCommands(Base):
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger, unique=True)
     total_commands_used = Column(Integer, default=0)
+
+
+class AutoResponseMessages(Base):
+    __tablename__ = "auto_response_messages"
+    # needs to be list of strings and list of regex strings, channels, guild and response
+    id = Column(Integer, primary_key=True)
+    guild_id = Column(BigInteger)
+    channel_ids = Column(ARRAY(BigInteger))
+    regex_strings = Column(ARRAY(Text))
+    strings = Column(ARRAY(Text))
+    response = Column(Text)
+    case_sensitive = Column(Boolean)
+    enabled = Column(Boolean)
+    ephemeral = Column(Boolean)

@@ -92,7 +92,7 @@ Use ```black . --safe``` for formatting (need to install black with pip)
 
 ```alembic revision --autogenerate```
 
-```alembid upgrade head```
+```alembic upgrade head```
 
 #### Help
 
