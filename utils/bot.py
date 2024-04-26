@@ -1,13 +1,15 @@
 import asyncio
+import os
 from datetime import datetime
+
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-import asyncpg
+from cogwatch import watch
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
 
-from utils.db_models import Base
 from utils.CONSTANTS import __VERSION__
 from utils.DBhandlers import BlacklistHandler
 from utils.cache import async_cache
@@ -15,6 +17,8 @@ from utils.config import Config
 from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
+
+load_dotenv("secrets.env")
 
 
 class OGIROID(commands.InteractionBot):
@@ -89,6 +93,7 @@ class OGIROID(commands.InteractionBot):
         except KeyError:
             self.commands_ran[inter.guild.id][COMMAND_NAME] = 1
 
+    @watch(path="cogs")
     async def on_ready(self):
         if not self._ready_:
             await self.wait_until_ready()
@@ -125,7 +130,6 @@ class OGIROID(commands.InteractionBot):
         pass
 
     async def start(self, *args, **kwargs):
-
         engine = create_async_engine(
             self.config.Database.connection_string, pool_pre_ping=True
         )

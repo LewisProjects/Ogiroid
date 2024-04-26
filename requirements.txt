@@ -17,3 +17,4 @@ better_profanity==0.7.0
 sqlalchemy[asyncio]==2.0.23
 alembic==1.13.1
 matplotlib==3.8.2
+cogwatch==3.3.1
