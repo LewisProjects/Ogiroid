@@ -5,7 +5,6 @@ from datetime import datetime
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from cogwatch import watch
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
@@ -17,8 +16,6 @@ from utils.config import Config
 from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
-
-load_dotenv("secrets.env")
 
 
 class OGIROID(commands.InteractionBot):
@@ -93,7 +90,6 @@ class OGIROID(commands.InteractionBot):
         except KeyError:
             self.commands_ran[inter.guild.id][COMMAND_NAME] = 1
 
-    @watch(path="cogs")
     async def on_ready(self):
         if not self._ready_:
             await self.wait_until_ready()
