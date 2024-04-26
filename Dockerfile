@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED 1
 COPY requirements.txt /app/
 WORKDIR /app
 RUN pip install -r requirements.txt  --no-cache-dir
+ENV PATH="/root/.local/bin:${PATH}"
 RUN alembic upgrade head
 COPY . .
 CMD ["python3", "-O", "main.py"]
