@@ -203,4 +203,3 @@ class AutoResponseMessages(Base):
     response = Column(Text)
     case_sensitive = Column(Boolean, default=False)
     enabled = Column(Boolean, default=True)
-    ephemeral = Column(Boolean, default=False)

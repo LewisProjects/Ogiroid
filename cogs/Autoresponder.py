@@ -14,20 +14,6 @@ from utils.http import session
 from utils.shortcuts import errorEmb
 
 
-# class AutoResponseMessages(Base):
-#     __tablename__ = "auto_response_messages"
-#     # needs to be list of strings and list of regex strings, channels, guild and response
-#     id = Column(Integer, primary_key=True)
-#     guild_id = Column(BigInteger)
-#     channel_ids = Column(ARRAY(BigInteger))
-#     regex_strings = Column(ARRAY(Text))
-#     strings = Column(ARRAY(Text))
-#     response = Column(Text)
-#     case_sensitive = Column(Boolean)
-#     enabled = Column(Boolean)
-#     ephemeral = Column(Boolean)
-
-
 class AutoResponder(commands.Cog, name="Autoresponder"):
     """Autoresponder commands"""
 
@@ -94,6 +80,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
     async def responder(self, inter):
         pass
 
+    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(
         description="Add a response. Defaults to all channels. Modal will pop up."
     )
@@ -102,7 +89,6 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         inter: disnake.ApplicationCommandInteraction,
         channel1: Union[disnake.TextChannel, disnake.ForumChannel],
         case_sensitive: bool = False,
-        ephemeral: bool = False,
         channel2: Union[disnake.TextChannel, disnake.ForumChannel] = None,
         channel3: Union[disnake.TextChannel, disnake.ForumChannel] = None,
         channel4: Union[disnake.TextChannel, disnake.ForumChannel] = None,
@@ -111,7 +97,6 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         channel_ids = [channel1, channel2, channel3, channel4, channel5]
         data = {
             "case_sensitive": case_sensitive,
-            "ephemeral": ephemeral,
             "channel_ids": [ch.id for ch in channel_ids if ch],
         }
         await inter.response.send_modal(AutoResponderModal())
@@ -121,6 +106,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
         await self.create_db_entry(modal_inter, other_data=data)
 
+    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Edit a response. Modal will pop up.")
     async def edit(self, inter: disnake.ApplicationCommandInteraction, id: int):
         async with self.bot.db.begin() as session:
@@ -147,9 +133,10 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
         await self.create_db_entry(modal_inter, prefill_data=response.__dict__)
 
+    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Delete a response")
     async def delete(self, inter: disnake.ApplicationCommandInteraction, id: int):
-        await inter.response.defer()
+        await inter.response.defer(ephermeral=True)
         async with self.bot.db.begin() as session:
             response = await session.execute(
                 select(AutoResponseMessages)
@@ -172,6 +159,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
         await inter.send("Autoresponder deleted successfully", ephemeral=True)
 
+    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="List all responses")
     async def list(self, inter: disnake.ApplicationCommandInteraction):
         await inter.response.defer(ephemeral=True)
@@ -179,12 +167,13 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
 
         response = ""
         for res in responses:
-            response = f"ID: {res.id} | Response: {res.response} | Strings: {res.strings} | Regex Strings: {res.regex_strings}\n"
+            response = f"ID: {res.id} | Enabled: {res.enabled} | Response: {res.response} | Strings: {res.strings} | Regex Strings: {res.regex_strings}\n"
             await inter.send(response, ephemeral=True)
 
         if not response:
             await inter.send("No responses found", ephemeral=True)
 
+    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Enable or disable a response")
     async def toggle(self, inter: disnake.ApplicationCommandInteraction, id: int):
         await inter.response.defer()
