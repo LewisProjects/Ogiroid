@@ -80,6 +80,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
     async def responder(self, inter):
         pass
 
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @responder.sub_command(
         description="Add a response. Defaults to all channels. Modal will pop up."
@@ -106,9 +107,16 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
         await self.create_db_entry(modal_inter, other_data=data)
 
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Edit a response. Modal will pop up.")
-    async def edit(self, inter: disnake.ApplicationCommandInteraction, id: int):
+    async def edit(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        id: int = commands.Param(
+            description="ID of the response to delete. Get id by: /responder list"
+        ),
+    ):
         async with self.bot.db.begin() as session:
             response = await session.execute(
                 select(AutoResponseMessages)
@@ -133,9 +141,16 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
         await self.create_db_entry(modal_inter, prefill_data=response.__dict__)
 
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Delete a response")
-    async def delete(self, inter: disnake.ApplicationCommandInteraction, id: int):
+    async def delete(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        id: int = commands.Param(
+            description="ID of the response to delete. Get id by: /responder list"
+        ),
+    ):
         await inter.response.defer(ephermeral=True)
         async with self.bot.db.begin() as session:
             response = await session.execute(
@@ -159,6 +174,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
         await inter.send("Autoresponder deleted successfully", ephemeral=True)
 
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="List all responses")
     async def list(self, inter: disnake.ApplicationCommandInteraction):
@@ -173,9 +189,16 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         if not response:
             await inter.send("No responses found", ephemeral=True)
 
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Enable or disable a response")
-    async def toggle(self, inter: disnake.ApplicationCommandInteraction, id: int):
+    async def toggle(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        id: int = commands.Param(
+            description="ID of the response to delete. Get id by: /responder list"
+        ),
+    ):
         await inter.response.defer()
         async with self.bot.db.begin() as session:
             response = await session.execute(
