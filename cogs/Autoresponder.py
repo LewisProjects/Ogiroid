@@ -32,11 +32,17 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
             response = inter.text_values["response"].strip()
             if inter.text_values["strings"]:
                 strings = inter.text_values["strings"].strip().split("|||")
+                strings = [string.strip() for string in strings if string.strip()]
             else:
                 strings = []
 
             if inter.text_values["regex_strings"]:
                 regex_strings = inter.text_values["regex_strings"].strip().split("|||")
+                regex_strings = [
+                    regex_string.strip()
+                    for regex_string in regex_strings
+                    if regex_string.strip()
+                ]
             else:
                 regex_strings = []
 
