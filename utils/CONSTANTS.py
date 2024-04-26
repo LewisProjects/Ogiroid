@@ -21,7 +21,8 @@ class Channels:
     welcome: int = 905183354930995320
     goodbye: int = 905183354930995320  # same as welcome
     starboard: int = 1011210884875550821
-    reddit_bot: int = 981613938166890556
+    reddit_bot: int = 1091021800319762494
+    reddit_bot_forum: int = 1150061002755428382
     introduction: int = 980049243236597780
     general: int = 897666935708352587
     roles: int = 933102052173828136
@@ -44,6 +45,7 @@ class Channels:
         cls.welcome = cls.goodbye = 985961186107461673
         cls.starboard: int = 985936949581865030
         cls.reddit_bot: int = 1012349179810553917
+        cls.reddit_bot_forum: int = 1233071078570459176
         cls.introduction: int = 1013853473172893837  # dummy channel
         cls.general: int = 985729550732394536
         cls.roles: int = 1013853473172893837  # dummy channel
@@ -1119,3 +1121,5 @@ CURRENCIES = {
     "ZMW": "ZMW - Zambian Kwacha",
     "ZWL": "ZWL - Zimbabwean Dollar",
 }
+
+

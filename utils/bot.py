@@ -1,13 +1,14 @@
 import asyncio
+import os
 from datetime import datetime
+
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-import asyncpg
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
 
-from utils.db_models import Base
 from utils.CONSTANTS import __VERSION__
 from utils.DBhandlers import BlacklistHandler
 from utils.cache import async_cache
@@ -125,7 +126,6 @@ class OGIROID(commands.InteractionBot):
         pass
 
     async def start(self, *args, **kwargs):
-
         engine = create_async_engine(
             self.config.Database.connection_string, pool_pre_ping=True
         )
