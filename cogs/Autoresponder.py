@@ -77,6 +77,21 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
             print(e)
             await errorEmb(inter, f"Error: {e}")
 
+    async def handle_perm(self, inter: disnake.ApplicationCommandInteraction):
+        has_role = False
+        for role in inter.author.roles:
+            if role.id == self.bot.config.roles.reddit_bot_team:
+                has_role = True
+                break
+        if not inter.author.guild_permissions.manage_messages and not has_role:
+            await errorEmb(
+                inter,
+                "You need the `Manage Messages` permission to use this command",
+                ephemeral=True,
+            )
+            return False
+        return True
+
     @commands.Cog.listener()
     async def on_ready(self):
         await self.cache_auto_responses()
@@ -87,7 +102,6 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         pass
 
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(
         description="Add a response. Defaults to all channels. Modal will pop up."
     )
@@ -101,6 +115,8 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         channel4: Union[disnake.TextChannel, disnake.ForumChannel] = None,
         channel5: Union[disnake.TextChannel, disnake.ForumChannel] = None,
     ):
+        if not await self.handle_perm(inter):
+            return
         channel_ids = [channel1, channel2, channel3, channel4, channel5]
         data = {
             "case_sensitive": case_sensitive,
@@ -114,7 +130,6 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         await self.create_db_entry(modal_inter, other_data=data)
 
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Edit a response. Modal will pop up.")
     async def edit(
         self,
@@ -123,6 +138,8 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
             description="ID of the response to delete. Get id by: /responder list"
         ),
     ):
+        if not await self.handle_perm(inter):
+            return
         async with self.bot.db.begin() as session:
             response = await session.execute(
                 select(AutoResponseMessages)
@@ -148,7 +165,6 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         await self.create_db_entry(modal_inter, prefill_data=response.__dict__)
 
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Delete a response")
     async def delete(
         self,
@@ -157,6 +173,8 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
             description="ID of the response to delete. Get id by: /responder list"
         ),
     ):
+        if not await self.handle_perm(inter):
+            return
         await inter.response.defer(ephermeral=True)
         async with self.bot.db.begin() as session:
             response = await session.execute(
@@ -181,9 +199,10 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         await inter.send("Autoresponder deleted successfully", ephemeral=True)
 
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="List all responses")
     async def list(self, inter: disnake.ApplicationCommandInteraction):
+        if not await self.handle_perm(inter):
+            return
         await inter.response.defer(ephemeral=True)
         responses = self.auto_responses.get(inter.guild.id, [])
 
@@ -196,7 +215,6 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
             await inter.send("No responses found", ephemeral=True)
 
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
     @responder.sub_command(description="Enable or disable a response")
     async def toggle(
         self,
@@ -205,6 +223,8 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
             description="ID of the response to delete. Get id by: /responder list"
         ),
     ):
+        if not await self.handle_perm(inter):
+            return
         await inter.response.defer()
         async with self.bot.db.begin() as session:
             response = await session.execute(
@@ -235,7 +255,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
         )
 
     @commands.Cog.listener(name="on_message")
-    async def on_message(self, message):
+    async def on_message(self, message: disnake.Message):
         if message.author.bot:
             return
 
@@ -298,7 +318,13 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
 
             # Check if any of the strings are in the message
             if any(string in content for string in strings):
-                await message.reply(response_text)
+                if "<user.mention>" in response_text:
+                    response_text = response_text.replace(
+                        "<user.mention>", message.author.mention
+                    )
+                    await message.channel.send(response_text)
+                else:
+                    await message.reply(response_text)
                 return
 
             # Check if any of the regex strings are in the message
@@ -312,7 +338,13 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
                 )
                 for regex_string in regex_strings
             ):
-                await message.reply(response_text)
+                if "<user.mention>" in response_text:
+                    response_text = response_text.replace(
+                        "<user.mention>", message.author.mention
+                    )
+                    await message.channel.send(response_text)
+                else:
+                    await message.reply(response_text)
                 return
 
     async def cache_auto_responses(self):
@@ -337,14 +369,14 @@ class AutoResponderModal(disnake.ui.Modal):
         components = [
             disnake.ui.TextInput(
                 label="Response",
-                placeholder="Response",
+                placeholder="Response, use <user.mention> to mention the user.",
                 style=TextInputStyle.paragraph,
                 custom_id="response",
                 value=prefill_data.get("response", "") if prefill_data else "",
             ),
             disnake.ui.TextInput(
                 label="Strings, separated by |||",
-                placeholder="Strings(trigger)",
+                placeholder="Strings(trigger), to use multiple strings, separate with |||",
                 style=TextInputStyle.paragraph,
                 custom_id="strings",
                 value="|||".join(prefill_data.get("strings", ""))
@@ -354,7 +386,7 @@ class AutoResponderModal(disnake.ui.Modal):
             ),
             disnake.ui.TextInput(
                 label="Regex Strings, separated by |||",
-                placeholder="Regex Strings(trigger)",
+                placeholder="Regex Strings(trigger), to use multiple regexes, separate with |||",
                 style=TextInputStyle.paragraph,
                 custom_id="regex_strings",
                 value="|||".join(prefill_data.get("regex_strings", ""))

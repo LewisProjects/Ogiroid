@@ -76,6 +76,7 @@ class Roles:
     birthday: int = 1044883332548280360
     nitro: int = 970695593913647144
     lvl_5: int = 1018062723214491668
+    reddit_bot_team: int = 982311825951567992
 
     @classmethod
     def dev(cls):
@@ -84,6 +85,7 @@ class Roles:
         cls.birthday: int = 1007202835957563412  # dummy role
         cls.nitro: int = 1007202835957563412  # dummy role
         cls.lvl_5: int = 1007202835957563412  # dummy role
+        cls.reddit_bot_team: int = 1235936655936847924
         return cls
 
 
@@ -1121,5 +1123,3 @@ CURRENCIES = {
     "ZMW": "ZMW - Zambian Kwacha",
     "ZWL": "ZWL - Zimbabwean Dollar",
 }
-
-
