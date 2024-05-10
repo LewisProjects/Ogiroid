@@ -175,7 +175,7 @@ class AutoResponder(commands.Cog, name="Autoresponder"):
     ):
         if not await self.handle_perm(inter):
             return
-        await inter.response.defer(ephermeral=True)
+        await inter.response.defer(ephemeral=True)
         async with self.bot.db.begin() as session:
             response = await session.execute(
                 select(AutoResponseMessages)
