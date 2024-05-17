@@ -286,6 +286,7 @@ class Fun(commands.Cog):
     # Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
     async def askogiroid(self, inter):
         await inter.response.defer()
+        return await inter.send("Command is disabled for now.")
         async with inter.author.typing():
             intro = disnake.Embed(
                 title="Ogiroid",
@@ -327,78 +328,74 @@ class Fun(commands.Cog):
                     style=disnake.ButtonStyle.blurple,
                 ),
             ]
-
-            try:
-                aki = ak.Akinator()
-                q = aki.start_game(language="en")
-                channel = self.bot.get_channel(inter.channel.id)
-                button_click = channel
-                while aki.progression <= 80:
-                    question_number = 0
-                    question = disnake.Embed(
-                        title="Question", description=q, color=0xFFFFFF
-                    )
-                    question_number = question_number + 1
-                    question.set_footer(text=question_number)
-                    question.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
-                    )
-                    await button_click.send(embed=question, components=components)
-                    try:
-                        button_click = await self.bot.wait_for(
-                            "button_click", check=check, timeout=30
-                        )
-                        await button_click.response.defer()
-                    except asyncio.TimeoutError:
-                        await inter.send(
-                            "Sorry you took too long to respond!(waited for 30sec)"
-                        )
-                        await inter.send(embed=bye)
-                        return
-                    if button_click.component.custom_id == "b":
-                        try:
-                            q = aki.back()
-                        except ak.CantGoBackAnyFurther as e:
-                            await errorEmb(button_click, e)
-                            continue
-                    else:
-                        q = aki.answer(button_click.component.custom_id)
-
-                aki.win()
-                answer = disnake.Embed(
-                    title=f"Your character: {aki.first_guess['name']}",
-                    description=f"Your character is: {aki.first_guess['description']}",
-                    color=0xFFFFFF,
+            aki = ak.Akinator()
+            q = aki.start_game()
+            channel = self.bot.get_channel(inter.channel.id)
+            button_click = channel
+            while aki.progression <= 80:
+                question_number = 0
+                question = disnake.Embed(
+                    title="Question", description=q, color=0xFFFFFF
                 )
-                # answer.set_image(aki.first_guess['absolute_picture_path']) may contain NSFW images
-                answer.set_footer(text="Was I correct?")
-                await button_click.send(
-                    embed=answer, components=[components[0], components[1]]
+                question_number = question_number + 1
+                question.set_footer(text=question_number)
+                question.set_thumbnail(
+                    url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                 )
-                # await inter.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
+                await button_click.send(embed=question, components=components)
                 try:
-                    correct = await self.bot.wait_for(
+                    button_click = await self.bot.wait_for(
                         "button_click", check=check, timeout=30
                     )
+                    await button_click.response.defer()
                 except asyncio.TimeoutError:
-                    await errorEmb(correct, "Sorry you took too long to respond.")
+                    await inter.send(
+                        "Sorry you took too long to respond!(waited for 30sec)"
+                    )
                     await inter.send(embed=bye)
                     return
-                if correct.component.custom_id == "y":
-                    yes = disnake.Embed(title="Yeah!!!", color=0xFFFFFF)
-                    yes.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
-                    )
-                    await correct.send(embed=yes)
+                if button_click.component.custom_id == "b":
+                    try:
+                        q = aki.back()
+                    except ak.CantGoBackAnyFurther as e:
+                        await errorEmb(button_click, e)
+                        continue
                 else:
-                    no = disnake.Embed(title="Oh Noooooo!!!", color=0xFFFFFF)
-                    no.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
-                    )
-                    await correct.send(embed=no)
-                await channel.send(embed=bye)
-            except Exception as e:
-                await errorEmb(inter, e)
+                    q = aki.answer(button_click.component.custom_id)
+
+            aki.win()
+            answer = disnake.Embed(
+                title=f"Your character: {aki.first_guess['name']}",
+                description=f"Your character is: {aki.first_guess['description']}",
+                color=0xFFFFFF,
+            )
+            # answer.set_image(aki.first_guess['absolute_picture_path']) may contain NSFW images
+            answer.set_footer(text="Was I correct?")
+            await button_click.send(
+                embed=answer, components=[components[0], components[1]]
+            )
+            # await inter.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
+            try:
+                correct = await self.bot.wait_for(
+                    "button_click", check=check, timeout=30
+                )
+            except asyncio.TimeoutError:
+                await errorEmb(correct, "Sorry you took too long to respond.")
+                await inter.send(embed=bye)
+                return
+            if correct.component.custom_id == "y":
+                yes = disnake.Embed(title="Yeah!!!", color=0xFFFFFF)
+                yes.set_thumbnail(
+                    url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                )
+                await correct.send(embed=yes)
+            else:
+                no = disnake.Embed(title="Oh Noooooo!!!", color=0xFFFFFF)
+                no.set_thumbnail(
+                    url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                )
+                await correct.send(embed=no)
+            await channel.send(embed=bye)
 
     @commands.slash_command(
         name="bored", brief="activity", description="Returns an activity"
