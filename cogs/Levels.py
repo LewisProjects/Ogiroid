@@ -569,18 +569,23 @@ class Level(commands.Cog):
     async def set(
         self,
         inter: ApplicationCommandInteraction,
-        amount=Option(
+        amount: str = Option(
             name="amount",
-            type=Union[float, int],
             required=True,
             description="The amount to boost by",
-            max_value=10,
-            min_value=0.1,
         ),
         expires: str = "Never",
     ):
         """Set the xp boost for the server and optionally set an expiration date"""
         await inter.response.defer()
+        try:
+            amount = float(amount)
+        except ValueError:
+            return await inter.send("Invalid amount")
+        if amount < 0.1:
+            return await inter.send("Amount must be greater than 0.1")
+        elif amount > 10:
+            return await inter.send("Amount must be less than 10")
         try:
             expires = (await timeconversions.convert(expires)).dt.timestamp()
         except BadArgument:
