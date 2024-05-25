@@ -10,7 +10,7 @@ from io import BytesIO
 from typing import Union, Optional
 
 import disnake
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 from cachetools import TTLCache
 from disnake import (
     Message,
@@ -317,7 +317,12 @@ class LevelsController:
             return record
 
     async def generate_image_card(
-        self, user: Member | Levels, rank: str, xp: int, lvl: int
+        self,
+        user: Member | Levels,
+        rank: str,
+        xp: int,
+        lvl: int,
+        theme: str = "light",
     ) -> Image:
         """generates an image card for the user"""
         avatar: disnake.Asset = user.display_avatar.with_size(512)
@@ -336,7 +341,10 @@ class LevelsController:
 
         with Image.open(card).convert("RGBA") as base:
             # make a blank image for the text, initialized to transparent text color
-            txt = Image.new("RGBA", base.size, (255, 255, 255, 0))
+            foreground = (0, 0, 0, 255)  # black
+            background = (255, 255, 255, 255)  # white
+            transparent = (255, 255, 255, 0)
+            txt = Image.new("RGBA", base.size, transparent)
 
             response = await self.bot.session.get(avatar.url)
             avatar_image_bytes = io.BytesIO(await response.read())
@@ -364,6 +372,7 @@ class LevelsController:
                 return result
 
             def roundify(im, rad):
+                mode = im.mode
                 circle = Image.new("L", (rad * 2, rad * 2), 0)
                 draw = ImageDraw.Draw(circle)
                 draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
@@ -377,7 +386,7 @@ class LevelsController:
                     (w - rad, h - rad),
                 )
                 im.putalpha(alpha)
-                return im
+                return im.convert(mode)
 
             # makes the avatar ROUND
             avatar_img = mask_circle_transparent(
@@ -389,18 +398,36 @@ class LevelsController:
             # get a drawing context
             d = ImageDraw.Draw(txt)
             # username
-            d.text((179, 32), str(user.name), font=fnt, fill=(0, 0, 0, 255))
+            d.text(
+                (179, 32),
+                str(user.name),
+                font=fnt,
+                fill=foreground,
+            )
             # xp
-            d.text((185, 65), f"{xp}/{next_xp}", font=fnt, fill=(0, 0, 0, 255))
+            d.text(
+                (185, 65),
+                f"{xp}/{next_xp}",
+                font=fnt,
+                fill=foreground,
+            )
             # level
-            d.text((115, 96), str(lvl), font=fnt, fill=(0, 0, 0, 255))
+            d.text((115, 96), str(lvl), font=fnt, fill=foreground)
             # Rank
-            d.text((113, 130), f"#{rank}", font=fnt, fill=(0, 0, 0, 255))
-            d.rectangle((44, 186, 44 + width, 186 + 21), fill=(255, 255, 255, 255))
-            txt.paste(avatar_img, (489, 23))
+            d.text(
+                (113, 130),
+                f"#{rank}",
+                font=fnt,
+                fill=foreground,
+            )
+            d.rectangle((44, 185, 44 + width, 185 + 21), fill=background)
 
             out = Image.alpha_composite(base, txt)
-            out = roundify(out, rad=14)
+            out = roundify(out.convert("RGB"), rad=14)
+            if theme == "dark":
+                out = ImageChops.invert(out)
+            out.paste(avatar_img, (489, 23), avatar_img)
+
             with BytesIO() as image_binary:
                 out.save(image_binary, "PNG")
                 image_binary.seek(0)
@@ -610,6 +637,11 @@ class Level(commands.Cog):
         self,
         inter: ApplicationCommandInteraction,
         user: Optional[Member] = None,
+        theme: Optional[str] = Param(
+            description="The theme of the rank card",
+            choices=["light", "dark"],
+            default="light",
+        ),
     ):
         """
         Get the rank of a user in the server or yourself if no user is specified
@@ -629,7 +661,7 @@ class Level(commands.Cog):
                 inter.guild.id, user_record, return_updated=True
             )
             image = await self.controller.generate_image_card(
-                user, rank, user_record.xp, user_record.level
+                user, rank, user_record.xp, user_record.level, theme
             )
             await inter.send(file=image)
         except UserNotFound:
