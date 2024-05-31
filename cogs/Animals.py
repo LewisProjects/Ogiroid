@@ -1,6 +1,5 @@
 import disnake
 from disnake.ext import commands
-
 from utils.bot import OGIROID
 
 
@@ -14,6 +13,24 @@ class Animals(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def animal(self, inter):
         pass
+
+
+@animal.sub_command(name="catfact", description="Get a random cat fact")
+async def catfact(self, inter):
+    async with self.bot.session.get("https://catfact.ninja/fact") as response:
+        data = await response.json()
+        fact = data["fact"]
+        length = data["length"]
+        embed = disnake.Embed(
+            title=f"Random Cat Fact Number: {length}",
+            description=f"Cat Fact: {fact}",
+            color=0x400080,
+        )
+        embed.set_footer(
+            text=f"Command issued by: {inter.author.name}",
+            icon_url=inter.author.display_avatar,
+        )
+        await inter.send(embed=embed)
 
     @animal.sub_command(name="cat", description="Get a random cat picture")
     async def cat(self, inter):
