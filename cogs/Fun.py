@@ -405,7 +405,7 @@ class Fun(commands.Cog):
         """Returns an activity"""
         async with HTTPSession() as activitySession:
             async with activitySession.get(
-                f"https://boredapi.com/api/activity", ssl=False
+                f"https://bored-api.appbrewery.com/random", ssl=False
             ) as activityData:  # keep as http
                 activity = await activityData.json()
                 await inter.send(activity["activity"])
