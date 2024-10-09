@@ -338,6 +338,9 @@ class LevelsController:
         ):
             # winter version
             card = "utils/data/images/winterrankcard.png"
+        #     halloween version
+        elif datetime.datetime.now().month == 10 and datetime.datetime.now().day >= 9:
+            card = "utils/data/images/halloweenrankcard.png"
 
         with Image.open(card).convert("RGBA") as base:
             # make a blank image for the text, initialized to transparent text color
@@ -412,7 +415,7 @@ class LevelsController:
                 fill=foreground,
             )
             # level
-            d.text((115, 96), str(lvl), font=fnt, fill=foreground)
+            d.text((115, 97), str(lvl), font=fnt, fill=foreground)
             # Rank
             d.text(
                 (113, 130),
