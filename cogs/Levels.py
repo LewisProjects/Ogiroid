@@ -10,7 +10,7 @@ from io import BytesIO
 from typing import Union, Optional
 
 import disnake
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops, ImageColor
 from cachetools import TTLCache
 from disnake import (
     Message,
@@ -24,7 +24,7 @@ from disnake import (
     Embed,
     Option,
 )
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 from disnake.ext.commands import (
     CooldownMapping,
     BucketType,
@@ -32,14 +32,14 @@ from disnake.ext.commands import (
     Param,
     BadArgument,
 )
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from utils import timeconversions
 from utils.CONSTANTS import xp_probability, LEVELS_AND_XP, MAX_LEVEL, Colors
 from utils.DBhandlers import ConfigHandler
 from utils.bot import OGIROID
-from utils.db_models import Levels, Config, RoleReward
+from utils.db_models import Levels, Config, RoleReward, CustomRoles
 from utils.exceptions import LevelingSystemError, UserNotFound
 from utils.pagination import LeaderboardView
 from utils.shortcuts import errorEmb, sucEmb, get_expiry
@@ -494,8 +494,10 @@ class Level(commands.Cog):
         self.bot = bot
         self.levels = LEVELS_AND_XP
         self.controller: LevelsController = None
+        self.custom_role_cleanup.start()
 
     def cog_unload(self) -> None:
+        self.custom_role_cleanup.cancel()
         pass
 
     @commands.Cog.listener()
@@ -544,8 +546,278 @@ class Level(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.controller = LevelsController(self.bot, self.bot.db)
+
         if not self.bot.ready_:
             print("[Levels] Ready")
+
+    @tasks.loop(
+        time=[
+            dt.time(
+                dt.datetime.utcnow().hour,
+                dt.datetime.utcnow().minute,
+                dt.datetime.utcnow().second + 10,
+            )
+        ]
+    )
+    # @tasks.loop(days=1)
+    async def custom_role_cleanup(self):
+        #     cleanup roles of users that are not in the top x+5 anymore
+        async with self.bot.db.begin() as session:
+            records = await session.execute(select(CustomRoles))
+            records: list[CustomRoles] = records.scalars().all()
+            # get all the configs
+            config = await session.execute(select(Config))
+            config: list[Config] = config.scalars().all()
+            # map config limit to guild ids
+            config_map = {
+                record.guild_id: record.custom_roles_threshold for record in config
+            }
+
+            for record in records:
+                user = self.bot.get_user(record.user_id)
+                if user is None:
+                    continue
+                member = self.bot.get_guild(record.guild_id).get_member(record.user_id)
+                user_record = await self.controller.get_user(member, bypass=True)
+                leaderboard = await self.controller.get_leaderboard(
+                    self.bot.get_guild(record.guild_id),
+                    limit=config_map[record.guild_id],
+                )
+                if not any(
+                    [record.user_id == user_record.user_id for record in leaderboard]
+                ):
+                    role = self.bot.get_guild(record.guild_id).get_role(record.role_id)
+                    await role.delete()
+                    await session.execute(
+                        delete(CustomRoles).where(CustomRoles.user_id == user.id)
+                    )
+                    await self.bot.get_channel(self.bot.config.channels.logs).send(
+                        f"Role {role} deleted for user {user}"
+                    )
+
+    @commands.slash_command(description="Create a custom role for yourself")
+    @commands.guild_only()
+    async def custom_role(self, inter: ApplicationCommandInteraction):
+        return
+
+    @custom_role.sub_command(description="Create a custom role for yourself")
+    @commands.guild_only()
+    async def create(
+        self,
+        inter: ApplicationCommandInteraction,
+        color: str = commands.Param(
+            description="The hex color of the role",
+        ),
+        name: str = commands.Param(
+            description="The name of the role",
+        ),
+        icon: str
+        | None = commands.Param(
+            description="The icon of the role, must be a url and server needs to have boosts",
+            default=None,
+        ),
+    ):
+        """
+        Create a custom role for yourself
+        """
+        await inter.response.defer()
+
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(CustomRoles).filter_by(user_id=inter.author.id)
+            )
+            record = record.scalar()
+            if record is not None:
+                return await inter.send("You already have a custom role")
+
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(Config).filter_by(guild_id=inter.guild.id)
+            )
+            config = record.scalar()
+            limit = config.custom_roles_threshold
+            min_lvl = config.min_required_lvl if config.min_required_lvl else 5
+
+        leaderboard = await self.controller.get_leaderboard(
+            inter.guild, limit=limit + 1
+        )
+        if not any([record.user_id == inter.author.id for record in leaderboard]):
+            return await inter.send(
+                f"You need to be in the top {limit} to create a custom role"
+            )
+
+        user_record = await self.controller.get_user(inter.author, bypass=True)
+        if user_record.level < min_lvl:
+            return await inter.send(
+                f"You need to be at least level {config.min_required_lvl} to create a custom role"
+            )
+
+        color = disnake.Color(int(color.replace("#", ""), 16))
+
+        if not inter.guild.features.__contains__("ROLE_ICONS") or icon is None:
+            role = await inter.guild.create_role(
+                name=name,
+                color=color,
+                reason=f"Custom role created by {inter.author}",
+            )
+        else:
+            # get icon from url
+            icon = await self.bot.session.get(icon)
+            icon = io.BytesIO(await icon.read())
+            icon = Image.open(icon)
+            # convert to be less than 256kb
+            icon = icon.convert("RGB")
+            icon = icon.resize((128, 128))
+            # save the image to a buffer
+            with io.BytesIO() as image_binary:
+                icon.save(image_binary, "PNG")
+                image_binary.seek(0)
+                icon = image_binary.read()
+            role = await inter.guild.create_role(
+                name=name,
+                color=color,
+                reason=f"Custom role created by {inter.author}",
+                icon=icon,
+            )
+
+        async with self.bot.db.begin() as session:
+            session.add(
+                CustomRoles(
+                    user_id=inter.author.id,
+                    guild_id=inter.guild.id,
+                    role_id=role.id,
+                )
+            )
+
+        await inter.author.add_roles(role)
+        await inter.send(f"Role {role.mention} created and added to you!")
+
+    @custom_role.sub_command(description="Delete your custom role")
+    @commands.guild_only()
+    async def delete(self, inter: ApplicationCommandInteraction):
+        """
+        Delete your custom role
+        """
+        await inter.response.defer()
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(CustomRoles).filter_by(user_id=inter.author.id)
+            )
+            record = record.scalar()
+            if record is None:
+                return await inter.send("You don't have a custom role")
+            role = inter.guild.get_role(record.role_id)
+            await session.execute(
+                delete(CustomRoles).where(CustomRoles.user_id == inter.author.id)
+            )
+            await role.delete()
+
+        await inter.send("Custom role deleted")
+
+    @custom_role.sub_command(description="Get your custom role", name="get")
+    @commands.guild_only()
+    async def get_custom_role(self, inter: ApplicationCommandInteraction):
+        """
+        Get your custom role
+        """
+        await inter.response.defer()
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(CustomRoles).filter_by(user_id=inter.author.id)
+            )
+            record = record.scalar()
+            if record is None:
+                return await inter.send("You don't have a custom role")
+            role = inter.guild.get_role(record.role_id)
+        await inter.send(f"Your custom role is {role.mention}")
+
+    @custom_role.sub_command(description="Edit your custom role", name="edit")
+    @commands.guild_only()
+    async def edit_custom_role(
+        self,
+        inter: ApplicationCommandInteraction,
+        color: str
+        | None = commands.Param(
+            description="The hex color of the role",
+            default=None,
+        ),
+        name: str
+        | None = commands.Param(
+            description="The name of the role",
+            default=None,
+        ),
+        icon: str
+        | None = commands.Param(
+            description="The icon of the role, must be a url and server needs to have boosts",
+            default=None,
+        ),
+    ):
+        """
+        Edit your custom role
+        """
+        await inter.response.defer()
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(CustomRoles).filter_by(user_id=inter.author.id)
+            )
+            record = record.scalar()
+            if record is None:
+                return await inter.send("You don't have a custom role")
+
+        color = disnake.Color(int(color.replace("#", ""), 16))
+        role = inter.guild.get_role(record.role_id)
+        if icon is not None and inter.guild.features.__contains__("ROLE_ICONS"):
+            # get icon from url
+            icon = await self.bot.session.get(icon)
+            icon = io.BytesIO(await icon.read())
+            icon = Image.open(icon)
+            # convert to be less than 256kb
+            icon = icon.convert("RGB")
+            icon = icon.resize((128, 128))
+            # save the image to a buffer
+            with io.BytesIO() as image_binary:
+                icon.save(image_binary, "PNG")
+                image_binary.seek(0)
+                icon = image_binary.read()
+            await role.edit(name=name, color=color, icon=icon)
+        else:
+            await role.edit(name=name, color=color)
+
+        await inter.send(f"Role {role.mention} edited")
+
+    @custom_role.sub_command(description="Change limit of custom roles(default 20)")
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    async def limits(
+        self,
+        inter: ApplicationCommandInteraction,
+        limit: int = commands.Param(
+            default=None, description="The limit of custom roles(default 20)"
+        ),
+        min_lvl: int = commands.Param(
+            default=None,
+            description="The minimum level required to create a custom role",
+        ),
+    ):
+        """
+        Change the limit of custom roles
+        """
+        await inter.response.defer()
+        if limit is None and min_lvl is None:
+            return await inter.send(
+                "You need to specify a limit or a min level to change"
+            )
+        async with self.bot.db.begin() as session:
+            record = await session.execute(
+                select(Config).filter_by(guild_id=inter.guild.id)
+            )
+            record = record.scalar()
+            if limit is not None:
+                record.custom_roles_threshold = limit
+            if min_lvl is not None:
+                record.min_required_lvl = min_lvl
+            session.add(record)
+        await inter.send(f"Custom roles config updated")
 
     @commands.slash_command(description="XP boost base command")
     @commands.guild_only()

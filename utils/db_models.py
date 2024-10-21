@@ -120,6 +120,14 @@ class Levels(Base):
         )
 
 
+class CustomRoles(Base):
+    __tablename__ = "custom_roles"
+    id = Column(Integer, primary_key=True)
+    guild_id = Column(BigInteger)
+    role_id = Column(BigInteger)
+    user_id = Column(BigInteger)
+
+
 class RoleReward(Base):
     __tablename__ = "role_rewards"
     id = Column(Integer, primary_key=True)
@@ -150,6 +158,8 @@ class Config(Base):
     xp_boost = Column(Integer, default=1)
     xp_boost_expiry = Column(BigInteger, default=0)
     xp_boost_enabled = Column(Boolean, default=True)
+    custom_roles_threshold = Column(Integer, default=20)
+    min_required_lvl = Column(Integer, default=5)
 
     @property
     def boost_expired(self):
