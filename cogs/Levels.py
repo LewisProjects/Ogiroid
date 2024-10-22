@@ -606,16 +606,18 @@ class Level(commands.Cog):
     async def custom_role(self, inter: ApplicationCommandInteraction):
         return
 
-    @custom_role.sub_command(description="Create a custom role for yourself")
+    @custom_role.sub_command(
+        description="Create a custom role for yourself. Any abuse of this will result in big consequences."
+    )
     @commands.guild_only()
     async def create(
         self,
         inter: ApplicationCommandInteraction,
         color: str = commands.Param(
-            description="The hex color of the role",
+            description="The hex color of the role. Make it different from staff role colors.",
         ),
         name: str = commands.Param(
-            description="The name of the role",
+            description="The name of the role. Dont impersonate staff",
         ),
         icon: str
         | None = commands.Param(
@@ -745,19 +747,22 @@ class Level(commands.Cog):
             role = inter.guild.get_role(record.role_id)
         await inter.send(f"Your custom role is {role.mention}")
 
-    @custom_role.sub_command(description="Edit your custom role", name="edit")
+    @custom_role.sub_command(
+        description="Edit your custom role. Any abuse of this will result in big consequences.",
+        name="edit",
+    )
     @commands.guild_only()
     async def edit_custom_role(
         self,
         inter: ApplicationCommandInteraction,
         color: str
         | None = commands.Param(
-            description="The hex color of the role",
+            description="The hex color of the role. Make it different from staff role colors.",
             default=None,
         ),
         name: str
         | None = commands.Param(
-            description="The name of the role",
+            description="The name of the role. Dont impersonate staff",
             default=None,
         ),
         icon: str
