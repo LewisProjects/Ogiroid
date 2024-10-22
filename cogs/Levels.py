@@ -799,7 +799,11 @@ class Level(commands.Cog):
                 icon.save(image_binary, "PNG")
                 image_binary.seek(0)
                 icon = image_binary.read()
-            await role.edit(name=name, color=color, icon=icon)
+            await role.edit(
+                name=name if name else role.name,
+                icon=icon,
+                color=color if color else role.color,
+            )
         else:
             await role.edit(
                 name=name if name else role.name, color=color if color else role.color
