@@ -783,7 +783,8 @@ class Level(commands.Cog):
             if record is None:
                 return await inter.send("You don't have a custom role")
 
-        color = disnake.Color(int(color.replace("#", ""), 16))
+        if color:
+            color = disnake.Color(int(color.replace("#", ""), 16))
         role = inter.guild.get_role(record.role_id)
         if icon is not None and inter.guild.features.__contains__("ROLE_ICONS"):
             # get icon from url
@@ -791,7 +792,7 @@ class Level(commands.Cog):
             icon = io.BytesIO(await icon.read())
             icon = Image.open(icon)
             # convert to be less than 256kb
-            icon = icon.convert("RGB")
+            icon = icon.convert("RGBA")
             icon = icon.resize((128, 128))
             # save the image to a buffer
             with io.BytesIO() as image_binary:
@@ -800,7 +801,9 @@ class Level(commands.Cog):
                 icon = image_binary.read()
             await role.edit(name=name, color=color, icon=icon)
         else:
-            await role.edit(name=name, color=color)
+            await role.edit(
+                name=name if name else role.name, color=color if color else role.color
+            )
 
         await inter.send(f"Role {role.mention} edited")
 
