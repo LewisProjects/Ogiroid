@@ -575,15 +575,21 @@ class Level(commands.Cog):
 
             for record in records:
                 user = self.bot.get_user(record.user_id)
-                if user is None:
-                    continue
-                member = self.bot.get_guild(record.guild_id).get_member(record.user_id)
-                user_record = await self.controller.get_user(member, bypass=True)
-                leaderboard = await self.controller.get_leaderboard(
-                    self.bot.get_guild(record.guild_id),
-                    limit=config_map[record.guild_id],
-                )
-                if not any(
+                if user:
+                    member = self.bot.get_guild(record.guild_id).get_member(
+                        record.user_id
+                    )
+                    if member:
+                        user_record = await self.controller.get_user(
+                            member, bypass=True
+                        )
+                        leaderboard = await self.controller.get_leaderboard(
+                            self.bot.get_guild(record.guild_id),
+                            limit=config_map[record.guild_id],
+                        )
+                else:
+                    member = None
+                if not member or not any(
                     [record.user_id == user_record.user_id for record in leaderboard]
                 ):
                     role = self.bot.get_guild(record.guild_id).get_role(record.role_id)
@@ -653,6 +659,11 @@ class Level(commands.Cog):
             )
 
         color = disnake.Color(int(color.replace("#", ""), 16))
+        role_position = (
+            inter.guild.get_role(config.position_role_id).position - 1
+            if config.position_role_id
+            else inter.guild.me.top_role.position - 1
+        )
 
         if not inter.guild.features.__contains__("ROLE_ICONS") or icon is None:
             role = await inter.guild.create_role(
@@ -660,6 +671,7 @@ class Level(commands.Cog):
                 color=color,
                 reason=f"Custom role created by {inter.author}",
             )
+
         else:
             # get icon from url
             icon = await self.bot.session.get(icon)
@@ -679,6 +691,8 @@ class Level(commands.Cog):
                 reason=f"Custom role created by {inter.author}",
                 icon=icon,
             )
+
+        await role.edit(position=role_position)
 
         async with self.bot.db.begin() as session:
             session.add(
@@ -798,24 +812,30 @@ class Level(commands.Cog):
             default=None,
             description="The minimum level required to create a custom role",
         ),
+        after_role_positon: Role = commands.Param(
+            default=None,
+            description="The role after which the custom roles will be placed",
+        ),
     ):
         """
         Change the limit of custom roles
         """
         await inter.response.defer()
-        if limit is None and min_lvl is None:
+        if limit is None and min_lvl is None and after_role_positon is None:
             return await inter.send(
                 "You need to specify a limit or a min level to change"
             )
         async with self.bot.db.begin() as session:
-            record = await session.execute(
+            record_ = await session.execute(
                 select(Config).filter_by(guild_id=inter.guild.id)
             )
-            record = record.scalar()
+            record: Config = record_.scalar()
             if limit is not None:
                 record.custom_roles_threshold = limit
             if min_lvl is not None:
                 record.min_required_lvl = min_lvl
+            if after_role_positon is not None:
+                record.position_role_id = after_role_positon.id
             session.add(record)
         await inter.send(f"Custom roles config updated")
 

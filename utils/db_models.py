@@ -160,6 +160,7 @@ class Config(Base):
     xp_boost_enabled = Column(Boolean, default=True)
     custom_roles_threshold = Column(Integer, default=20)
     min_required_lvl = Column(Integer, default=5)
+    position_role_id = Column(BigInteger, default=None)
 
     @property
     def boost_expired(self):
