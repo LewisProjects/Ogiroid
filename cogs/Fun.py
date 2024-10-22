@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import random
 import time
@@ -403,12 +404,12 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def bored(self, inter):
         """Returns an activity"""
-        async with HTTPSession() as activitySession:
-            async with activitySession.get(
-                f"https://bored-api.appbrewery.com/random", ssl=False
-            ) as activityData:  # keep as http
-                activity = await activityData.json()
-                await inter.send(activity["activity"])
+
+        with open("utils/data/activities.json", "r") as f:
+            activities = json.load(f)
+
+        activity = random.choice(activities)
+        await inter.send(activity["activity"])
 
     @commands.slash_command(
         name="morse",
