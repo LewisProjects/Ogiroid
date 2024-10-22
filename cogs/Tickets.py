@@ -47,7 +47,7 @@ class Tickets(commands.Cog):
         name="edit-ticket-message", description="Update the ticket message."
     )
     @commands.guild_only()
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def edit_ticket_message(self, inter):
         await inter.send("Please send the new message", ephemeral=True)
 
@@ -168,7 +168,7 @@ class Tickets(commands.Cog):
             await errorEmb(inter, "This is not a ticket channel.")
 
     @commands.slash_command(name="adduser", description="Add user to channel")
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def add_user(self, inter, member: disnake.Member):
         if self.check_if_ticket_channel(inter):
             await inter.channel.set_permissions(
@@ -190,7 +190,7 @@ class Tickets(commands.Cog):
             await errorEmb(inter, "This is not a ticket channel.")
 
     @commands.slash_command(name="removeuser", description="Remove user from channel")
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def remove_user(self, inter, member: disnake.Member):
         if self.check_if_ticket_channel(inter):
             await inter.channel.set_permissions(member, overwrite=None)

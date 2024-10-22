@@ -1037,7 +1037,7 @@ class Level(commands.Cog):
 
     @commands.slash_command()
     @commands.guild_only()
-    @commands.has_any_role("Staff", "staff")
+    @commands.has_permissions(manage_roles=True)
     async def set_lvl(
         self,
         inter: ApplicationCommandInteraction,
