@@ -1017,7 +1017,7 @@ class Level(commands.Cog):
             rank = await self.controller.get_rank(inter.guild.id, cmd_user)
             embed.add_field(
                 name=f"{rank}. You",
-                value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.xp:,}",
+                value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.total_exp:,}",
                 inline=False,
             )
 
