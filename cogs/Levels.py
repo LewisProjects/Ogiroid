@@ -680,7 +680,7 @@ class Level(commands.Cog):
             icon = io.BytesIO(await icon.read())
             icon = Image.open(icon)
             # convert to be less than 256kb
-            icon = icon.convert("RGB")
+            icon = icon.convert("RGBA")
             icon = icon.resize((128, 128))
             # save the image to a buffer
             with io.BytesIO() as image_binary:
