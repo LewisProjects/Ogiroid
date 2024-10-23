@@ -1014,10 +1014,14 @@ class Level(commands.Cog):
                     inline=False,
                 )
         if not set_user:
-            rank = await self.controller.get_rank(inter.guild.id, cmd_user)
+            rank = (
+                await self.controller.get_rank(inter.guild.id, cmd_user)
+                if cmd_user
+                else "unranked"
+            )
             embed.add_field(
                 name=f"{rank}. You",
-                value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.total_exp:,}",
+                value=f"Level: {cmd_user.level if cmd_user else 0}\nTotal XP: {cmd_user.total_exp if cmd_user else 0:,}",
                 inline=False,
             )
 
