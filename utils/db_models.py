@@ -98,6 +98,7 @@ class Levels(Base):
     user_id = Column(BigInteger)
     level = Column(Integer, default=0)
     xp = Column(Integer, default=0)
+    total_xp = Column(Integer, default=0)
 
     @property
     def xp_needed(self):
