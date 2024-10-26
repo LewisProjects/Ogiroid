@@ -144,11 +144,15 @@ class LevelsController:
                     for user_record in level_users.scalars().all():
                         if user_record.level >= record.required_lvl:
                             member = guild.get_member(user_record.user_id)
+                            if not member:
+                                continue
                             if role not in member.roles:
                                 print("adding role")
                                 await member.add_roles(role)
                         else:
                             member = guild.get_member(user_record.user_id)
+                            if not member:
+                                continue
                             if role in member.roles:
                                 print("removing role")
                                 await member.remove_roles(role)
