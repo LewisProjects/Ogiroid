@@ -82,6 +82,31 @@ class Staff(commands.Cog):
         self.warning: WarningHandler = WarningHandler(self.bot, self.bot.db)
         await self.reaction_roles.startup()
 
+    @commands.slash_command(name="createrole", description="Create a role.")
+    @commands.has_permissions(manage_roles=True)
+    @commands.guild_only()
+    async def createrole(
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str,
+        color: disnake.Color = ParamInfo(description="Color of the role."),
+        hoist: bool = ParamInfo(description="Whether to hoist the role or not."),
+        mentionable: bool = ParamInfo(
+            description="Whether the role is mentionable or not."
+        ),
+        position_under: disnake.Role = ParamInfo(
+            description="The role to position this role under."
+        ),
+    ):
+        """Create a role."""
+        role = await inter.guild.create_role(
+            name=name, color=color, hoist=hoist, mentionable=mentionable
+        )
+
+        if position_under and position_under.position > role.position:
+            await role.edit(position=position_under.position - 1)
+        await sucEmb(inter, "Role created successfully!")
+
     @commands.slash_command(name="ban", description="Bans a user from the server.")
     @commands.has_permissions(ban_members=True)
     @commands.guild_only()

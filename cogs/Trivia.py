@@ -26,7 +26,11 @@ class Trivia(commands.Cog, name="Trivia"):
         await self.bot.wait_until_ready()
         self.flag_quiz: FlagQuizHandler = FlagQuizHandler(self.bot, self.bot.db)
 
-    @commands.slash_command(name="flagquiz", description="Guess the flags.")
+    @commands.slash_command(name="flagquiz")
+    async def flagquiz(self, inter):
+        pass
+
+    @flagquiz.sub_command(name="start", description="Guess the flags.")
     async def guess_the_flag(self, inter):
         await inter.response.defer()
         await QuickEmb(inter, "Starting the quiz..").send()
@@ -162,8 +166,8 @@ class Trivia(commands.Cog, name="Trivia"):
             f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}"
         )
 
-    @commands.slash_command(
-        name="flagquiz-leaderboard",
+    @flagquiz.sub_command(
+        name="leaderboard",
         description="Leaderboard for the flag quiz.",
     )
     async def flag_quiz_leaderboard(
@@ -208,8 +212,8 @@ class Trivia(commands.Cog, name="Trivia"):
 
         await inter.send(embed=embed)
 
-    @commands.slash_command(
-        name="flagquiz-user",
+    @flagquiz.sub_command(
+        name="user",
         description="Get Flag Quiz User Stats about a particular user.",
     )
     async def flag_quiz_user(self, inter, user: disnake.User = None):
