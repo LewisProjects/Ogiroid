@@ -474,9 +474,9 @@ class LevelsController:
         async with self.db.begin() as session:
             records = await session.execute(
                 select(Levels)
+                .order_by(Levels.total_xp.desc())
                 .filter_by(guild_id=guild_id)
                 .filter(Levels.total_xp >= user_record.total_xp)
-                .order_by(Levels.total_xp.desc())
             )
             records = records.scalars().all()
 
