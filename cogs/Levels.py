@@ -475,12 +475,10 @@ class LevelsController:
             records = await session.execute(
                 select(Levels)
                 .filter_by(guild_id=guild_id)
-                .filter(Levels.total_xp > user_record.total_xp)
+                .filter(Levels.total_xp >= user_record.total_xp)
             )
             records = records.scalars().all()
 
-        if records is None:
-            raise UserNotFound
         ids = [record.user_id for record in records]
 
         try:
