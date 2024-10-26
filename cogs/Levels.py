@@ -476,6 +476,7 @@ class LevelsController:
                 select(Levels)
                 .filter_by(guild_id=guild_id)
                 .filter(Levels.total_xp >= user_record.total_xp)
+                .order_by(Levels.total_xp.desc())
             )
             records = records.scalars().all()
 
