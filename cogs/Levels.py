@@ -83,7 +83,7 @@ class LevelsController:
                 records = await session.execute(
                     select(Levels)
                     .filter_by(guild_id=guild.id)
-                    .order_by(Levels.level.desc(), Levels.xp.desc())
+                    .order_by(Levels.total_xp.desc())
                     .limit(limit)
                     .offset(offset)
                 )
@@ -93,13 +93,13 @@ class LevelsController:
                 records = await session.execute(
                     select(Levels)
                     .filter_by(guild_id=guild.id)
-                    .order_by(Levels.level.desc(), Levels.xp.desc())
+                    .order_by(Levels.total_xp.desc())
                     .limit(limit)
                 )
                 records = records.scalars().all()
         users = sorted(
             [record for record in records],
-            key=lambda x: x.total_exp,
+            key=lambda x: x.total_xp,
             reverse=True,
         )
         return users
@@ -112,27 +112,51 @@ class LevelsController:
             records = await session.execute(select(Levels).filter_by(guild_id=guild))
             return len(records.scalars().all())
 
+    async def check_levels(self, guild: Guild, user: Member | None = None):
+        """
+        Check if the level roles are correct, if user is None, it will check all users
+        """
+        async with self.db.begin() as session:
+            records = await session.execute(
+                select(RoleReward).filter_by(guild_id=guild.id)
+            )
+            records = records.scalars().all()
+            for record in records:
+                role = guild.get_role(record.role_id)
+                if role is None:
+                    continue
+                if user is not None:
+                    print("checking user")
+                    user_record = await self.get_user(user)
+                    if user_record.level >= record.required_lvl:
+                        if role not in user.roles:
+                            print("adding role")
+                            await user.add_roles(role)
+                    else:
+                        if role in user.roles:
+                            print("removing role")
+                            await user.remove_roles(role)
+                else:
+                    level_users = await session.execute(
+                        select(Levels).filter_by(guild_id=guild.id)
+                    )
+                    print("checking all users")
+                    for user_record in level_users.scalars().all():
+                        if user_record.level >= record.required_lvl:
+                            member = guild.get_member(user_record.user_id)
+                            if role not in member.roles:
+                                print("adding role")
+                                await member.add_roles(role)
+                        else:
+                            member = guild.get_member(user_record.user_id)
+                            if role in member.roles:
+                                print("removing role")
+                                await member.remove_roles(role)
+
     async def add_user(self, user: Member, guild: Guild):
         self.remove_cached(user)
         async with self.db.begin() as session:
-            session.add(Levels(user_id=user.id, guild_id=guild.id, level=0, xp=0))
-
-    @staticmethod  # todo: remove
-    def get_total_xp_for_level(level: int) -> int:
-        """
-        Returns the total amount of XP needed for the specified level. Levels go from 0-100
-        """
-
-        try:
-            return sum(
-                [exp for exp in [LEVELS_AND_XP[lvl] for lvl in range(1, level + 1)]][
-                    ::-1
-                ]
-            )
-        except KeyError:
-            raise ValueError(
-                f"Levels only go from 0-{MAX_LEVEL}, {level} is not a valid level"
-            )
+            session.add(Levels(user_id=user.id, guild_id=guild.id, total_xp=0))
 
     async def on_cooldown(self, message) -> bool:
         bucket = self._cooldown.get_bucket(message)
@@ -181,21 +205,19 @@ class LevelsController:
         if 0 <= level <= MAX_LEVEL:
             await self._update_record(
                 member=member,
-                level=level,
-                xp=0,
+                total_xp=LEVELS_AND_XP[level],
                 guild_id=member.guild.id,
             )  # type: ignore
             self.cache[f"levels_{member.id}_{member.guild.id}"] = Levels(
-                xp=0,
+                total_xp=LEVELS_AND_XP[level],
                 guild_id=member.guild.id,
                 user_id=member.id,
-                level=level,
             )
         else:
             raise LevelingSystemError(f'Parameter "level" must be from 0-{MAX_LEVEL}')
 
     async def _update_record(
-        self, member: Union[Member, int], level: int, xp: int, guild_id: int
+        self, member: Union[Member, int], total_xp: int, guild_id: int
     ) -> None:
         self.remove_cached(
             member if isinstance(member, Member) else self.bot.get_user(member)
@@ -212,8 +234,7 @@ class LevelsController:
                     .limit(1)
                 )
                 record = record.scalars().first()
-                record.level = level
-                record.xp = xp
+                record.total_xp = total_xp
                 session.add(record)
         else:
             async with self.db.begin() as session:
@@ -221,8 +242,7 @@ class LevelsController:
                     Levels(
                         user_id=member.id if isinstance(member, Member) else member,
                         guild_id=guild_id,
-                        level=level,
-                        xp=xp,
+                        total_xp=total_xp,
                     )
                 )
 
@@ -235,21 +255,15 @@ class LevelsController:
         if user is None:
             await self.set_level(message.author, 0)
         user = await self.get_user(message.author)
-        old_lvl = user.level
-        user.xp += xp
-        while user.xp >= user.xp_needed:
-            # get the extra xp that the user has after leveling up
-            user.xp -= user.xp_needed
-            user.level += 1
+        user.total_xp += xp
 
         await self._update_record(
             member=message.author,
-            level=user.level,
-            xp=user.xp,
             guild_id=message.guild.id,
+            total_xp=user.total_xp,
         )  # type: ignore
 
-        if user.level > old_lvl:
+        if user.total_xp >= LEVELS_AND_XP[user.level + 1]:
             self.bot.dispatch("level_up", message, user.level)
 
     async def get_boost(self, message: Message) -> int:
@@ -449,23 +463,21 @@ class LevelsController:
         self, guild_id, user_record, return_updated: bool = False
     ) -> (Levels, int) | int:
         """
-        #1. eliminate all the users that have a lower level than the user
-        #2. sort the users by xp
-        #3. get the index of the user
-        #4. add 1 to the index
+        #1. eliminate all the users that have lower xp than the user
+        #2. get the index of the user
+        #3. add 1 to the index
         """
         async with self.db.begin() as session:
             records = await session.execute(
                 select(Levels)
                 .filter_by(guild_id=guild_id)
-                .filter(Levels.level >= user_record.level)
+                .filter(Levels.total_xp > user_record.total_xp)
             )
             records = records.scalars().all()
 
         if records is None:
             raise UserNotFound
-        sorted_once = sorted(records, key=lambda x: x.total_exp, reverse=True)
-        ids = [record.user_id for record in sorted_once]
+        ids = [record.user_id for record in records]
 
         try:
             rank = ids.index(user_record.user_id) + 1
@@ -550,16 +562,7 @@ class Level(commands.Cog):
         if not self.bot.ready_:
             print("[Levels] Ready")
 
-    @tasks.loop(
-        time=[
-            dt.time(
-                dt.datetime.utcnow().hour,
-                dt.datetime.utcnow().minute,
-                dt.datetime.utcnow().second + 10,
-            )
-        ]
-    )
-    # @tasks.loop(days=1)
+    @tasks.loop(time=[dt.time(12, 0, 0)])
     async def custom_role_cleanup(self):
         #     cleanup roles of users that are not in the top x+5 anymore
         async with self.bot.db.begin() as session:
@@ -1003,14 +1006,14 @@ class Level(commands.Cog):
             if record.user_id == inter.author.id:
                 embed.add_field(
                     name=f"{i + 1}. {user.name} ~ You ",
-                    value=f"Level: {record.level}\nTotal XP: {record.total_exp:,}",
+                    value=f"Level: {record.level}\nTotal XP: {record.total_xp:,}",
                     inline=False,
                 )
                 set_user = True
             else:
                 embed.add_field(
                     name=f"{i + 1}. {user.name}",
-                    value=f"Level: {record.level}\nTotal XP: {record.total_exp:,}",
+                    value=f"Level: {record.level}\nTotal XP: {record.total_xp:,}",
                     inline=False,
                 )
         if not set_user:
@@ -1021,7 +1024,7 @@ class Level(commands.Cog):
             )
             embed.add_field(
                 name=f"{rank}. You",
-                value=f"Level: {cmd_user.level if cmd_user else 0}\nTotal XP: {cmd_user.total_exp if cmd_user else 0:,}",
+                value=f"Level: {cmd_user.level if cmd_user else 0}\nTotal XP: {cmd_user.total_xp if cmd_user else 0:,}",
                 inline=False,
             )
 
@@ -1062,6 +1065,7 @@ class Level(commands.Cog):
             await self.controller.set_level(user, level)
         except LevelingSystemError:
             return await errorEmb(inter, text="Invalid mofo")
+        await self.controller.check_levels(guild=inter.guild, user=user)
         await sucEmb(
             inter,
             text=f"Set {user.mention}'s level to {level}",
@@ -1073,6 +1077,21 @@ class Level(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     async def role_reward(self, inter: ApplicationCommandInteraction):
         return
+
+    @role_reward.sub_command()
+    @commands.has_permissions(manage_roles=True)
+    async def check_roles(
+        self,
+        inter: ApplicationCommandInteraction,
+        member: Member
+        | None = commands.Param(description="Optionally specify member", default=None),
+    ):
+        """Check every member level roles"""
+        await inter.response.defer(ephemeral=True)
+        await self.controller.check_levels(guild=inter.guild, user=member)
+        return await inter.send(
+            "Clearing, See logs for added/deleted roles", ephemeral=True
+        )
 
     @role_reward.sub_command()
     @commands.has_permissions(manage_roles=True)

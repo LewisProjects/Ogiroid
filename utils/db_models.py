@@ -96,29 +96,21 @@ class Levels(Base):
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger)
     user_id = Column(BigInteger)
-    level = Column(Integer, default=0)
-    xp = Column(Integer, default=0)
     total_xp = Column(Integer, default=0)
 
     @property
-    def xp_needed(self):
-        xp = self.get_exp(self.level) - self.xp
-        if xp < 0:
-            return 0
-        return xp
-
-    def get_exp(self, level: int):
-        return LEVELS_AND_XP[level]
+    def level(self):
+        # get users level based on total xp
+        for level, xp in LEVELS_AND_XP.items():
+            if self.total_xp < xp:
+                return level - 1
 
     @property
-    def total_exp(self):
-        return sum(
-            [
-                exp
-                for exp in [self.get_exp(level) for level in range(1, self.level + 1)]
-            ][::-1]
-            + [self.xp]
-        )
+    def xp(self):
+        # get users xp based on total xp
+        for level, xp in LEVELS_AND_XP.items():
+            if self.total_xp < xp:
+                return self.total_xp - LEVELS_AND_XP[level - 1]
 
 
 class CustomRoles(Base):

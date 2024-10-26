@@ -173,21 +173,21 @@ class LeaderboardView(ui.View):
                 if record.user_id == inter.author.id:
                     embed.add_field(
                         name=f"{i + 1 + offset}. {user} ~ You ",
-                        value=f"Level: {record.level}\nTotal XP: {record.total_exp:,}",
+                        value=f"Level: {record.level}\nTotal XP: {record.total_xp:,}",
                         inline=False,
                     )
                     self.user_set = True
                 else:
                     embed.add_field(
                         name=f"{i + 1 + offset}. {user}",
-                        value=f"Level: {record.level}\nTotal XP: {record.total_exp:,}",
+                        value=f"Level: {record.level}\nTotal XP: {record.total_xp:,}",
                         inline=False,
                     )
             if not self.user_set:
                 rank = await self.controller.get_rank(inter.guild.id, cmd_user)
                 embed.add_field(
                     name=f"{rank}. You",
-                    value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.total_exp:,}",
+                    value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.total_xp:,}",
                     inline=False,
                 )
 
