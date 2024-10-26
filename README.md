@@ -18,12 +18,20 @@ Main Contributors/Developers:
 <li><a href="https://github.com/JasonLovesDoggo">JasonLovesDoggo</a></li>
 <li><a href="https://github.com/LevaniVashadze">Levani Vashadze</a></li>
 </ul>
-The bot is currently on release: <b>2.2</b><br>
+The bot is currently on release: <b>2.5</b><br>
 License: MIT<br>
 
 <h3>Contributing</h3>
 Wish to Contribute to this bot? Checkout: <a href="https://github.com/LewisProjects/Ogiroid/blob/development/CONTRIBUTING.md">contribution guidelines</a>
 <hr>
+
+<h3>Changelog 26-10-2024:</h3>
+<ol>
+<li>Custom Role managment trough the bot</li>
+<li>Changed how levels are stored: Level+xp to total_xp</li>
+<li>Add new commands to automatically fix and assign level roles</li>
+<li>Add XP command</Li>
+
 
 <h3>Changelog 29-12-2023:</h3>
 <ol>

@@ -1047,6 +1047,11 @@ class Level(commands.Cog):
 
     @commands.slash_command()
     @commands.guild_only()
+    async def levels(self, inter: ApplicationCommandInteraction):
+        pass
+
+    @levels.sub_command(name="set")
+    @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def set_lvl(
         self,
@@ -1072,6 +1077,44 @@ class Level(commands.Cog):
         await sucEmb(
             inter,
             text=f"Set {user.mention}'s level to {level}",
+            ephemeral=False,
+        )
+
+    @levels.sub_command(name="set_xp")
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    async def set_xp(
+        self,
+        inter: ApplicationCommandInteraction,
+        user: Member,
+        xp: int = Param(description="The xp to set the user to"),
+    ):
+        await inter.response.defer()
+
+        async with self.bot.db.begin() as session:
+            # Retrieve the user's current XP
+            record = await session.execute(
+                select(Levels).filter_by(user_id=user.id, guild_id=inter.guild.id)
+            )
+            user_record = record.scalar()
+
+            if user_record is None:
+                return await errorEmb(inter, text="User not found in the database.")
+
+            old_xp = user_record.total_xp
+
+            # Update the user's XP
+            user_record.total_xp = xp
+            await session.commit()
+
+        # update cache
+        self.controller.remove_cached(user)
+
+        await self.controller.check_levels(guild=inter.guild, user=user)
+
+        await sucEmb(
+            inter,
+            text=f"Set {user.mention}'s XP from {old_xp} to {xp}",
             ephemeral=False,
         )
 
