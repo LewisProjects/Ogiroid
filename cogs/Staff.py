@@ -11,10 +11,12 @@ from disnake import (
 )
 from disnake.ext import commands
 from disnake.ext.commands import ParamInfo
+from sqlalchemy import select, delete, and_
 
 from utils.DBhandlers import RolesHandler, WarningHandler
 from utils.bot import OGIROID
 from utils.CONSTANTS import BAN_APPEAL_LINK
+from utils.db_models import Levels
 from utils.exceptions import ReactionAlreadyExists, ReactionNotFound
 from utils.shortcuts import (
     sucEmb,
@@ -131,6 +133,13 @@ class Staff(commands.Cog):
             reason=reason,
             clean_history_duration=dt.timedelta(days=delete_messages),
         )
+
+        async with self.bot.db.begin() as session:
+            await session.execute(
+                delete(Levels).where(
+                    and_(Levels.guild_id == inter.guild.id, Levels.user_id == user.id)
+                )
+            )
 
         if dm_user:
             try:
