@@ -46,6 +46,23 @@ from utils.shortcuts import errorEmb, sucEmb, get_expiry
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
+class ConfirmButton(disnake.ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+        self.value = None
+
+    @disnake.ui.button(label="Confirm", style=disnake.ButtonStyle.green)
+    async def confirm(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
+        self.value = True
+        self.stop()
+        await inter.response.defer()
+
+    @disnake.ui.button(label="Cancel", style=disnake.ButtonStyle.red)
+    async def cancel(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
+        self.value = False
+        self.stop()
+        await inter.response.defer()
+
 
 class LevelsController:
     def __init__(self, bot: OGIROID, db: async_sessionmaker[AsyncSession]):
@@ -612,6 +629,7 @@ class Level(commands.Cog):
     async def custom_role(self, inter: ApplicationCommandInteraction):
         return
 
+
     @custom_role.sub_command(
         description="Create a custom role for yourself. Any abuse of this will result in big consequences."
     )
@@ -631,10 +649,29 @@ class Level(commands.Cog):
             default=None,
         ),
     ):
-        """
-        Create a custom role for yourself
-        """
+        """Create a custom role for yourself"""
         await inter.response.defer()
+
+        # Add confirmation message
+        view = ConfirmButton()
+        msg = await inter.channel.send(
+            embed=disnake.Embed(
+                title="⚠️ Custom Role Creation - Confirmation",
+                description="Please confirm that:\n"
+                "• The role name is not similar to staff roles\n"
+                "• The color is not similar to staff role colors\n"
+                "• The role won't impersonate staff members\n\n"
+                "Breaking these rules will result in severe consequences.",
+                color=disnake.Color.yellow()
+            ),
+            view=view
+        )
+
+        await view.wait()
+        if not view.value:
+            await msg.edit(content="Role creation cancelled.", view=None)
+            return
+        await msg.delete()
 
         async with self.bot.db.begin() as session:
             record = await session.execute(
@@ -781,6 +818,30 @@ class Level(commands.Cog):
         Edit your custom role
         """
         await inter.response.defer()
+
+        # Add confirmation message
+        if color or name:  # Only show confirmation if changing color or name
+            view = ConfirmButton()
+            msg = await inter.channel.send(
+                embed=disnake.Embed(
+                    title="⚠️ Custom Role Edit - Confirmation",
+                    description="Please confirm that:\n"
+                    "• The new role name is not similar to staff roles\n"
+                    "• The new color is not similar to staff role colors\n"
+                    "• The changes won't impersonate staff members\n\n"
+                    "Breaking these rules will result in severe consequences.",
+                    color=disnake.Color.yellow()
+                ),
+                view=view
+            )
+
+            await view.wait()
+            if not view.value:
+                await msg.delete()
+                await inter.send("Role edit cancelled.")
+                return
+            await msg.delete()
+
         async with self.bot.db.begin() as session:
             record = await session.execute(
                 select(CustomRoles).filter_by(user_id=inter.author.id)
