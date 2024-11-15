@@ -456,7 +456,7 @@ timezones = [
     "Asia/Srednekolymsk",
     "Asia/Taipei",
     "Asia/Tashkent",
-    "Asia/Tbilisi",
+    "Europe/Tbilisi",
     "Asia/Tehran",
     "Asia/Tel_Aviv",
     "Asia/Thimbu",
