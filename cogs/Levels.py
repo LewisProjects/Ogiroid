@@ -46,19 +46,24 @@ from utils.shortcuts import errorEmb, sucEmb, get_expiry
 
 FakeGuild = namedtuple("FakeGuild", "id")
 
+
 class ConfirmButton(disnake.ui.View):
     def __init__(self):
         super().__init__(timeout=60)
         self.value = None
 
     @disnake.ui.button(label="Confirm", style=disnake.ButtonStyle.green)
-    async def confirm(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
+    async def confirm(
+        self, button: disnake.ui.Button, inter: disnake.MessageInteraction
+    ):
         self.value = True
         self.stop()
         await inter.response.defer()
 
     @disnake.ui.button(label="Cancel", style=disnake.ButtonStyle.red)
-    async def cancel(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
+    async def cancel(
+        self, button: disnake.ui.Button, inter: disnake.MessageInteraction
+    ):
         self.value = False
         self.stop()
         await inter.response.defer()
@@ -284,7 +289,7 @@ class LevelsController:
             total_xp=user.total_xp,
         )  # type: ignore
 
-        if user.total_xp >= LEVELS_AND_XP[user.level + 1]:
+        if user.total_xp >= LEVELS_AND_XP[user.level]:
             self.bot.dispatch("level_up", message, user.level)
 
     async def get_boost(self, message: Message) -> int:
@@ -474,8 +479,6 @@ class LevelsController:
     @staticmethod
     async def send_levelup(message: Message, level: int):
         user = message.author
-        if level in [0, 1, 2, 3]:
-            return
         msg = f"""{user.mention}, you have leveled up to level {level}! 🥳
         """
         await message.channel.send(msg)
@@ -537,6 +540,7 @@ class Level(commands.Cog):
         """
         Called when a user reaches a certain level
         """
+        print(f"User {msg.author} leveled up to level {level}")
 
         await self.controller.send_levelup(msg, level)
         if await self.is_role_reward(msg.guild, level):
@@ -629,7 +633,6 @@ class Level(commands.Cog):
     async def custom_role(self, inter: ApplicationCommandInteraction):
         return
 
-
     @custom_role.sub_command(
         description="Create a custom role for yourself. Any abuse of this will result in big consequences."
     )
@@ -662,9 +665,9 @@ class Level(commands.Cog):
                 "• The color is not similar to staff role colors\n"
                 "• The role won't impersonate staff members\n\n"
                 "Breaking these rules will result in severe consequences.",
-                color=disnake.Color.yellow()
+                color=disnake.Color.yellow(),
             ),
-            view=view
+            view=view,
         )
 
         await view.wait()
@@ -830,9 +833,9 @@ class Level(commands.Cog):
                     "• The new color is not similar to staff role colors\n"
                     "• The changes won't impersonate staff members\n\n"
                     "Breaking these rules will result in severe consequences.",
-                    color=disnake.Color.yellow()
+                    color=disnake.Color.yellow(),
                 ),
-                view=view
+                view=view,
             )
 
             await view.wait()
