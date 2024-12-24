@@ -280,6 +280,7 @@ class LevelsController:
         user = await self.get_user(message.author)
         if user is None:
             await self.set_level(message.author, 0)
+        old_level = user.level
         user = await self.get_user(message.author)
         user.total_xp += xp
 
@@ -289,7 +290,7 @@ class LevelsController:
             total_xp=user.total_xp,
         )  # type: ignore
 
-        if user.total_xp >= LEVELS_AND_XP[user.level]:
+        if user.level > old_level:
             self.bot.dispatch("level_up", message, user.level)
 
     async def get_boost(self, message: Message) -> int:
