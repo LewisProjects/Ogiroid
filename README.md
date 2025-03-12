@@ -2,7 +2,7 @@
 
 ---
 
-![Ogiroid Logo](https://media.discordapp.net/attachments/985729550732394536/1002138392554897479/Ogiroid.png?width=1440&height=583)
+![Ogiroid Logo](https://cdn.discordapp.com/avatars/984802008403959879/7016c34bd6bce62f9b0f2534f8918c49.webp?size=160)
 
 ---
 
