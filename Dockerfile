@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM python:3.11-slim
 LABEL org.opencontainers.image.authors="Jason Cameron <jason@jasoncameron.dev>, Levani Vashadze <vashadzelevani11@gmail.com>"
 LABEL org.opencontainers.image.source="https://github.com/LewisProjects/Ogiroid"
 ENV PYTHONDONTWRITEBYTECODE 1 
