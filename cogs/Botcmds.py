@@ -45,7 +45,7 @@ class Commands(commands.Cog):
             value=f" \🌐  All members: **{member_count}**\n \👩‍👩‍👦‍👦 All Humans: **{true_member_count}**\n \🤖  All Bots: **{bot_member_count}**",
             inline=False,
         )
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
 
     @commands.slash_command(
         name="ping", description="Shows how fast the bot is replying to you!"
@@ -58,12 +58,12 @@ class Commands(commands.Cog):
             )
         )
         embed = disnake.Embed(
-            title="Pong! 🏓", description="Current ping of the bot!", colour=0xFFFFFF
+            title="Pong! 🏓",
+            description="Current ping of the bot!",
+            colour=0xFFFFFF,
         )
         ping = round(inter.bot.latency * 1000)
-        if ping < 50:
-            emoji = "<:404:985939028597682216>"
-        elif ping <= 100:
+        if ping <= 100:
             emoji = "<:good:985939098567077888>"
         elif ping <= 200:
             emoji = "<:okay:985939033811193857>"
@@ -83,7 +83,7 @@ class Commands(commands.Cog):
             text=f"Command issued by: {inter.author.name}",
             icon_url=inter.author.display_avatar,
         )
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
 
     @commands.slash_command(name="botinfo", description="Shows info about the bot!")
     async def botinfo(self, inter):
@@ -93,7 +93,9 @@ class Commands(commands.Cog):
         )
         embed.add_field(name="**Bot Name: **", value=f"```>> Ogiroid```", inline=False)
         embed.add_field(
-            name="**Bot Version: **", value=f"```>> {__VERSION__}```", inline=False
+            name="**Bot Version: **",
+            value=f"```>> {__VERSION__}```",
+            inline=False,
         )
         embed.add_field(
             name="**Disnake Version: **",
@@ -104,7 +106,7 @@ class Commands(commands.Cog):
             name="**Bot Developers: **",
             value=f"`>`[**FreebieII**](https://github.com/FreebieII) (<@744998591365513227>)\n"
             f"`>`[**HarryDaDev**](https://github.com/ImmaHarry) (<@963860161976467498>)\n"
-            f"`>`[**JasonLovesDoggo**](https://github.com/JasonLovesDoggo) (<@511724576674414600>)\n"
+            f"`>`[**Jason Cameron**](https://github.com/JasonLovesDoggo) (<@511724576674414600>)\n"
             f"`>`[**DWAA1660**](https://github.com/DWAA1660) (<@491266830674034699>)\n"
             f"`>`[**LevaniVashadze**](https://github.com/LevaniVashadze) (<@662656158129192961>)\n"
             f"`>`[**CordlessCoder**](https://github.com/CordlessCoder) (<@577885109894512659>)",
@@ -208,7 +210,8 @@ class Commands(commands.Cog):
                 f"Level {guild.premium_tier}\n{guild.premium_subscription_count} boosts"
             )
             last_boost = max(
-                guild.members, key=lambda m: m.premium_since or guild.created_at
+                guild.members,
+                key=lambda m: m.premium_since or guild.created_at,
             )
             if last_boost.premium_since is not None:
                 boosts = f"{boosts}\nLast Boost: {last_boost}"
@@ -310,7 +313,9 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="avatar", description="Shows the avatar of a user.")
     async def avatar(
-        self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        user: disnake.Member = None,
     ):
         """Shows the avatar of a user."""
         if user == None:

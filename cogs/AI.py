@@ -12,6 +12,7 @@ class AI(commands.Cog):
     def __init__(self, bot: OGIROID):
         self.bot = bot
 
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.slash_command(description="Generates ai art")
     async def ai_art(self, inter: disnake.ApplicationCommandInteraction, text: str):
         if profanity.contains_profanity(text):
@@ -20,20 +21,17 @@ class AI(commands.Cog):
             hidden = False
         else:
             hidden = True
-        ETA = int(time.time() + 60)
+        ETA = int(time.time() + 15)
         await inter.send(
-            f"Go grab a coffee this may take a while... ETA: <t:{ETA}:R>",
+            f"This might take a bit of time... ETA: <t:{ETA}:R>",
             ephemeral=hidden,
         )
         response = await self.bot.session.post(
-            "https://backend.craiyon.com/generate", json={"prompt": text}
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            json={"inputs": text},
+            headers={"Authorization": f"Bearer {self.bot.config.tokens.huggingface}"},
         )
-        r = await response.json()
-        raw_images = r["images"]
-        images = [
-            disnake.File(BytesIO(base64.decodebytes(i.encode("utf-8"))), "image.png")
-            for i in raw_images
-        ]
+        images = [disnake.File(BytesIO(await response.read()), "image.png")]
 
         await inter.edit_original_response(files=images, content="Here you go!")
 

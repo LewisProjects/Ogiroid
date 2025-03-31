@@ -28,10 +28,12 @@ class Lewis(commands.Cog, name="Lewis"):
 
         response = await self.bot.session.get(self.youtube_api_url)
         response = await response.json()
-
-        video_id = response["items"][0]["id"]["videoId"]
+        try:
+            video_id = response["items"][0]["id"]["videoId"]
+        except KeyError:
+            print("Issue with request, skipping upload check")
+            return
         video_url = f"https://www.youtube.com/watch?v={video_id}"
-        # Credits to Simon for the idea and part of the code
 
         video_release_time = response["items"][0]["snippet"]["publishedAt"]
         year = video_release_time.split("-")[0]
@@ -41,7 +43,12 @@ class Lewis(commands.Cog, name="Lewis"):
         minute = video_release_time.split("T")[1].split(":")[1]
         second = video_release_time.split("T")[1].split(":")[2].split("Z")[0]
         time = dt.datetime(
-            int(year), int(month), int(day), int(hour), int(minute), int(second)
+            int(year),
+            int(month),
+            int(day),
+            int(hour),
+            int(minute),
+            int(second),
         )
         if check_time - time < dt.timedelta(minutes=30):
             return await channel.send(

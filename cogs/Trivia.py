@@ -26,7 +26,11 @@ class Trivia(commands.Cog, name="Trivia"):
         await self.bot.wait_until_ready()
         self.flag_quiz: FlagQuizHandler = FlagQuizHandler(self.bot, self.bot.db)
 
-    @commands.slash_command(name="flagquiz", description="Guess the flags.")
+    @commands.slash_command(name="flagquiz")
+    async def flagquiz(self, inter):
+        pass
+
+    @flagquiz.sub_command(name="start", description="Guess the flags.")
     async def guess_the_flag(self, inter):
         await inter.response.defer()
         await QuickEmb(inter, "Starting the quiz..").send()
@@ -39,7 +43,9 @@ class Trivia(commands.Cog, name="Trivia"):
         try:
             user = await self.flag_quiz.get_user(inter.author.id, inter.guild.id)
         except UserNotFound:
-            await self.flag_quiz.add_user(inter.author.id)
+            await self.flag_quiz.add_user(
+                user_id=inter.author.id, guild_id=inter.guild.id
+            )
             user = await self.flag_quiz.get_user(inter.author.id, inter.guild.id)
 
         def check(m):
@@ -53,13 +59,6 @@ class Trivia(commands.Cog, name="Trivia"):
             tries += 1
             retry = True
             while retry:
-                user = await self.flag_quiz.add_data(
-                    user_id=inter.author.id,
-                    user=user,
-                    correct=correct,
-                    tries=tries,
-                    guild_id=inter.guild.id,
-                )
                 embed = disnake.Embed(
                     title="Guess the Flag.",
                     description="To skip onto the next write ``skip``. To give up write ``give up``\n"
@@ -95,7 +94,8 @@ class Trivia(commands.Cog, name="Trivia"):
                             >= 0.7
                         ):
                             await QuickEmb(
-                                channel, f"Correct. The country indeed was {country[0]}"
+                                channel,
+                                f"Correct. The country indeed was {country[0]}",
                             ).success().send()
                             correct += 1
                             retry = False
@@ -146,6 +146,7 @@ class Trivia(commands.Cog, name="Trivia"):
                         channel,
                         f"Your Score: {correct}/{tries - 1}. Thanks for playing.",
                     ).send()
+
                     await self.flag_quiz.add_data(
                         guess.author.id,
                         tries - 1,
@@ -165,8 +166,9 @@ class Trivia(commands.Cog, name="Trivia"):
             f"Great Job on finishing the entire Quiz. Score: {correct}/{tries}"
         )
 
-    @commands.slash_command(
-        name="flagquiz-leaderboard", description="Leaderboard for the flag quiz."
+    @flagquiz.sub_command(
+        name="leaderboard",
+        description="Leaderboard for the flag quiz.",
     )
     async def flag_quiz_leaderboard(
         self,
@@ -179,6 +181,7 @@ class Trivia(commands.Cog, name="Trivia"):
             }
         ),
     ):
+        await inter.response.defer()
         try:
             leaderboard = await self.flag_quiz.get_leaderboard(
                 order_by=sortby, guild_id=inter.guild.id
@@ -197,9 +200,7 @@ class Trivia(commands.Cog, name="Trivia"):
 
         leaderboard_string = ""
         leaderboard_header = "Place  ***-***  User  ***-***  Correct Guesses/Total Guesses  ***-***  Completed   "
-        i = 0
-        for user in leaderboard:
-            i += 1
+        for i, user in enumerate(leaderboard):
             username = self.bot.get_user(user.user_id)
             leaderboard_string += f"{getPosition(i)} **-** {username} **-** {user.correct}/{user.tries} **-** {user.completed}\n"
         embed = disnake.Embed(
@@ -211,11 +212,12 @@ class Trivia(commands.Cog, name="Trivia"):
 
         await inter.send(embed=embed)
 
-    @commands.slash_command(
-        name="flagquiz-user",
+    @flagquiz.sub_command(
+        name="user",
         description="Get Flag Quiz User Stats about a particular user.",
     )
     async def flag_quiz_user(self, inter, user: disnake.User = None):
+        await inter.response.defer()
         if user:
             user_id = user.id
         else:
@@ -224,7 +226,8 @@ class Trivia(commands.Cog, name="Trivia"):
             player = await self.flag_quiz.get_user(user_id, inter.guild.id)
         except UserNotFound:
             await errorEmb(
-                inter, "This user never took part in the flag quiz or doesn't exist."
+                inter,
+                "This user never took part in the flag quiz or doesn't exist.",
             )
             return
 
@@ -299,8 +302,14 @@ class Trivia(commands.Cog, name="Trivia"):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def trivia(
-        self, inter, category="Any", difficulty=None, amount: int = 5, kind="multiple"
+        self,
+        inter,
+        category="Any",
+        difficulty=None,
+        amount: int = 5,
+        kind="multiple",
     ):
+        await inter.response.defer()
         if int(amount) <= 1:
             return (
                 await QuickEmb(inter, "The amount of questions needs to be at least 1")
@@ -336,7 +345,8 @@ class Trivia(commands.Cog, name="Trivia"):
         embed.set_thumbnail(url=inter.author.display_avatar)
         embed.add_field(name="Category:", value=category + "   ")
         embed.add_field(
-            name="Difficulty:", value=difficulty if difficulty else "Any Difficulty"
+            name="Difficulty:",
+            value=difficulty if difficulty else "Any Difficulty",
         )
         embed.add_field(name="Amount of Questions:", value=amount, inline=False)
         embed.add_field(name="Type:", value=kind, inline=False)
@@ -401,7 +411,8 @@ class Trivia(commands.Cog, name="Trivia"):
                     ).error().send()
 
         await QuickEmb(
-            channel, f"Thanks for playing. Your final Score is {correct} / {questions}."
+            channel,
+            f"Thanks for playing. Your final Score is {correct} / {questions}.",
         ).send()
 
 

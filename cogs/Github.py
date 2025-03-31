@@ -29,17 +29,25 @@ class GitHub(commands.Cog):
             color=0xFFFFFF,
         )
         embed.set_thumbnail(url=f"{person['avatar_url']}")
-        embed.add_field(name="Username 📛: ", value=f"{person['name']}", inline=True)
+        embed.add_field(
+            name="Username 📛: ", value=f"{person['name']}", inline=True
+        )
         # embed.add_field(name="Email ✉: ", value=f"{person['email']}", inline=True) Commented due to GitHub not responding with the correct email
         embed.add_field(
             name="Repos 📁: ", value=f"{person['public_repos']}", inline=True
         )
-        embed.add_field(name="Location 📍: ", value=f"{person['location']}", inline=True)
-        embed.add_field(name="Company 🏢: ", value=f"{person['company']}", inline=True)
+        embed.add_field(
+            name="Location 📍: ", value=f"{person['location']}", inline=True
+        )
+        embed.add_field(
+            name="Company 🏢: ", value=f"{person['company']}", inline=True
+        )
         embed.add_field(
             name="Followers 👥: ", value=f"{person['followers']}", inline=True
         )
-        embed.add_field(name="Website 🖥️: ", value=f"{person['blog']}", inline=True)
+        embed.add_field(
+            name="Website 🖥️: ", value=f"{person['blog']}", inline=True
+        )
         button = disnake.ui.Button(
             label="Link", style=disnake.ButtonStyle.url, url=person["html_url"]
         )
@@ -56,7 +64,9 @@ class GitHub(commands.Cog):
         if repos_raw.status != 200:
             return await inter.send("Repo not found!")
         else:
-            repos = await repos_raw.json()  # Getting first repository from the query
+            repos = (
+                await repos_raw.json()
+            )  # Getting first repository from the query
         repo = repos["items"][0]
         # Returning an Embed containing all the information:
         embed = disnake.Embed(
@@ -73,10 +83,16 @@ class GitHub(commands.Cog):
         embed.add_field(
             name="Stars ⭐:", value=f"{repo['stargazers_count']}", inline=True
         )
-        embed.add_field(name="Forks 🍴:", value=f"{repo['forks_count']}", inline=True)
-        embed.add_field(name="Language 💻:", value=f"{repo['language']}", inline=True)
         embed.add_field(
-            name="Size 🗃️:", value=f"{round(repo['size'] / 1000, 2)} MB", inline=True
+            name="Forks 🍴:", value=f"{repo['forks_count']}", inline=True
+        )
+        embed.add_field(
+            name="Language 💻:", value=f"{repo['language']}", inline=True
+        )
+        embed.add_field(
+            name="Size 🗃️:",
+            value=f"{round(repo['size'] / 1000, 2)} MB",
+            inline=True,
         )
         if repo["license"]:
             spdx_id = repo["license"]["spdx_id"]

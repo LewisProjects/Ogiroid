@@ -31,7 +31,10 @@ class Log(Cog):
                 timestamp=datetime.now(),
             )
 
-            fields = [("Before", before.name, False), ("After", after.name, False)]
+            fields = [
+                ("Before", before.name, False),
+                ("After", after.name, False),
+            ]
 
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
@@ -148,8 +151,8 @@ class Log(Cog):
                 )
 
                 fields = [
-                    ("Before", before.content, False),
-                    ("After", after.content, False),
+                    ("Before", before.content[:1024], False),
+                    ("After", after.content[:1024], False),
                 ]
 
                 for name, value, inline in fields:
@@ -176,7 +179,9 @@ class Log(Cog):
             n = 0
             while len(message.content) > n:
                 embed.add_field(
-                    name="content", value=message.content[n : n + 1024], inline=False
+                    name="content",
+                    value=message.content[n : n + 1024],
+                    inline=False,
                 )
                 n += 1024
 
@@ -195,11 +200,13 @@ class Log(Cog):
         embed.set_author(name=inter.author, icon_url=inter.author.display_avatar.url)
 
         options = " ".join(
-            [f"{name}: {value}" for name, value in inter.options.items()]
+            [
+                f"{name}: {value}" if value else name
+                for name, value in inter.options.items()
+            ]
         )
-
         embed.description = (
-            f"`/{inter.data['name']}{' ' + options if options != '' else options}`"
+            f"`/{inter.data['name']} {options if options != '' else options}`"
         )
 
         embed.set_footer(text=f"{inter.author.name}#{inter.author.discriminator}")

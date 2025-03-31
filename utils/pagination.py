@@ -2,7 +2,7 @@ import datetime as dt
 import math
 from typing import TYPE_CHECKING
 
-from disnake import ui, ButtonStyle, Embed
+from disnake import ui, ButtonStyle, Embed, MessageInteraction
 
 from utils.exceptions import UserNotFound
 from utils.shortcuts import errorEmb
@@ -43,12 +43,14 @@ class CreatePaginator(ui.View):
                     "You are already on the first page.", ephemeral=True
                 )
             elif self.CurrentEmbed:
-                await inter.response.edit_message(embed=self.embeds[0])
+                await inter.response.defer()
+                await inter.edit_original_response(embed=self.embeds[0])
                 self.CurrentEmbed = 0
             else:
                 raise ()
 
-        except:
+        except Exception as e:
+            print(e)
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⬅️", style=ButtonStyle.grey)
@@ -63,14 +65,16 @@ class CreatePaginator(ui.View):
                     "You are already on the first page.", ephemeral=True
                 )
             if self.CurrentEmbed:
-                await inter.response.edit_message(
+                await inter.response.defer()
+                await inter.edit_original_response(
                     embed=self.embeds[self.CurrentEmbed - 1]
                 )
                 self.CurrentEmbed = self.CurrentEmbed - 1
             else:
                 raise ()
 
-        except:
+        except Exception as e:
+            print(e)
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="➡️", style=ButtonStyle.grey)
@@ -82,10 +86,12 @@ class CreatePaginator(ui.View):
                 )
             elif self.CurrentEmbed == len(self.embeds) - 1:
                 return await inter.send("you are already at the end", ephemeral=True)
-            await inter.response.edit_message(embed=self.embeds[self.CurrentEmbed + 1])
+            await inter.response.defer()
+            await inter.edit_original_response(embed=self.embeds[self.CurrentEmbed + 1])
             self.CurrentEmbed += 1
 
-        except:
+        except Exception as e:
+            print(e)
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⏭️", style=ButtonStyle.grey)
@@ -97,10 +103,12 @@ class CreatePaginator(ui.View):
                 )
             elif self.CurrentEmbed == len(self.embeds) - 1:
                 return await inter.send("you are already at the end", ephemeral=True)
-            await inter.response.edit_message(embed=self.embeds[len(self.embeds) - 1])
+            await inter.response.defer()
+            await inter.edit_original_response(embed=self.embeds[len(self.embeds) - 1])
             self.CurrentEmbed = len(self.embeds) - 1
 
-        except:
+        except Exception as e:
+            print(e)
             await inter.send("Unable to change the page.", ephemeral=True)
 
 
@@ -123,7 +131,6 @@ class LeaderboardView(ui.View):
         set_user: bool = False,
         timeout: float = None,
     ):
-
         self.controller = controller
         self.author = author
         self.CurrentEmbed = 0
@@ -166,21 +173,21 @@ class LeaderboardView(ui.View):
                 if record.user_id == inter.author.id:
                     embed.add_field(
                         name=f"{i + 1 + offset}. {user} ~ You ",
-                        value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
+                        value=f"Level: {record.level}\nTotal XP: {record.total_xp:,}",
                         inline=False,
                     )
                     self.user_set = True
                 else:
                     embed.add_field(
                         name=f"{i + 1 + offset}. {user}",
-                        value=f"Level: {record.lvl}\nTotal XP: {record.total_exp:,}",
+                        value=f"Level: {record.level}\nTotal XP: {record.total_xp:,}",
                         inline=False,
                     )
             if not self.user_set:
                 rank = await self.controller.get_rank(inter.guild.id, cmd_user)
                 embed.add_field(
                     name=f"{rank}. You",
-                    value=f"Level: {cmd_user.lvl}\nTotal XP: {cmd_user.xp:,}",
+                    value=f"Level: {cmd_user.level}\nTotal XP: {cmd_user.total_xp:,}",
                     inline=False,
                 )
 
@@ -200,13 +207,14 @@ class LeaderboardView(ui.View):
                     "You are already on the first page.", ephemeral=True
                 )
             elif self.CurrentEmbed:
-                await inter.response.edit_message(
+                await inter.response.defer()
+                await inter.edit_original_response(
                     embed=await self.create_page(inter, 0)
                 )
                 self.CurrentEmbed = 0
             else:
                 raise ()
-        except:
+        except Exception as e:
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⬅️", style=ButtonStyle.grey)
@@ -221,18 +229,20 @@ class LeaderboardView(ui.View):
                     "You are already on the first page.", ephemeral=True
                 )
             if self.CurrentEmbed:
-                await inter.response.edit_message(
+                await inter.response.defer()
+                await inter.edit_original_response(
                     embed=await self.create_page(inter, self.CurrentEmbed - 1)
                 )
                 self.CurrentEmbed = self.CurrentEmbed - 1
             else:
                 raise ()
 
-        except:
+        except Exception as e:
+            print(e)
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="➡️", style=ButtonStyle.grey)
-    async def next(self, button, inter):
+    async def next(self, button, inter: MessageInteraction):
         try:
             if inter.author.id != self.author and self.author != 123:
                 return await inter.send(
@@ -240,11 +250,13 @@ class LeaderboardView(ui.View):
                 )
             elif await self.at_last_page(inter):
                 return await inter.send("you are already at the end", ephemeral=True)
-            await inter.response.edit_message(
+            await inter.response.defer()
+            await inter.edit_original_response(
                 embed=await self.create_page(inter, self.CurrentEmbed + 1)
             )
             self.CurrentEmbed += 1
         except Exception as e:
+            print(e)
             await inter.send("Unable to change the page.", ephemeral=True)
 
     @ui.button(emoji="⏭️", style=ButtonStyle.grey)
@@ -256,6 +268,7 @@ class LeaderboardView(ui.View):
                 )
             elif await self.at_last_page(inter):
                 return await inter.send("you are already at the end", ephemeral=True)
+            await inter.response.defer()
             record_count = await self.controller.get_count(inter.guild.id)
             if (
                 record_count % 10 == 0
@@ -265,10 +278,10 @@ class LeaderboardView(ui.View):
                 last_page = math.floor(
                     record_count // 10
                 )  # if the number of records is not divisible by 10 e.g. 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29 etc. then we can just divide the number of records by 10 to get the last page
-            await inter.response.edit_message(
+            await inter.edit_original_response(
                 embed=await self.create_page(inter, last_page)
             )
             self.CurrentEmbed = last_page
 
-        except:
+        except Exception as e:
             await inter.send("Unable to change the page.", ephemeral=True)

@@ -45,7 +45,8 @@ class Birthday(commands.Cog):
         pass
 
     @birthday.sub_command(
-        name="set", description="Set your birthday. Cant be removed without Staff."
+        name="set",
+        description="Set your birthday. Cant be removed without Staff.",
     )
     async def set(
         self,
@@ -62,6 +63,7 @@ class Birthday(commands.Cog):
             choices=months,
         ),
     ):
+        await inter.response.defer()
         if month is None or day is None:
             return await errorEmb(inter, "You need to provide a month and a day")
         if day < 1 or day > 31:
@@ -77,7 +79,8 @@ class Birthday(commands.Cog):
 
     @commands.has_permissions(manage_roles=True)
     @birthday.sub_command(
-        name="edit", description="Edit a users birthday. Can only be done by Staff."
+        name="edit",
+        description="Edit a users birthday. Can only be done by Staff.",
     )
     async def edit(
         self,
@@ -94,6 +97,7 @@ class Birthday(commands.Cog):
             name="user", description="User to edit the birthday of."
         ),
     ):
+        await inter.response.defer()
         try:
             await self.birthday.update_user(user.id, f"{day}/{month}")
             return await sucEmb(inter, f"Birthday has been updated to {day}/{month}")
@@ -102,7 +106,8 @@ class Birthday(commands.Cog):
 
     @commands.has_permissions(manage_roles=True)
     @birthday.sub_command(
-        name="remove", description="Remove a birthday. Can only be done by Staff."
+        name="remove",
+        description="Remove a birthday. Can only be done by Staff.",
     )
     async def remove(
         self,
@@ -111,6 +116,7 @@ class Birthday(commands.Cog):
             name="user", description="Removes the birthday of this user"
         ),
     ):
+        await inter.response.defer()
         try:
             await self.birthday.delete_user(user.id)
         except UserNotFound:
@@ -120,8 +126,11 @@ class Birthday(commands.Cog):
 
     @birthday.sub_command(name="get", description="Get the birthday of a user")
     async def get(
-        self, inter, user: disnake.User = commands.Param(name="user", default=None)
+        self,
+        inter,
+        user: disnake.User = commands.Param(name="user", default=None),
     ):
+        await inter.response.defer()
         if user is None:
             user = inter.author
         else:
@@ -139,6 +148,7 @@ class Birthday(commands.Cog):
 
     @birthday.sub_command(name="next", description="Get the next birthday")
     async def next(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.defer()
         upcoming_birthdays = []
         # loop gets next birthday
         for user in await self.birthday.get_users():
@@ -154,8 +164,10 @@ class Birthday(commands.Cog):
         # gets the next birthday's user
         next_birthday = upcoming_birthdays[0]["user"]
         # checks if user is in the guild
-        while await inter.guild.fetch_member(next_birthday.user_id) is None:
+        while await inter.guild.getch_member(next_birthday.user_id) is None:
             upcoming_birthdays.pop(0)
+            if len(upcoming_birthdays) == 0:
+                return await errorEmb(inter, "There are no birthdays set in this guild")
             next_birthday = upcoming_birthdays[0]["user"]
 
         member = await self.bot.fetch_user(next_birthday.user_id)

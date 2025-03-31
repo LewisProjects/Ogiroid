@@ -66,11 +66,15 @@ class BugModal(disnake.ui.Modal):
         )
 
         embed.add_field(
-            name="Expected Result: ", value=inter.text_values["expected"], inline=False
+            name="Expected Result: ",
+            value=inter.text_values["expected"],
+            inline=False,
         )
 
         embed.add_field(
-            name="Actual Result:", value=inter.text_values["actual"], inline=False
+            name="Actual Result:",
+            value=inter.text_values["actual"],
+            inline=False,
         )
 
         embed.add_field(
@@ -138,7 +142,9 @@ class SuggestionModal(disnake.ui.Modal):
         embed.add_field(name="Title:", value=inter.text_values["title"], inline=False)
 
         embed.add_field(
-            name="Description:", value=inter.text_values["description"], inline=False
+            name="Description:",
+            value=inter.text_values["description"],
+            inline=False,
         )
 
         if suggestion_type == "Reddit-Bot":
@@ -148,7 +154,7 @@ class SuggestionModal(disnake.ui.Modal):
         else:
             channel = self.bot.get_channel(self.bot.config.channels.suggestion_ogiroid)
         await channel.send(embed=embed)
-        await inter.response.send_message(
+        await inter.send(
             "Sent suggestion.\nThank you for your suggestion.", ephemeral=True
         )
 

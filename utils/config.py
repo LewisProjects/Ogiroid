@@ -6,56 +6,23 @@ from utils.CONSTANTS import *
 
 
 @dataclass
-class GConfig:
-    guild: int
-    xp_boost: int | float
-    xp_boost_expiry: int
-    xp_boost_enabled: bool
-
-    @property
-    def boost_expired(self):
-        from time import time
-
-        now = int(time())
-        if self.xp_boost_expiry >= now:
-            return False
-        return True
-
-    @property
-    def boost_time_left(self):
-        from time import time
-
-        now = int(time())
-        return self.xp_boost_expiry - now
-
-    @property
-    def get_boost(self):
-        return self.xp_boost
-
-    @property
-    def xp_boost_active(self) -> bool:
-        return bool(self.xp_boost_enabled) and not self.boost_expired
-
-
-@dataclass
 class Tokens:
     SRA: str = os.getenv("SRA_API_KEY")
     bot: str = os.getenv("TOKEN")
     weathermap: str = os.getenv("OPEN_WEATHER_MAP_API_KEY")
     yt_api_key: str = os.getenv("YT_API_KEY")
+    currency: str = os.getenv("CURRENCY_API_KEY")
+    huggingface: str = os.getenv("HUGGINGFACE_API_KEY")
+    api_ninjas_key: str = os.getenv("API-NINJAS-KEY")
 
 
 @dataclass
 class Database:  # Todo switch to rockdb info
-    user: str = os.getenv("POSTGRES_USER")
-    password: str = os.getenv("POSTGRES_PASSWORD")
-    host: str = os.getenv("POSTGRES_HOST")
-    port: str = os.getenv("POSTGRES_PORT")
-    database: str = "production"
+    connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 
     @classmethod
     def dev(cls):
-        cls.database = "development"
+        cls.database = os.getenv("POSTGRES_CONNECTION_STRING")
         return cls
 
 

@@ -10,7 +10,7 @@ from disnake.ext.commands import Cog
 from utils import timeconversions
 from utils.CONSTANTS import timings
 from utils.DBhandlers import BlacklistHandler
-from utils.models import BlacklistedUser
+from utils.db_models import Blacklist
 from utils.pagination import CreatePaginator
 from utils.shortcuts import sucEmb, errorEmb, get_expiry, wait_until
 
@@ -38,7 +38,7 @@ class Blacklist(Cog):
         for user in self.bot.blacklist.blacklist:
             await self.check_user_removal(user)
 
-    async def check_user_removal(self, user: BlacklistedUser):
+    async def check_user_removal(self, user: Blacklist):
         if user.id in self.del_que:
             return  # already being removed
         elif user.is_expired():
@@ -54,13 +54,14 @@ class Blacklist(Cog):
             self.blacklist: BlacklistHandler = self.bot.blacklist
             self.check_blacklist.start()
 
-    @commands.slash_command(description="Blacklist base command", hidden=True)
+    @commands.slash_command(description="Blacklist base command")
     async def blacklist(self, inter):
         pass
 
     @commands.cooldown(1, 5, commands.BucketType.user)
     @blacklist.sub_command(name="info", description="Get info about a blacklisted user")
     async def blacklist_info(self, inter, user: Member):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         bl_user = await self.blacklist.get_user(user.id)
@@ -83,9 +84,11 @@ class Blacklist(Cog):
 
     @commands.has_permissions(manage_messages=True)
     @edit.sub_command(
-        name="flags", description="Edit the user's blacklist flags in the blacklist"
+        name="flags",
+        description="Edit the user's blacklist flags in the blacklist",
     )
     async def flags(self, inter, user: Member, bot: bool, tickets: bool, tags: bool):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.edit_flags(user.id, bot, tickets, tags)
@@ -96,9 +99,11 @@ class Blacklist(Cog):
 
     @commands.has_permissions(manage_messages=True)
     @edit.sub_command(
-        name="reason", description="Edit the user's blacklist reason in the blacklist"
+        name="reason",
+        description="Edit the user's blacklist reason in the blacklist",
     )
     async def reason(self, inter, user: Member, reason: str):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.edit_reason(user.id, reason)
@@ -109,9 +114,11 @@ class Blacklist(Cog):
 
     @commands.has_permissions(manage_messages=True)
     @edit.sub_command(
-        name="expiry", description="Edit the user's blacklist expiry in the blacklist"
+        name="expiry",
+        description="Edit the user's blacklist expiry in the blacklist",
     )
     async def expiry(self, inter, user: Member, expires: str):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         expiry = int((await timeconversions.convert(expires)).dt.timestamp())
@@ -127,11 +134,14 @@ class Blacklist(Cog):
         name="remove", description="Remove a user from the blacklist"
     )
     async def remove(self, inter, user: Member):
+        await inter.response.defer()
         if not await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is not in the blacklist")
         await self.blacklist.remove(user.id)
         await sucEmb(
-            inter, f"{user.mention} has been removed from blacklist", ephemeral=False
+            inter,
+            f"{user.mention} has been removed from blacklist",
+            ephemeral=False,
         )
 
     @commands.has_permissions(manage_messages=True)
@@ -187,6 +197,7 @@ class Blacklist(Cog):
         reason="No Reason Specified",
         expires="never",
     ):
+        await inter.response.defer()
         if not any((bot, tickets, tags)):
             return await errorEmb(
                 inter,
@@ -196,6 +207,10 @@ class Blacklist(Cog):
             return await errorEmb(inter, "Reason must be under 900 chars")
         elif user.id == inter.author.id:
             return await errorEmb(inter, "You can't blacklist yourself")
+        elif user.id == self.bot.user.id:
+            return await errorEmb(inter, "You can't blacklist me")
+        elif user.id == "511724576674414600":
+            return await errorEmb(inter, "You can't blacklist my creator :D")
         elif await self.blacklist.blacklisted(user.id):
             return await errorEmb(inter, f"{user.mention} is already in the blacklist")
         expires = (await timeconversions.convert(expires)).dt.timestamp()
@@ -210,6 +225,7 @@ class Blacklist(Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     @blacklist.sub_command(name="list", description="List all blacklisted users")
     async def blacklist_list(self, inter):
+        await inter.response.defer()
         try:
             blacklist_count = await self.blacklist.count()
         except AttributeError:
@@ -223,7 +239,7 @@ class Blacklist(Cog):
         for user in self.blacklist.blacklist:
             if (len(user.reason) + blacklist_reason_count) <= 1990:
                 blacklist_reason_count += len(user.reason)
-                if isinstance(nested_blacklisted[nested_count], BlacklistedUser):
+                if isinstance(nested_blacklisted[nested_count], Blacklist):
                     nested_count += 1
                     nested_blacklisted.append([])
                 nested_blacklisted[nested_count].append(user)
@@ -245,7 +261,7 @@ class Blacklist(Cog):
                     )
 
                 blacklist_embs.append(emb)
-            elif isinstance(blacklist_list, BlacklistedUser):
+            elif isinstance(blacklist_list, Blacklist):
                 emb = Embed(color=self.bot.config.colors.invis, description="")
                 emb.title = f"**{self.get_user(blacklist_list.id).name}**"
                 emb.description = f"Expires: {blacklist_list.get_expiry}\nReason: {blacklist_list.reason}\n"

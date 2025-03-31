@@ -59,7 +59,9 @@ async def warning_embed(inter: ApplicationCommandInteraction, user, reason):
     await inter.send(embed=emb)
 
 
-async def warnings_embed(inter: ApplicationCommandInteraction, member, warnings):
+async def warnings_embed(
+    inter: ApplicationCommandInteraction, member, warnings
+):
     embed = disnake.Embed(title=f"{member.name}'s warnings", color=0xFFFFFF)
     warning_string = ""
     i = 0
@@ -90,7 +92,9 @@ async def sucEmb(inter: ApplicationCommandInteraction, text, ephemeral=True):
 
 
 class QuickEmb:
-    def __init__(self, inter: ApplicationCommandInteraction, msg, color=0xFFFFFF):
+    def __init__(
+        self, inter: ApplicationCommandInteraction, msg, color=0xFFFFFF
+    ):
         self.inter = inter
         self.msg = msg
         self.color = color
@@ -110,3 +114,7 @@ class QuickEmb:
 
 def manage_messages_perms(inter):
     return inter.channel.permissions_for(inter.author).manage_messages
+
+def manage_role_perms(inter):
+    return inter.channel.permissions_for(inter.author).manage_roles
+

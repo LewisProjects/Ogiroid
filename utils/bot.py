@@ -1,8 +1,10 @@
 import asyncio
+import os
 from datetime import datetime
-from os import listdir
 
-import aiosqlite
+from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
 import disnake
 from disnake import ApplicationCommandInteraction, OptionType
 from disnake.ext import commands
@@ -15,13 +17,9 @@ from utils.exceptions import UserBlacklisted
 from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
 
-with open("setup.sql", "r") as sql_file:
-    SETUP_SQL = sql_file.read()
-
 
 class OGIROID(commands.InteractionBot):
     def __init__(self, *args, **kwargs):
-
         super().__init__(
             intents=disnake.Intents.all(),
             command_sync_flags=commands.CommandSyncFlags(sync_commands_debug=True),
@@ -33,7 +31,7 @@ class OGIROID(commands.InteractionBot):
         self.session = HTTPSession(loop=self.loop)
         self.config = Config()
         self.commands_ran = {}
-        self.total_commands_ran = 0
+        self.total_commands_ran = {}
         self.db = None
         self.blacklist: BlacklistHandler = None
         self.add_app_command_check(
@@ -49,13 +47,6 @@ class OGIROID(commands.InteractionBot):
             return True
         except AttributeError:
             pass  # DB hasn't loaded yet
-
-    async def on_command(self, ctx):
-        self.total_commands_ran += 1
-        try:
-            self.commands_ran[ctx.command.qualified_name] += 1
-        except KeyError:
-            self.commands_ran[ctx.command.qualified_name] = 1
 
     @async_cache(maxsize=0)
     async def on_slash_command(self, inter: ApplicationCommandInteraction):
@@ -85,11 +76,19 @@ class OGIROID(commands.InteractionBot):
                 break
 
         COMMAND_NAME = " ".join([command.name for command in COMMAND_STRUCT])
-        self.total_commands_ran += 1
+
         try:
-            self.commands_ran[COMMAND_NAME] += 1
+            self.total_commands_ran[inter.guild.id] += 1
         except KeyError:
-            self.commands_ran[COMMAND_NAME] = 1
+            self.total_commands_ran[inter.guild.id] = 1
+
+        if self.commands_ran.get(inter.guild.id) is None:
+            self.commands_ran[inter.guild.id] = {}
+
+        try:
+            self.commands_ran[inter.guild.id][COMMAND_NAME] += 1
+        except KeyError:
+            self.commands_ran[inter.guild.id][COMMAND_NAME] = 1
 
     async def on_ready(self):
         if not self._ready_:
@@ -118,24 +117,20 @@ class OGIROID(commands.InteractionBot):
             print("Bot reconnected")
 
     async def _setup(self):
-        for command in self.application_commands:
-            self.commands_ran[f"{command.qualified_name}"] = 0
+        # for command in self.application_commands:
+        #     self.commands_ran[f"{command.qualified_name}"] = 0
         self.blacklist: BlacklistHandler = BlacklistHandler(self, self.db)
         await self.blacklist.startup()
 
     async def load_db(self):
-        pass #todo get started on rocksDB migration
+        pass
 
     async def start(self, *args, **kwargs):
-        await self.load_db()
-        async with aiosqlite.connect("data.db") as self.db:
-            await self.db.executescript(SETUP_SQL)
-            # run the db migrations in /migrations
-            for file in listdir("migrations"):
-                if file.endswith(".sql"):
-                    with open(f"migrations/{file}", "r") as migration_sql:
-                        await self.db.executescript(migration_sql.read())
-            await super().start(*args, **kwargs)
+        engine = create_async_engine(
+            self.config.Database.connection_string, pool_pre_ping=True
+        )
+        self.db = async_sessionmaker(engine, expire_on_commit=False)
+        await super().start(*args, **kwargs)
 
     @property
     def ready_(self):

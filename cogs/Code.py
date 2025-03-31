@@ -60,7 +60,7 @@ class CodeModal(disnake.ui.Modal):
             embed = disnake.Embed(
                 title=f"{language} is not a valid language", colour=Color.red()
             )
-            return await inter.response.send_message(embed=embed)
+            return await inter.send(embed=embed)
 
         embed = disnake.Embed(title="Running Code")
         embed.add_field(
@@ -73,7 +73,7 @@ class CodeModal(disnake.ui.Modal):
             value=f"```{language}\n" f"{inter.text_values['code'][:999]}\n" f"```",
             inline=False,
         )
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
         result = await self.run_code(lang=language, code=inter.text_values["code"])
         await self._send_result(inter, result)
 

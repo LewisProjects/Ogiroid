@@ -42,7 +42,8 @@ class ErrorHandler(Cog):
             # non real error handling
             if isinstance(error, CommandNotFound):
                 return await errorEmb(
-                    inter, "Command not found! use /help for a list of commands"
+                    inter,
+                    "Command not found! use /help for a list of commands",
                 )
             elif isinstance(error, NotOwner):
                 await errorEmb(
@@ -54,7 +55,8 @@ class ErrorHandler(Cog):
                 return await self.send_traceback(inter, error)
             elif isinstance(error, MissingPermissions):
                 return await permsEmb(
-                    inter, permissions=f"{', '.join(error.missing_permissions)}"
+                    inter,
+                    permissions=f"{', '.join(error.missing_permissions)}",
                 )
             elif isinstance(error, MissingRole):
                 return await permsEmb(inter, permissions=f"Role: {error.missing_role}")
@@ -75,7 +77,8 @@ class ErrorHandler(Cog):
             elif isinstance(error, CheckFailure):
                 if self.bot.uptime - dt.timedelta(seconds=10) < datetime.now():
                     return await errorEmb(
-                        inter, "wait a few seconds before using this command again"
+                        inter,
+                        "wait a few seconds before using this command again",
                     )
                 return await errorEmb(
                     inter, "You don't have permission to use this command"
@@ -83,7 +86,7 @@ class ErrorHandler(Cog):
             elif self.debug_mode:
                 traceback_nice = "".join(
                     traceback.format_exception(
-                        type(error), error, error.__traceback__, 4
+                        type(error), error, error.__traceback__, 16
                     )
                 )
                 print(traceback_nice)
@@ -103,7 +106,7 @@ class ErrorHandler(Cog):
                 print(e_traceback)
             e_embed = disnake.Embed(
                 title="Error Traceback",
-                description=f"See below!\n\n{e_traceback}",
+                description=f"See below!\n\n{e_traceback[:1024]}",
                 timestamp=datetime.now(),
             )
 
@@ -130,7 +133,7 @@ class ErrorHandler(Cog):
 
         error_embed = disnake.Embed(
             title="Error Traceback",
-            description=f"See below!\n\n{bot_errors}",
+            description=f"See below!\n\n{bot_errors[:1024]}",
             timestamp=datetime.now(),
         )
         await error_channel.send(embed=error_embed)
@@ -166,7 +169,7 @@ class ErrorHandler(Cog):
         )
         embed.set_footer(
             text=f"Executed by {inter.author}",
-            icon_url="https://www.collinsdictionary.com/images/full/lo_163792823.jpg",
+            icon_url="https://cdn.discordapp.com/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png",
         )
         return embed
 

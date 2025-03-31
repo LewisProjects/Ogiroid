@@ -2,7 +2,9 @@ import datetime
 from typing import Sequence, Optional
 
 
-def human_join(seq: Sequence[str], delim: str = ", ", final: str = "or") -> str:
+def human_join(
+    seq: Sequence[str], delim: str = ", ", final: str = "or"
+) -> str:
     size = len(seq)
     if size == 0:
         return ""

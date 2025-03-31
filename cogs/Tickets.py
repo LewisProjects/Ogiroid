@@ -47,7 +47,7 @@ class Tickets(commands.Cog):
         name="edit-ticket-message", description="Update the ticket message."
     )
     @commands.guild_only()
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def edit_ticket_message(self, inter):
         await inter.send("Please send the new message", ephemeral=True)
 
@@ -108,7 +108,7 @@ class Tickets(commands.Cog):
         await ticket.set_permissions(staff, **TICKET_PERMS)
         message_content = "Thank you for contacting support! A staff member will be here shortly!\nTo close the the ticket use ``/close``"
         em = disnake.Embed(
-            title=f"Ticket made by {user.name}#{user.discriminator}",
+            title=f"Ticket made by {user.name}",
             description=f"{message_content}",
             color=0x26FF00,
         )
@@ -121,13 +121,54 @@ class Tickets(commands.Cog):
 
     @commands.slash_command(description="Close ticket")
     async def close(self, inter):
+        await inter.response.defer()
         if self.check_if_ticket_channel(inter):
+            # send log of chat in ticket to log channel
+            ticket_log_channel = self.bot.get_channel(
+                self.bot.config.channels.ticket_logs
+            )
+            log_emb = disnake.Embed(
+                title=f"Ticket closed by {inter.author.name}",
+                description=f"Ticket closed by {inter.author.mention}",
+                color=self.bot.config.colors.white,
+            )
+            # get all users in ticket channel
+            user_text = ""
+            for user in inter.channel.members:
+                user_text += f"{user.mention} "
+
+            log_emb.add_field(name="Users in Channel", value=user_text, inline=False)
+
+            # get all messages in ticket channel
+            fields = 2
+            async for message in inter.channel.history(limit=100, oldest_first=True):
+                if fields == 25:
+                    await ticket_log_channel.send(embed=log_emb)
+                    log_emb = disnake.Embed(
+                        color=self.bot.config.colors.white,
+                    )
+                    fields = 1
+                log_emb.add_field(
+                    name=f"{message.author.name}",
+                    value=message.content[:1024],
+                    inline=False,
+                )
+                if len(message.content) > 1024:
+                    log_emb.add_field(
+                        name=f"{message.author.name} (cont.)",
+                        value=message.content[1024:2048],
+                        inline=False,
+                    )
+                fields += 1
+            log_emb.set_footer(text=f"{inter.author}")
+            log_emb.timestamp = datetime.now()
+            await ticket_log_channel.send(embed=log_emb)
             await inter.channel.delete()
         else:
             await errorEmb(inter, "This is not a ticket channel.")
 
     @commands.slash_command(name="adduser", description="Add user to channel")
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def add_user(self, inter, member: disnake.Member):
         if self.check_if_ticket_channel(inter):
             await inter.channel.set_permissions(
@@ -149,7 +190,7 @@ class Tickets(commands.Cog):
             await errorEmb(inter, "This is not a ticket channel.")
 
     @commands.slash_command(name="removeuser", description="Remove user from channel")
-    @commands.has_role("Staff")
+    @commands.has_permissions(manage_roles=True)
     async def remove_user(self, inter, member: disnake.Member):
         if self.check_if_ticket_channel(inter):
             await inter.channel.set_permissions(member, overwrite=None)

@@ -66,17 +66,6 @@ class RedditBot(commands.Cog, name="Reddit Bot"):
             )
             await ctx.send(embed=embed)
 
-    @commands.Cog.listener(name="on_message")
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-        if not message.channel.id == self.bot.config.channels.reddit_bot:
-            return
-
-        content = message.content.lower()
-        # We need regexes or catchphrases to auto reply to the user
-        return
-
 
 def setup(bot):
     bot.add_cog(RedditBot(bot))

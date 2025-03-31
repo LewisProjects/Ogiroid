@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import re
+from typing import Optional
 
 import disnake
+from better_profanity import profanity
 from disnake import Embed, ApplicationCommandInteraction
 from disnake.ext import commands
 
 from utils.CONSTANTS import tag_help
 from utils.DBhandlers import TagManager
+from utils.assorted import getPosition
 from utils.bot import OGIROID
+from utils.db_models import Tag
 from utils.exceptions import *
-from utils.models import *
 from utils.pagination import CreatePaginator
 from utils.shortcuts import QuickEmb, manage_messages_perms, errorEmb
 
@@ -46,28 +49,40 @@ class Tags(commands.Cog, name="Tags"):
         pass
 
     @commands.slash_command(
-        name="t", aliases=["tg"], description="An alias for `/tag get`", hidden=True
+        name="t", description="An alias for `/tag get`", hidden=True
     )
     async def get_tag(
-        self, inter: ApplicationCommandInteraction, *, name: str, embeded: bool = False
+        self,
+        inter: ApplicationCommandInteraction,
+        *,
+        name: str,
+        embedded: Optional[bool] = False,
     ):
-        return await self.get(inter, name, embeded)
+        return await self.get(inter, name, embedded)
 
     @tag.sub_command(name="get", description="Gets you the tags value")
     @commands.guild_only()
     async def get(
-        self, inter: ApplicationCommandInteraction, name: str, embeded: bool = False
+        self,
+        inter: ApplicationCommandInteraction,
+        name: str,
+        embedded: Optional[bool] = False,
     ):
+        await inter.response.defer()
+        if not embedded:
+            embedded = False
+
         if not name:
             return await errorEmb(inter, "You need to specify a tag name")
         name = name.casefold()
         try:
             tag = await self.tags.get(name)
             await self.tags.increment_views(name)
-            if embeded:
+            if embedded:
                 owner = self.bot.get_user(tag.owner)
                 emb = Embed(
-                    color=disnake.Color.random(seed=hash(tag.name)), title=f"{tag.name}"
+                    color=disnake.Color.random(seed=hash(tag.name)),
+                    title=f"{tag.name}",
                 )
                 emb.set_footer(
                     text=f'{f"Tag owned by {owner.display_name}" if owner else ""}    -    Views: {tag.views + 1}'
@@ -97,7 +112,12 @@ class Tags(commands.Cog, name="Tags"):
         *,
         content: str = commands.Param(le=1900),
     ):
+        await inter.response.defer()
         name = name.casefold()
+
+        if not self.bot.config.roles.lvl_5 in [role.id for role in inter.author.roles]:
+            return await errorEmb(inter, "You must be Level 5 to make tags")
+
         try:
             await self.tags.exists(name, TagAlreadyExists, should=False)
         except TagAlreadyExists:
@@ -105,6 +125,14 @@ class Tags(commands.Cog, name="Tags"):
 
         if len(content) >= 1900:
             return await errorEmb(inter, "The tag's content must be under 1900 chars")
+        elif re.match(
+            "(https|http)://(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?",
+            content,
+        ) or re.match("(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?", content):
+            return await errorEmb(inter, "You can't make a tag with an invite")
+        # if content contains slurs or severe profanity
+        elif profanity.contains_profanity(content):
+            return await errorEmb(inter, "You can't make a tag with slurs or profanity")
         elif not await self.valid_name(name):
             return (
                 await QuickEmb(
@@ -137,6 +165,7 @@ class Tags(commands.Cog, name="Tags"):
         *,
         content: str = commands.Param(le=1900),
     ):
+        await inter.response.defer()
         name = await self.tags.get_name(name.casefold())
 
         try:
@@ -160,8 +189,12 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def transfer(
-        self, inter: ApplicationCommandInteraction, name, new_owner: disnake.Member
+        self,
+        inter: ApplicationCommandInteraction,
+        name,
+        new_owner: disnake.Member,
     ):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -188,6 +221,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def claim(self, inter: ApplicationCommandInteraction, name):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -225,6 +259,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 180, commands.BucketType.user)
     async def deltag(self, inter: ApplicationCommandInteraction, name):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -245,6 +280,7 @@ class Tags(commands.Cog, name="Tags"):
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def info(self, inter: ApplicationCommandInteraction, name):
+        await inter.response.defer()
         name = name.casefold()
         try:
             await self.tags.exists(name, TagNotFound, should=True)
@@ -265,19 +301,49 @@ class Tags(commands.Cog, name="Tags"):
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")
 
+    @tag.sub_command(name="leaderboard", description="Lists shows top tags (by views)")
+    @commands.guild_only()
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def leaderboard(self, inter: ApplicationCommandInteraction):
+        await inter.response.defer()
+        try:
+            tags = await self.tags.all(orderby="views", limit=10)
+        except AttributeError:
+            return await errorEmb(inter, "wait for the bot to load")
+        except TagsNotFound:
+            return await errorEmb(inter, "There are no tags")
+        lb_string = ""
+        lb_header = "Place  ***-***  Name  ***-***  Total Views ***-*** Owner"
+
+        for i, tag in enumerate(tags):
+            owner: Optional = self.bot.get_user(tag.owner)
+            if owner is None:
+                username = None
+            else:
+                username = owner.display_name
+            lb_string += f"{getPosition(i)} **-** {tag.name} **-** ***{tag.views}*** **-** {username if username is not None else '**Open tag, no owner. use __/tag claim__**'}\n"
+        embed = disnake.Embed(
+            title="Flag Quiz All time Leaderboard",
+            description=f"The top 10 Tags in this server. Sorted by views\n",
+            color=disnake.Color.random(seed=inter.user.id),
+        )
+        embed.add_field(name=lb_header, value=lb_string)
+        await inter.send(embed=embed)
+
     @tag.sub_command(name="list", description="Lists tags")
     @commands.guild_only()
     @commands.cooldown(1, 15, commands.BucketType.channel)
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def list_tags(self, ctx):
+    async def list_tags(self, inter: ApplicationCommandInteraction):
+        await inter.response.defer()
         try:
             tag_count = await self.tags.count()
         except AttributeError:
-            return await errorEmb(ctx, "wait for the bot to load")
+            return await errorEmb(inter, "wait for the bot to load")
         if tag_count == 0:
-            return await errorEmb(ctx, "There are no tags")
+            return await errorEmb(inter, "There are no tags")
 
-        tags = await self.tags.all(limit=0)
+        tags = await self.tags.all()
         tag_embs = []
         nested_tags = [[]]
         nested_count = 0
@@ -316,11 +382,14 @@ class Tags(commands.Cog, name="Tags"):
         start_emb = Embed(title="Tags", color=self.bot.config.colors.invis)
         start_emb.description = f"There are currently {tag_count:,d} tag{'s' if tag_count > 1 else ''}, use the arrows below to navigate through them"
         tag_embs.insert(0, start_emb)
-        await ctx.send(embed=tag_embs[0], view=CreatePaginator(tag_embs, ctx.author.id))
+        await inter.send(
+            embed=tag_embs[0], view=CreatePaginator(tag_embs, inter.author.id)
+        )
 
     @tag.sub_command(name="rename", description="Renames a tag")
     @commands.guild_only()
     async def rename(self, inter, name, new_name):
+        await inter.response.defer()
         try:
             name = name.casefold()
             new_name = new_name.casefold()
@@ -345,7 +414,8 @@ class Tags(commands.Cog, name="Tags"):
                 )
             await self.tags.rename(name, new_name)
             await QuickEmb(
-                inter, f"I have successfully renamed **{name}** to **{new_name}**."
+                inter,
+                f"I have successfully renamed **{name}** to **{new_name}**.",
             ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")
@@ -380,6 +450,7 @@ class Tags(commands.Cog, name="Tags"):
     @alias.sub_command(name="add", description="Adds an alias to a tag")
     @commands.guild_only()
     async def add_alias(self, inter, name, alias):
+        await inter.response.defer()
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
@@ -409,12 +480,15 @@ class Tags(commands.Cog, name="Tags"):
             return await errorEmb(inter, f"tag **{name}** does not exist")
         except AliasAlreadyExists:
             return await errorEmb(inter, f"alias **{alias}** already exists")
+        except TagAlreadyExists:
+            return await errorEmb(inter, f"tag **{alias}** already exists")
         except AliasLimitReached:
             return await errorEmb(inter, "You can only have 10 aliases per tag")
 
     @alias.sub_command(name="remove", description="Removes an alias from a tag")
     @commands.guild_only()
     async def remove_alias(self, inter, name, alias):
+        await inter.response.defer()
         try:
             name = name.casefold()
             alias = alias.casefold()
@@ -431,7 +505,8 @@ class Tags(commands.Cog, name="Tags"):
                 )
             await self.tags.remove_alias(name, alias)
             await QuickEmb(
-                inter, f"I have successfully removed **{alias}** from **{name}**"
+                inter,
+                f"I have successfully removed **{alias}** from **{name}**",
             ).success().send()
         except TagNotFound:
             return await errorEmb(inter, f"tag **{name}** does not exist")

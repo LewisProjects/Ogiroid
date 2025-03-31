@@ -39,7 +39,7 @@ class Timezone(commands.Cog):
             autocomplete=autocomplete_timezones,
         ),
     ):
-
+        await inter.response.defer()
         if timezone is None:
             return await errorEmb(inter, "You need to provide a timezone")
         elif timezone not in timezones:
@@ -71,6 +71,7 @@ class Timezone(commands.Cog):
             autocomplete=autocomplete_timezones,
         ),
     ):
+        await inter.response.defer()
         if timezone is None:
             return await errorEmb(inter, "You need to provide a timezone")
         elif timezone not in timezones:
@@ -97,6 +98,7 @@ class Timezone(commands.Cog):
         self,
         inter: disnake.ApplicationCommandInteraction,
     ):
+        await inter.response.defer()
         try:
             await self.db_timezone.delete_user(inter.author.id)
         except UserNotFound:
@@ -106,8 +108,11 @@ class Timezone(commands.Cog):
 
     @timezone.sub_command(name="get", description="Get the timezone of a user")
     async def get(
-        self, inter, user: disnake.User = commands.Param(name="user", default=None)
+        self,
+        inter,
+        user: disnake.User = commands.Param(name="user", default=None),
     ):
+        await inter.response.defer()
         if user is None:
             user = inter.author
         else:

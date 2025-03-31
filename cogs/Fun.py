@@ -1,12 +1,15 @@
 import asyncio
+import json
 import os
 import random
 import time
 from datetime import datetime, timezone
+from io import BytesIO
 
 import akinator as ak
 import disnake
 import requests
+from PIL import Image, ImageOps, ImageDraw
 from discord_together import DiscordTogether
 from disnake import Embed, ApplicationCommandInteraction, Member
 from disnake.ext import commands
@@ -20,6 +23,7 @@ from utils.http import HTTPSession
 from utils.shortcuts import errorEmb
 
 load_dotenv("../secrets.env")
+FRAMES = 10
 
 
 class Fun(commands.Cog):
@@ -38,7 +42,8 @@ class Fun(commands.Cog):
             self.togetherControl = await DiscordTogether(TOKEN)
 
     @commands.slash_command(
-        name="spotify", description="Show what song a member is listening to on Spotify"
+        name="spotify",
+        description="Show what song a member is listening to on Spotify",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -131,13 +136,14 @@ class Fun(commands.Cog):
             embed.set_footer(text=f"Poll by {inter.author}")
         embed.timestamp = datetime.now()
 
-        await inter.response.send_message(embed=embed)
+        await inter.send(embed=embed)
         poll = await inter.original_message()  # Gets the message which got sent
         for emoji in emojis:
             await poll.add_reaction(emoji)
 
     @commands.slash_command(
-        name="youtube", description="Watch YouTube in a Discord VC with your friends"
+        name="youtube",
+        description="Watch YouTube in a Discord VC with your friends",
     )
     async def youtube(self, inter):
         """Watch YouTube in a Discord VC with your friends"""
@@ -165,7 +171,7 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 2, commands.BucketType.user)
     async def joke(self, inter: ApplicationCommandInteraction):
         """Get a random joke!"""
-        response = await self.bot.session.get("https://some-random-api.ml/joke")
+        response = await self.bot.session.get("https://some-random-api.com/joke")
         data = await response.json()
         embed = disnake.Embed(title="Joke!", description=data["joke"], color=0xFFFFFF)
         embed.set_footer(
@@ -241,7 +247,9 @@ class Fun(commands.Cog):
             await inter.send(f"{slotmachine} No match, you lost 😢")
 
     @commands.slash_command(
-        name="8ball", brief="8ball", description="Ask the magic 8ball a question"
+        name="8ball",
+        brief="8ball",
+        description="Ask the magic 8ball a question",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def eightball(self, inter: ApplicationCommandInteraction, *, question):
@@ -278,6 +286,8 @@ class Fun(commands.Cog):
     )
     # Credit for this code goes to: Yash230306 - https://github.com/Yash230306/Akinator-Discord-Bot/blob/main/bot.py
     async def askogiroid(self, inter):
+        await inter.response.defer()
+        return await inter.send("Command is disabled for now.")
         async with inter.author.typing():
             intro = disnake.Embed(
                 title="Ogiroid",
@@ -314,80 +324,79 @@ class Fun(commands.Cog):
                 disnake.ui.Button(label="Probably", custom_id="p"),
                 disnake.ui.Button(label="Idk", custom_id="idk"),
                 disnake.ui.Button(
-                    label="Back", custom_id="b", style=disnake.ButtonStyle.blurple
+                    label="Back",
+                    custom_id="b",
+                    style=disnake.ButtonStyle.blurple,
                 ),
             ]
-
-            try:
-                aki = ak.Akinator()
-                q = aki.start_game(language="en")
-                channel = self.bot.get_channel(inter.channel.id)
-                button_click = channel
-                while aki.progression <= 80:
-                    question_number = 0
-                    question = disnake.Embed(
-                        title="Question", description=q, color=0xFFFFFF
-                    )
-                    question_number = question_number + 1
-                    question.set_footer(text=question_number)
-                    question.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
-                    )
-                    await button_click.send(embed=question, components=components)
-                    try:
-                        button_click = await self.bot.wait_for(
-                            "button_click", check=check, timeout=30
-                        )
-                    except asyncio.TimeoutError:
-                        await inter.send(
-                            "Sorry you took too long to respond!(waited for 30sec)"
-                        )
-                        await inter.send(embed=bye)
-                        return
-                    if button_click.component.custom_id == "b":
-                        try:
-                            q = aki.back()
-                        except ak.CantGoBackAnyFurther as e:
-                            await errorEmb(button_click, e)
-                            continue
-                    else:
-                        q = aki.answer(button_click.component.custom_id)
-
-                aki.win()
-                answer = disnake.Embed(
-                    title=f"Your character: {aki.first_guess['name']}",
-                    description=f"Your character is: {aki.first_guess['description']}",
-                    color=0xFFFFFF,
+            aki = ak.Akinator()
+            q = aki.start_game()
+            channel = self.bot.get_channel(inter.channel.id)
+            button_click = channel
+            while aki.progression <= 80:
+                question_number = 0
+                question = disnake.Embed(
+                    title="Question", description=q, color=0xFFFFFF
                 )
-                # answer.set_image(aki.first_guess['absolute_picture_path']) may contain NSFW images
-                answer.set_footer(text="Was I correct?")
-                await button_click.send(
-                    embed=answer, components=[components[0], components[1]]
+                question_number = question_number + 1
+                question.set_footer(text=question_number)
+                question.set_thumbnail(
+                    url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
                 )
-                # await inter.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
+                await button_click.send(embed=question, components=components)
                 try:
-                    correct = await self.bot.wait_for(
+                    button_click = await self.bot.wait_for(
                         "button_click", check=check, timeout=30
                     )
+                    await button_click.response.defer()
                 except asyncio.TimeoutError:
-                    await errorEmb(correct, "Sorry you took too long to respond.")
+                    await inter.send(
+                        "Sorry you took too long to respond!(waited for 30sec)"
+                    )
                     await inter.send(embed=bye)
                     return
-                if correct.component.custom_id == "y":
-                    yes = disnake.Embed(title="Yeah!!!", color=0xFFFFFF)
-                    yes.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
-                    )
-                    await correct.send(embed=yes)
+                if button_click.component.custom_id == "b":
+                    try:
+                        q = aki.back()
+                    except ak.CantGoBackAnyFurther as e:
+                        await errorEmb(button_click, e)
+                        continue
                 else:
-                    no = disnake.Embed(title="Oh Noooooo!!!", color=0xFFFFFF)
-                    no.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
-                    )
-                    await correct.send(embed=no)
-                await channel.send(embed=bye)
-            except Exception as e:
-                await errorEmb(inter, e)
+                    q = aki.answer(button_click.component.custom_id)
+
+            aki.win()
+            answer = disnake.Embed(
+                title=f"Your character: {aki.first_guess['name']}",
+                description=f"Your character is: {aki.first_guess['description']}",
+                color=0xFFFFFF,
+            )
+            # answer.set_image(aki.first_guess['absolute_picture_path']) may contain NSFW images
+            answer.set_footer(text="Was I correct?")
+            await button_click.send(
+                embed=answer, components=[components[0], components[1]]
+            )
+            # await inter.send(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?(y/n)\n{aki.first_guess['absolute_picture_path']}\n\t")
+            try:
+                correct = await self.bot.wait_for(
+                    "button_click", check=check, timeout=30
+                )
+            except asyncio.TimeoutError:
+                await errorEmb(correct, "Sorry you took too long to respond.")
+                await inter.send(embed=bye)
+                return
+            if correct.component.custom_id == "y":
+                yes = disnake.Embed(title="Yeah!!!", color=0xFFFFFF)
+                yes.set_thumbnail(
+                    url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                )
+                await correct.send(embed=yes)
+            else:
+                no = disnake.Embed(title="Oh Noooooo!!!", color=0xFFFFFF)
+                no.set_thumbnail(
+                    url="https://media.discordapp.net/attachments/985729550732394536/987287532146393109/discord-avatar-512-NACNJ.png"
+                )
+                await correct.send(embed=no)
+            await channel.send(embed=bye)
 
     @commands.slash_command(
         name="bored", brief="activity", description="Returns an activity"
@@ -395,15 +404,16 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def bored(self, inter):
         """Returns an activity"""
-        async with HTTPSession() as activitySession:
-            async with activitySession.get(
-                f"https://boredapi.com/api/activity", ssl=False
-            ) as activityData:  # keep as http
-                activity = await activityData.json()
-                await inter.send(activity["activity"])
+
+        with open("utils/data/activities.json", "r") as f:
+            activities = json.load(f)
+
+        activity = random.choice(activities)
+        await inter.send(activity["activity"])
 
     @commands.slash_command(
-        name="morse", description="Encode text into morse code and decode morse code."
+        name="morse",
+        description="Encode text into morse code and decode morse code.",
     )
     async def morse(self, inter):
         pass
@@ -413,7 +423,6 @@ class Fun(commands.Cog):
         encoded_list = []
 
         for char in text:
-
             for key in self.morse:
                 if key == char.lower():
                     encoded_list.append(self.morse[key])
@@ -427,7 +436,6 @@ class Fun(commands.Cog):
         morse_list = morse_code.split()
 
         for item in morse_list:
-
             for key, value in self.morse.items():
                 if value == item:
                     decoded_list.append(key)
@@ -460,7 +468,8 @@ class Fun(commands.Cog):
             embed.add_field(name="Height", value=f"{poke_data['height']}m")
             embed.add_field(name="Weight", value=f"{poke_data['weight']}kg")
             embed.add_field(
-                name="Abilities", value=poke_data["abilities"][0]["ability"]["name"]
+                name="Abilities",
+                value=poke_data["abilities"][0]["ability"]["name"],
             )
             embed.add_field(name="Base Experience", value=poke_data["base_experience"])
             embed.add_field(name="Species", value=poke_data["species"]["name"])
@@ -488,6 +497,81 @@ class Fun(commands.Cog):
             return await errorEmb(
                 inter, "An unexpected error occurred! Please try again later."
             )
+
+    @commands.slash_command(
+        name="pat", description="Create a pat gif from a user's avatar"
+    )
+    async def pat(
+        self, inter: disnake.ApplicationCommandInteraction, user: disnake.User = None
+    ):
+        await inter.response.defer()
+        frames = await get_frames()
+        delay: int = 20
+        resolution: int = 120
+
+        img_url = user.avatar.url if user else inter.author.avatar.url
+
+        avatar = await load_image(img_url)
+
+        gif = []
+
+        for i in range(FRAMES):
+            img = Image.new("RGBA", (resolution, resolution), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+
+            j = i if i < FRAMES / 2 else FRAMES - i
+            width = 0.8 + j * 0.02
+            height = 0.8 - j * 0.05
+            offset_x = (1 - width) * 0.5 + 0.1
+            offset_y = 1 - height - 0.08
+
+            draw.rectangle((0, 0, resolution, resolution), fill=(0, 0, 0, 0))
+            img.paste(
+                avatar.resize(
+                    (int(resolution * width), int(resolution * height)),
+                    Image.LANCZOS,
+                ),
+                (int(resolution * offset_x), int(resolution * offset_y)),
+            )
+
+            img.paste(frames[i], mask=frames[i])
+            img = ImageOps.fit(img, (resolution, resolution), Image.LANCZOS)
+            gif.append(img)
+        with BytesIO() as image_binary:
+            gif[0].save(
+                image_binary,
+                format="GIF",
+                save_all=True,
+                append_images=gif[1:],
+                optimize=False,
+                duration=20,
+                loop=0,
+                disposal=2,
+            )
+            image_binary.seek(0)
+            await inter.send(file=disnake.File(image_binary, "pat.gif"))
+
+
+async def get_frames():
+    frames = []
+
+    for i in range(FRAMES):
+        url = (
+            f"https://raw.githubusercontent.com/VenPlugs/petpet/main/frames/pet{i}.gif"
+        )
+        response = requests.get(url)
+        img = Image.open(BytesIO(response.content))
+        img = img.convert("RGBA")
+        img.seek(0)
+        frames.append(img)
+
+    return frames
+
+
+async def load_image(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img
 
 
 def setup(bot):

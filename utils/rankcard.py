@@ -42,7 +42,9 @@ class Rankcard:
             "STATUS_POS": (290, 330, -40, 20),
         }
 
-    async def getavatar(self, user: Union[disnake.User, disnake.Member]) -> bytes:
+    async def getavatar(
+        self, user: Union[disnake.User, disnake.Member]
+    ) -> bytes:
         async with session.get(str(user.display_avatar.url)) as response:
             avatarbytes = await response.read()
         with Image.open(BytesIO(avatarbytes)) as im:
@@ -80,11 +82,12 @@ Rank #{rank:,d}"""
 
         # status
         try:
-
             if user.status == disnake.Status.online:
                 draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(67, 181, 129))
             elif user.status == disnake.Status.offline:
-                draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(116, 127, 141))
+                draw.ellipse(
+                    self.POSITIONS["STATUS_POS"], fill=(116, 127, 141)
+                )
             elif user.status == disnake.Status.dnd:
                 draw.ellipse(self.POSITIONS["STATUS_POS"], fill=(240, 71, 71))
             elif user.status == disnake.Status.idle:

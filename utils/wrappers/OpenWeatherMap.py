@@ -16,7 +16,9 @@ class Temperature:
         return "{} K".format(round(self.temperature, 2))
 
     def __repr__(self):
-        return "Temperature=({}, default_type=K)".format(round(self.temperature, 2))
+        return "Temperature=({}, default_type=K)".format(
+            round(self.temperature, 2)
+        )
 
     @property
     def kelvin(self):
@@ -68,7 +70,9 @@ class Weather:
         self.country = data["sys"]["country"]
         self.wind = Wind(data["wind"])
         self.icon = data["weather"][0]["icon"]
-        self.iconUrl = "https://openweathermap.org/img/wn/{}@2x.png".format(self.icon)
+        self.iconUrl = "https://openweathermap.org/img/wn/{}@2x.png".format(
+            self.icon
+        )
         self.temp = Temperature(data["main"]["temp"])
         self.tempMin = Temperature(data["main"]["temp_min"])
         self.tempMax = Temperature(data["main"]["temp_max"])
@@ -104,9 +108,7 @@ class OpenWeatherAPI:
         """
         self.apiKey = key
         self.session = session or aiohttp.ClientSession()
-        self.baseUrl = (
-            "https://api.openweathermap.org/data/2.5/weather?{type}={query}&appid={key}"
-        )
+        self.baseUrl = "https://api.openweathermap.org/data/2.5/weather?{type}={query}&appid={key}"
 
     async def get(self, _type, query):
         """Get weather report."""

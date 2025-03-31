@@ -25,13 +25,15 @@ class ImageCommands(commands.Cog, name="Image"):
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def triggered(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member = None,
     ):
         """Time to get triggered."""
         if not member:
             member = inter.author
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/triggered?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/triggered?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "triggered.gif"))
@@ -43,7 +45,9 @@ class ImageCommands(commands.Cog, name="Image"):
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def amongus(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member = None,
     ):
         """Check if your friends are sus or not"""
         await inter.send("Testing for sus-ness...")
@@ -51,7 +55,7 @@ class ImageCommands(commands.Cog, name="Image"):
             member = inter.author
         impostor = random.choice(["true", "false"])
         apikey = os.getenv("SRA_API_KEY")
-        uri = f"https://some-random-api.ml/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
+        uri = f"https://some-random-api.com/premium/amongus?username={member.name}&avatar={member.display_avatar.url}&impostor={impostor}&key={apikey}"
         resp = await self.bot.session.get(uri)
         if 300 > resp.status >= 200:
             fp = io.BytesIO(await resp.read())
@@ -60,65 +64,81 @@ class ImageCommands(commands.Cog, name="Image"):
             await inter.send("Couldnt get image :(")
 
     @commands.slash_command(
-        name="invert", brief="invert", description="Invert the colours of your icon"
+        name="invert",
+        brief="invert",
+        description="Invert the colours of your icon",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def invert(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member = None,
     ):
         """Invert your profile picture."""
         if not member:
             member = inter.author
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/invert/?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/invert/?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "invert.png"))
 
     @commands.slash_command(
-        name="pixelate", brief="pixelate", description="Turn yourself into 144p!"
+        name="pixelate",
+        brief="pixelate",
+        description="Turn yourself into 144p!",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pixelate(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member = None,
     ):
         """Turn yourself into pixels"""
         if not member:
             member = inter.author
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/pixelate/?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/pixelate/?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "pixelate.png"))
 
-    @commands.slash_command(name="jail", brief="jail", description="Go to jail!")
+    @commands.slash_command(
+        name="jail", brief="jail", description="Go to jail!"
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def jail(
-        self, inter: ApplicationCommandInteraction, member: disnake.Member = None
+        self,
+        inter: ApplicationCommandInteraction,
+        member: disnake.Member = None,
     ):
         """Go to horny jail"""
         if not member:
             member = inter.author
 
         trigImg = await self.bot.session.get(
-            f"https://some-random-api.ml/canvas/jail?avatar={member.display_avatar.url}"
+            f"https://some-random-api.com/canvas/jail?avatar={member.display_avatar.url}"
         )
         imageData = io.BytesIO(await trigImg.read())
         await inter.send(file=disnake.File(imageData, "jail.png"))
 
-    @commands.slash_command(name="urltoqr", description="Converts a URL to a QR code.")
-    async def urltoqr(self, inter: ApplicationCommandInteraction, url: str, size: int):
+    @commands.slash_command(
+        name="urltoqr", description="Converts a URL to a QR code."
+    )
+    async def urltoqr(
+        self, inter: ApplicationCommandInteraction, url: str, size: int
+    ):
         url = url.replace("http://", "").replace("https://", "")
-        qr = (
-            f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
-        )
+        qr = f"https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={url}"
         embed = disnake.Embed(title=f"URL created for: {url}", color=0xFFFFFF)
         embed.set_image(url=qr)
         embed.set_footer(text=f"Requested by: {inter.author.name}")
         return await inter.send(embed=embed)
 
     @staticmethod
-    def draw_multiple_line_text(image, text, font, text_color, text_start_height):
+    def draw_multiple_line_text(
+        image, text, font, text_color, text_start_height
+    ):
         draw = ImageDraw.Draw(image)
         image_width, image_height = image.size
         y_text = text_start_height
@@ -168,11 +188,17 @@ class ImageCommands(commands.Cog, name="Image"):
         font = ImageFont.truetype("utils/data/Roboto-Italic.ttf", 50)
         font2 = ImageFont.truetype("utils/data/Roboto-Bold.ttf", 50)
         if len(quote) > 350:
-            text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 500
+            text_start_height = (
+                image.height - font.getbbox(quote)[3]
+            ) / 2 - 500
         elif len(quote) > 250:
-            text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 200
+            text_start_height = (
+                image.height - font.getbbox(quote)[3]
+            ) / 2 - 200
         elif len(quote) > 150:
-            text_start_height = (image.height - font.getbbox(quote)[3]) / 2 - 50
+            text_start_height = (
+                image.height - font.getbbox(quote)[3]
+            ) / 2 - 50
         else:
             text_start_height = (image.height - font.getbbox(quote)[3]) / 2
         end = self.draw_multiple_line_text(
@@ -199,7 +225,9 @@ class ImageCommands(commands.Cog, name="Image"):
         with BytesIO() as image_binary:
             image.save(image_binary, "PNG")
             image_binary.seek(0)
-            await inter.send(file=disnake.File(fp=image_binary, filename="image.png"))
+            await inter.send(
+                file=disnake.File(fp=image_binary, filename="image.png")
+            )
 
 
 def setup(bot):
