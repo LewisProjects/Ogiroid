@@ -249,7 +249,8 @@ class Commands(commands.Cog):
     async def whois(self, inter, *, user: Optional[disnake.Member] = None):
         """Shows info about a user."""
         if user == None:
-            user: disnake.Member = inter.author
+            user = inter.author
+            
         e = disnake.Embed(description="")
         roles = [
             role.name.replace("@", "@\u200b")

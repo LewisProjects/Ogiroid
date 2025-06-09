@@ -51,7 +51,7 @@ class Blacklist(Cog):
     async def on_ready(self):
         if not self.bot.ready_:
             await self.bot.wait_until_ready()
-            self.blacklisthandler: BlacklistHandler = self.bot.blacklist
+            self.blacklisthandler = self.bot.blacklist
             self.check_blacklist.start()
 
     @commands.slash_command(description="Blacklist base command")

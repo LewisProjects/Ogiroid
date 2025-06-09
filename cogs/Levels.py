@@ -186,7 +186,7 @@ class LevelsController:
 
     async def on_cooldown(self, message) -> bool:
         bucket = self._cooldown.get_bucket(message)
-        on_cooldown = bucket.update_rate_limit()  # type: ignore
+        on_cooldown = bucket.update_rate_limit()  
         if on_cooldown is not None:
             return True
         return False
@@ -233,7 +233,7 @@ class LevelsController:
                 member=member,
                 total_xp=LEVELS_AND_XP[level],
                 guild_id=member.guild.id,
-            )  # type: ignore
+            )  
             self.cache[f"levels_{member.id}_{member.guild.id}"] = Levels(
                 total_xp=LEVELS_AND_XP[level],
                 guild_id=member.guild.id,
@@ -288,7 +288,7 @@ class LevelsController:
             member=message.author,
             guild_id=message.guild.id,
             total_xp=user.total_xp,
-        )  # type: ignore
+        )  
 
         if user.level > old_level:
             self.bot.dispatch("level_up", message, user.level)

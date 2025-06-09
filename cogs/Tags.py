@@ -118,7 +118,7 @@ class Tags(commands.Cog, name="Tags"):
         await inter.response.defer()
         name = name.casefold()
 
-        if not self.bot.config.roles.lvl_5 in [role.id for role in inter.author.roles]: # type: ignore
+        if not self.bot.config.roles.lvl_5 in [role.id for role in inter.author.roles]: 
             return await errorEmb(inter, "You must be Level 5 to make tags")
 
         try:
@@ -129,9 +129,9 @@ class Tags(commands.Cog, name="Tags"):
         if len(content) >= 1900:
             return await errorEmb(inter, "The tag's content must be under 1900 chars")
         elif re.match(
-            "(https|http)://(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?", # type: ignore
+            "(https|http)://(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?", 
             content,
-        ) or re.match("(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?", content): # type: ignore
+        ) or re.match("(dsc\.gg|discord\.gg|discord\.io|dsc\.lol)/?[\S]+/?", content): 
             return await errorEmb(inter, "You can't make a tag with an invite")
         # if content contains slurs or severe profanity
         elif profanity.contains_profanity(content):
@@ -173,7 +173,7 @@ class Tags(commands.Cog, name="Tags"):
 
         try:
             if (
-                inter.author.id != (await self.tags.get(name)).owner # type: ignore
+                inter.author.id != (await self.tags.get(name)).owner 
             ) and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You do not have permission to edit this tag"
@@ -204,7 +204,7 @@ class Tags(commands.Cog, name="Tags"):
             if new_owner.bot:
                 return await errorEmb(inter, "You can't transfer a tag to a bot!")
             elif (
-                inter.author.id != (await self.tags.get(name)).owner # type: ignore
+                inter.author.id != (await self.tags.get(name)).owner 
             ) and not manage_messages_perms(inter):
                 return await errorEmb(
                     inter, "You must be the owner of the tag to transfer it!"
@@ -228,11 +228,11 @@ class Tags(commands.Cog, name="Tags"):
         try:
             name = name.casefold()
             await self.tags.exists(name, TagNotFound, should=True)
-            if (await self.tags.get(name)).owner == inter.author.id: # type: ignore
+            if (await self.tags.get(name)).owner == inter.author.id: 
                 return await errorEmb(inter, "You already own this tag!")
             elif (
-                inter.author.guild_permissions.manage_messages # type: ignore
-                or inter.author.guild_permissions.administrator # type: ignore
+                inter.author.guild_permissions.manage_messages 
+                or inter.author.guild_permissions.administrator 
             ):
                 await self.tags.transfer(name, inter.author.id)
                 return (
@@ -240,8 +240,8 @@ class Tags(commands.Cog, name="Tags"):
                     .success()
                     .send()
                 )
-            elif (await self.tags.get(name)).owner in [ # type: ignore
-                member.id for member in inter.guild.members # type: ignore
+            elif (await self.tags.get(name)).owner in [ 
+                member.id for member in inter.guild.members 
             ]:
                 return await errorEmb(
                     inter, "The owner of this tag is still in this guild!"
@@ -250,7 +250,7 @@ class Tags(commands.Cog, name="Tags"):
             return (
                 await QuickEmb(
                     inter,
-                    f"You have now claimed this tag because the previous owner of the tag is no longer in {inter.guild.name}", # type: ignore
+                    f"You have now claimed this tag because the previous owner of the tag is no longer in {inter.guild.name}", 
                 )
                 .success()
                 .send()
@@ -268,7 +268,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.exists(name, TagNotFound, should=True)
             if not inter.author.id == (
                 await self.tags.get(name)
-            ).owner and not manage_messages_perms(inter): # type: ignore
+            ).owner and not manage_messages_perms(inter): 
                 return await errorEmb(
                     inter, "You must be the owner of the tag to delete it!"
                 )
@@ -410,7 +410,7 @@ class Tags(commands.Cog, name="Tags"):
             await self.tags.exists(new_name, TagAlreadyExists, should=False)
             if not inter.author.id == (
                 await self.tags.get(name)
-            ).owner and not manage_messages_perms(inter): # type: ignore
+            ).owner and not manage_messages_perms(inter): 
                 return await errorEmb(
                     inter, "You must be the owner of the tag to rename it!"
                 )
@@ -469,7 +469,7 @@ class Tags(commands.Cog, name="Tags"):
 
             if not inter.author.id == (
                 await self.tags.get(name)
-            ).owner and not manage_messages_perms(inter): # type: ignore
+            ).owner and not manage_messages_perms(inter): 
                 return await errorEmb(
                     inter, "You must be the owner of the tag to delete it!"
                 )
@@ -510,7 +510,7 @@ class Tags(commands.Cog, name="Tags"):
                 )
             elif not inter.author.id == (
                 await self.tags.get(name)
-            ).owner and not manage_messages_perms(inter): # type: ignore
+            ).owner and not manage_messages_perms(inter): 
                 return await errorEmb(
                     inter, "You must be the owner of the tag to delete it!"
                 )
